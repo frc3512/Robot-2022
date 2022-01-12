@@ -70,15 +70,15 @@ void Robot::ExpectAutonomousEndConds() {
         EXPECT_FALSE(m_autonChooser.IsSuspended())
             << "Autonomous mode didn't finish within the autonomous period";
 
-        // EXPECT_TRUE(drivetrain.AtGoal());
+        EXPECT_TRUE(drivetrain.AtGoal());
 
         // Verify left/right wheel velocities are close to zero
-        /* EXPECT_NEAR(
+        EXPECT_NEAR(
             drivetrain.GetStates()(DrivetrainController::State::kLeftVelocity),
-            0.0, 0.01); */
-        /* EXPECT_NEAR(
+            0.0, 0.01);
+        EXPECT_NEAR(
             drivetrain.GetStates()(DrivetrainController::State::kRightVelocity),
-            0.0, 0.01); */
+            0.0, 0.01);
     }
 }
 

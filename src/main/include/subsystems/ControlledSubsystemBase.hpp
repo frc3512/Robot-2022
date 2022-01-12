@@ -9,6 +9,7 @@
 
 #include <Eigen/Core>
 #include <fmt/core.h>
+#include <fmt/format.h>
 #include <frc/DriverStation.h>
 #include <frc/RobotBase.h>
 #include <frc/Threads.h>
@@ -58,7 +59,7 @@ public:
         const std::array<ControllerLabel, Outputs>& outputLabels)
         : m_csvLogger{controllerName, stateLabels, inputLabels, outputLabels},
           m_ntLogger{controllerName, stateLabels, inputLabels, outputLabels},
-          m_timingLogger{(controllerName + " timing").str(),
+          m_timingLogger{fmt::format("{} timing", controllerName),
                          "Loop duration (ms)", "Scheduling period (ms)"} {
         m_entryThreadRunning = true;
         m_entryThread = std::thread{[=] { EntryThreadMain(); }};
@@ -87,7 +88,7 @@ public:
         // m_lastTime is reset so that a large time delta isn't generated from
         // Update() not being called in a while.
         m_lastTime =
-            frc2::Timer::GetFPGATimestamp() - Constants::kControllerPeriod;
+            frc::Timer::GetFPGATimestamp() - Constants::kControllerPeriod;
         m_isEnabled = true;
     }
 
@@ -115,7 +116,7 @@ public:
      * Computes current timestep's dt.
      */
     void UpdateDt() {
-        m_nowBegin = frc2::Timer::GetFPGATimestamp();
+        m_nowBegin = frc::Timer::GetFPGATimestamp();
         m_dt = m_nowBegin - m_lastTime;
 
         if (m_dt == 0_s) {
@@ -141,7 +142,7 @@ public:
              const Eigen::Matrix<double, States, 1>& x,
              const Eigen::Matrix<double, Inputs, 1>& u,
              const Eigen::Matrix<double, Outputs, 1>& y) {
-        m_entryQueue.emplace(m_nowBegin, frc2::Timer::GetFPGATimestamp(), r, x,
+        m_entryQueue.emplace(m_nowBegin, frc::Timer::GetFPGATimestamp(), r, x,
                              u, y);
         m_lastTime = m_nowBegin;
     }
