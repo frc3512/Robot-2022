@@ -7,6 +7,7 @@
 #include <ctime>
 #include <fstream>
 #include <string>
+#include <string_view>
 
 #include <units/time.h>
 
@@ -38,7 +39,7 @@ class LogFile {
    *
    * @param text The text to be logged in the file.
    */
-  void Log(const std::string_view& text);
+  void Log(std::string_view text);
 
   /**
    * Flushes lines written to the log file to disk.

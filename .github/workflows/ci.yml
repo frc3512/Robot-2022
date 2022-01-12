@@ -97,8 +97,9 @@ jobs:
       - name: Run doxygen
         run: ./gradlew doxygen -Ptoolchain-optional-roboRio
 
-      - name: Copy Markdown docs
-        run: cp README.md docs/*.md build/docs
+      #	 TODO: uncomment this once we have algorithm/subsystem markdown files present in the docs folder
+      # - name: Copy Markdown docs
+      # run: cp README.md docs/*.md build/docs
 
       - uses: actions/upload-artifact@v2
         with:

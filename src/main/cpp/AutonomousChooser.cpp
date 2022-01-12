@@ -9,6 +9,7 @@
 #include <frc/Threads.h>
 #include <frc/Timer.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <networktables/NTSendableBuilder.h>
 
 #include "RealTimePriorities.hpp"
 
@@ -184,7 +185,7 @@ bool AutonomousChooser::IsSuspended() const {
     return m_autonThread.joinable() && m_autonRunning;
 }
 
-void AutonomousChooser::InitSendable(frc::SendableBuilderImpl& builder) {
+void AutonomousChooser::InitSendable(nt::NTSendableBuilder& builder) {
     builder.SetSmartDashboardType("String Chooser");
 
     builder.GetEntry("default").SetString(m_defaultChoice);

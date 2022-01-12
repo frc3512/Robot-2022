@@ -3,6 +3,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 
 #include <Eigen/Core>
 #include <networktables/NetworkTableEntry.h>

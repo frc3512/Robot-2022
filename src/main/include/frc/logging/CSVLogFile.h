@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 
@@ -95,7 +96,7 @@ class CSVLogFile {
    */
   template <typename Value, typename... Values>
   void Log(Value value, Values... values) {
-    Log(frc2::Timer::GetFPGATimestamp() - GetStartTime(), value, values...);
+    Log(frc::Timer::GetFPGATimestamp() - GetStartTime(), value, values...);
   }
 
   /**
@@ -137,7 +138,7 @@ class CSVLogFile {
    * @return The text with all its double quotes escaped.
    */
   std::string EscapeDoubleQuotes(std::string_view text) const {
-    std::string textString = std::string{text};
+    std::string textString{text};
     for (std::string::size_type i = 0; i < text.size(); i++) {
       if (text[i] == '\"') {
         i++;

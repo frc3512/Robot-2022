@@ -2,26 +2,93 @@
 
 #include "Robot.hpp"
 
-void Robot::RobotInit() {}
+#include <stdexcept>
 
-void Robot::RobotPeriodic() {}
+#include <frc/DriverStation.h>
 
-void Robot::AutonomousInit() {}
+#include "Constants.hpp"
+#include "RealTimePriorities.hpp"
+#include "logging/CSVUtil.hpp"
 
-void Robot::AutonomousPeriodic() {}
+namespace frc3512 {
 
-void Robot::TeleopInit() {}
+Robot::Robot() {}
 
-void Robot::TeleopPeriodic() {}
+Robot::~Robot() {}
 
-void Robot::DisabledInit() {}
+units::second_t Robot::SelectedAutonomousDuration() const {
+    return m_autonChooser.SelectedAutonomousDuration();
+}
 
-void Robot::DisabledPeriodic() {}
+void Robot::SimulationInit() { SubsystemBase::RunAllSimulationInit(); }
 
-void Robot::TestInit() {}
+void Robot::DisabledInit() {
+    m_autonChooser.ResumeAutonomous();
+    SubsystemBase::RunAllDisabledInit();
+}
 
-void Robot::TestPeriodic() {}
+void Robot::AutonomousInit() {
+    SubsystemBase::RunAllAutonomousInit();
+    m_autonChooser.AwaitAutonomous();
+}
+
+void Robot::TeleopInit() {
+    m_autonChooser.CancelAutonomous();
+    SubsystemBase::RunAllTeleopInit();
+}
+
+void Robot::TestInit() {
+    m_autonChooser.ResumeAutonomous();
+    SubsystemBase::RunAllTestInit();
+}
+
+void Robot::RobotPeriodic() { SubsystemBase::RunAllRobotPeriodic(); }
+
+void Robot::SimulationPeriodic() { SubsystemBase::RunAllSimulationPeriodic(); }
+
+void Robot::DisabledPeriodic() { SubsystemBase::RunAllDisabledPeriodic(); }
+
+void Robot::AutonomousPeriodic() {
+    SubsystemBase::RunAllAutonomousPeriodic();
+    m_autonChooser.ResumeAutonomous();
+}
+
+void Robot::TeleopPeriodic() { SubsystemBase::RunAllTeleopPeriodic(); }
+
+void Robot::TestPeriodic() { SubsystemBase::RunAllTestPeriodic(); }
+
+void Robot::SelectAutonomous(std::string_view name) {
+    m_autonChooser.SelectAutonomous(name);
+}
+
+const std::vector<std::string>& Robot::GetAutonomousNames() const {
+    return m_autonChooser.GetAutonomousNames();
+}
+
+void Robot::ExpectAutonomousEndConds() {
+    if constexpr (IsSimulation()) {
+        EXPECT_FALSE(m_autonChooser.IsSuspended())
+            << "Autonomous mode didn't finish within the autonomous period";
+
+        // EXPECT_TRUE(drivetrain.AtGoal());
+
+        // Verify left/right wheel velocities are close to zero
+        /* EXPECT_NEAR(
+            drivetrain.GetStates()(DrivetrainController::State::kLeftVelocity),
+            0.0, 0.01); */
+        /* EXPECT_NEAR(
+            drivetrain.GetStates()(DrivetrainController::State::kRightVelocity),
+            0.0, 0.01); */
+    }
+}
+
+}  // namespace frc3512
 
 #ifndef RUNNING_FRC_TESTS
-int main() { return frc::StartRobot<Robot>(); }
+int main() {
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        frc3512::DeleteCSVs();
+    }
+    return frc::StartRobot<frc3512::Robot>();
+}
 #endif
