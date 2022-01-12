@@ -1,0 +1,30 @@
+cppHeaderFileInclude {
+  \.h$
+  \.hpp$
+  \.inl$
+  \.inc$
+}
+
+cppSrcFileInclude {
+  \.cpp$
+}
+
+modifiableFileExclude {
+  gradle/
+  gradlew
+  \.png$
+}
+
+includeOtherLibs {
+  Eigen/
+  drake/
+  fmt/
+  frc/
+  gtest/
+  hal/
+  networktables/
+  photonlib/
+  rev/.*?\.h$
+  units/
+  wpi/
+}

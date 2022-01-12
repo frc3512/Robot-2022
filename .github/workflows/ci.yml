@@ -1,0 +1,107 @@
+name: CI
+
+on: [push, pull_request]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Fetch all history and metadata
+      run: |
+        git fetch --prune --unshallow
+        git checkout -b pr
+        git branch -f main origin/main
+    - name: Install clang-format
+      run: |
+        sudo sh -c "echo 'deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -cs)-proposed restricted main multiverse universe' >> /etc/apt/sources.list.d/proposed-repositories.list"
+        sudo apt-get update -q
+        sudo apt-get install -y clang-format-12
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install wpiformat
+      run: pip3 install wpiformat
+
+    - name: Run wpiformat
+      run: wpiformat -clang 12
+
+    - name: Verify wpiformat made no changes
+      run: git --no-pager diff --exit-code HEAD
+  build-athena:
+    runs-on: ubuntu-latest
+
+    container: wpilib/roborio-cross-ubuntu:2022-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Compile robot code for Athena
+      run: ./gradlew buildAthena
+  test:
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux
+            build-options: "-Ponlylinuxx86-64"
+          - os: windows-latest
+            name: windows
+            build-options: "-Ponlywindowsx86-64"
+          - os: macos-latest
+            name: macos
+            build-options: "-Ponlymacosx86-64"
+          #- os: ubuntu-latest
+          #  name: asan
+          #  build-options: "-Ponlylinuxx86-64 -Pasan"
+          #- os: ubuntu-latest
+          #  name: tsan
+          #  build-options: "-Ponlylinuxx86-64 -Ptsan"
+          #- os: ubuntu-latest
+          #  name: ubsan
+          #  build-options: "-Ponlylinuxx86-64 -Pubsan"
+    name: "test-${{ matrix.name }}"
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-java@v1
+      with:
+        java-version: 11
+        architecture: x64
+
+    - name: Compile and run x86-64 unit tests
+      run: ./gradlew testRelease -Ptoolchain-optional-roboRio ${{ matrix.build-options }}
+
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install libclang-9
+        run: sudo apt update && sudo apt install -y libclang-cpp9 libclang1-9
+
+      - name: Run doxygen
+        run: ./gradlew doxygen -Ptoolchain-optional-roboRio
+
+      #	 TODO: uncomment this once we have algorithm/subsystem markdown files present in the docs folder
+      # - name: Copy Markdown docs
+      # run: cp README.md docs/*.md build/docs
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: documentation
+          path: build/docs
