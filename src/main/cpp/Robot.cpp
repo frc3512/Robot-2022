@@ -5,8 +5,10 @@
 #include <stdexcept>
 
 #include <frc/DriverStation.h>
+#include <frc/Joystick.h>
 
 #include "Constants.hpp"
+#include "HWConfig.hpp"
 #include "RealTimePriorities.hpp"
 #include "logging/CSVUtil.hpp"
 
@@ -53,7 +55,18 @@ void Robot::AutonomousPeriodic() {
     m_autonChooser.ResumeAutonomous();
 }
 
-void Robot::TeleopPeriodic() { SubsystemBase::RunAllTeleopPeriodic(); }
+void Robot::TeleopPeriodic() {
+    SubsystemBase::RunAllTeleopPeriodic();
+
+    static frc::Joystick appendageStick1{HWConfig::appendageStick1PortID};
+    static frc::Joystick driveStick1{HWConfig::driveStick1PortID};
+
+    if (appendageStick1.GetRawButton(1)) {
+        m_state = ClimbingStates::kSecondRung;
+    }
+
+    ClimbingSequenceSM();
+}
 
 void Robot::TestPeriodic() { SubsystemBase::RunAllTestPeriodic(); }
 
@@ -79,6 +92,64 @@ void Robot::ExpectAutonomousEndConds() {
         EXPECT_NEAR(
             drivetrain.GetStates()(DrivetrainController::State::kRightVelocity),
             0.0, 0.01);
+    }
+}
+
+void Robot::ClimbingSequenceSM() {
+    switch (m_state) {
+        case ClimbingStates::kSecondRung: {
+            ClimbingSequence();
+
+            break;
+        }
+        case ClimbingStates::kThridRung: {
+            ClimbingSequence();
+            break;
+        }
+        case ClimbingStates::kTraversalRung: {
+            m_state = ClimbingStates::kManual;
+            break;
+        }
+        case ClimbingStates::kManual: {
+            break;
+        }
+        default: {
+            m_state = ClimbingStates::kManual;
+            break;
+        }
+    }  // Climbing State Machine End
+}
+
+void Robot::ClimbingSequence() {
+    solenoidTimer.Start();
+    if (solenoidTimer.HasElapsed(1_s)) {
+        climber.TelescopingOut();
+    } else if ((!climber.BarSensor()) && (!climber.UpperSensor())) {
+        climber.TelescopingExtention(0.65);
+    }
+
+    if (climber.UpperSensor()) {
+        climber.TelescopingExtention(0.00);
+    }
+
+    if ((climber.BarSensor()) && (!climber.LowerSensor())) {
+        climber.TelescopingExtention(-0.65);
+    }
+
+    if (climber.LowerSensor()) {
+        climber.TelescopingExtention(0.00);
+    }
+
+    if ((climber.LowerSensor()) && (solenoidTimer.HasElapsed(8_s))) {
+        climber.TelescopingIn();
+        solenoidTimer.Stop();
+        solenoidTimer.Reset();
+
+        if (m_state == ClimbingStates::kSecondRung) {
+            m_state = ClimbingStates::kThridRung;
+        } else {
+            m_state = ClimbingStates::kTraversalRung;
+        }
     }
 }
 

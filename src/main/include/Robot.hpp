@@ -14,6 +14,7 @@
 #include "AutonomousChooser.hpp"
 #include "NetworkTableUtil.hpp"
 #include "subsystems/Drivetrain.hpp"
+#include "subsystems/Climber.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
 #if RUNNING_FRC_TESTS
@@ -52,6 +53,18 @@ public:
     Robot();
 
     ~Robot();
+    /**
+     * States used for climbing state machine
+     */
+    enum class ClimbingStates {
+        kSecondRung,
+        kThridRung,
+        kTraversalRung,
+        kManual
+    };
+
+    /// The Climber Subsystem
+    Climber climber;
 
     /**
      * Returns the selected autonomous mode's expected duration.
@@ -144,9 +157,19 @@ public:
      */
     void ExpectAutonomousEndConds();
 
-private:
-    frc::Timer m_timer;
+    /**
+     * State Machine controlling the climbing sequence
+     */
+    void ClimbingSequenceSM();
 
+    /**
+     * Function that runs rung to rung climbing
+     */
+    void ClimbingSequence();
+
+private:
+    ClimbingStates m_state = ClimbingStates::kManual;
+    frc::Timer solenoidTimer;
     AutonomousChooser m_autonChooser{"No-op", [=] { AutoNoOp(); }};
 
     frc::CSVLogFile m_batteryLogger{"Battery", "Battery voltage (V)"};
