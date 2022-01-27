@@ -10,6 +10,10 @@ void Climber::TelescopingExtention(double yAxis) {
     }
 }
 
+void Climber::TeleopPeriodic() {
+   
+}
+
 void Climber::TelescopingOut() {
     m_leftTeleSolenoid.Set(true);
     m_rightTeleSolenoid.Set(true);
