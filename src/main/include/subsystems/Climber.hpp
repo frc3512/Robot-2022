@@ -15,11 +15,15 @@ namespace frc3512 {
  */
 class Climber : public SubsystemBase {
 public:
+    Climber();
+    Climber(const Climber&) = delete;
+    Climber& operator=(const Climber&) = delete;
+
     /**
      *  Changes the extention of the telescoping arms
      *  by the giving y-Axis of a joystick
      */
-    void TelescopingExtention(double yAxis);
+    void TelescopingExtention(double speed);
     /**
      *  Deploys arm solenoids out
      */
@@ -31,7 +35,9 @@ public:
     /**
      *  Returns if the arms are out
      */
-    bool IsTelescopingOut();
+    bool IsTelescopingOut() const;
+
+    void TeleopPeriodic() override;
 
 private:
     rev::CANSparkMax m_leftTeleMotor{frc3512::HWConfig::kLeftTeleMotorID,
