@@ -1,3 +1,5 @@
+// Copyright (c) FRC Team 3512. All Rights Reserved.
+
 #pragma once
 
 #include <frc/Solenoid.h>
@@ -36,8 +38,6 @@ public:
      *  Returns if the arms are out
      */
     bool IsTelescopingOut() const;
-
-    void TeleopPeriodic() override;
 
     void TeleopPeriodic() override;
 

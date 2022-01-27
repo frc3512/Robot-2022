@@ -1,4 +1,7 @@
+// Copyright (c) FRC Team 3512. All Rights Reserved.
+
 #include "subsystems/Climber.hpp"
+
 #include "HWConfig.hpp"
 
 using namespace frc3512;
