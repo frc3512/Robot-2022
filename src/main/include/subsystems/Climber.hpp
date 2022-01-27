@@ -39,6 +39,8 @@ public:
 
     void TeleopPeriodic() override;
 
+    void TeleopPeriodic() override;
+
 private:
     rev::CANSparkMax m_leftTeleMotor{frc3512::HWConfig::kLeftTeleMotorID,
                                      rev::CANSparkMax::MotorType::kBrushless};
