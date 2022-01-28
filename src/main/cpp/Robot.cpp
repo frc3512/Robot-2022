@@ -63,7 +63,7 @@ void Robot::TeleopPeriodic() {
     SubsystemBase::RunAllTeleopPeriodic();
 
     static frc::Joystick appendageStick1{HWConfig::appendageStick1PortID};
-    static frc::Joystick joyStick1{HWConfig::joyStick1PortID};
+    static frc::Joystick driveStick1{HWConfig::driveStick1PortID};
 
     if (appendageStick1.GetRawButton(1)) {
         m_state = ClimbingStates::kSecondRung;
@@ -105,6 +105,7 @@ void Robot::ClimbingSequenceSM() {
             solenoidTimer.Start();
             if (solenoidTimer.HasElapsed(1_s)) {
                 climber.TelescopingOut();
+<<<<<<< Updated upstream
             } else if ((!barSensor.Get()) && (!upperSensor.Get())) {
                 climber.TelescopingExtention(0.65);
             }
@@ -114,15 +115,62 @@ void Robot::ClimbingSequenceSM() {
             }
 
             if (lowerSensor.Get()) {
+=======
+                solenoidTimer.Stop();
+                solenoidTimer.Reset();
+            } else if ((!climber.BarSensor()) && (!climber.UppperSensor())) {
+                climber.TelescopingExtention(0.65);
+            }
+
+            if ((climber.BarSensor()) && (!climber.LowerSensor())) {
+                climber.TelescopingExtention(-0.65);
+            }
+
+            if (climber.LowerSensor()) {
+                climber.TelescopingExtention(0.00);
+>>>>>>> Stashed changes
                 climber.TelescopingIn();
                 m_state = ClimbingStates::kThridRung;
             }
             break;
         }
         case ClimbingStates::kThridRung: {
+<<<<<<< Updated upstream
+=======
+            solenoidTimer.Start();
+            if (solenoidTimer.HasElapsed(1_s)) {
+                climber.TelescopingOut();
+                solenoidTimer.Stop();
+                solenoidTimer.Reset();
+            } else if ((!climber.BarSensor()) && (!climber.UppperSensor())) {
+                climber.TelescopingExtention(0.65);
+            }
+
+            if ((climber.BarSensor()) && (!climber.LowerSensor())) {
+                climber.TelescopingExtention(-0.65);
+            }
+
+            if (climber.LowerSensor()) {
+                climber.TelescopingExtention(0.00);
+                climber.TelescopingIn();
+                m_state = ClimbingStates::kTraversalRung;
+            }
             break;
         }
-    }
+        case ClimbingStates::kTraversalRung: {
+            climber.TelescopingExtention(0.00);
+            m_state = ClimbingStates::kManual;
+>>>>>>> Stashed changes
+            break;
+        }
+        case ClimbingStates::kManual: {
+            break;
+        }
+        default: {
+            m_state = ClimbingStates::kManual;
+            break;
+        }
+    }  // Climbing State Machine End
 }
 
 }  // namespace frc3512

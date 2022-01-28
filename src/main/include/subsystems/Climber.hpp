@@ -39,10 +39,29 @@ public:
      *  Returns if the arms are out
      */
     bool IsTelescopingOut() const;
+    /**
+     * Returns if the upper sensor
+     * detects anything
+     */
+    bool UppperSensor() const;
+    /**
+     * Returns if the lower sensor
+     * detects anything
+     */
+    bool LowerSensor() const;
+    /**
+     * Returns if the bar sensor
+     * detects anything
+     */
+    bool BarSensor() const;
 
     void TeleopPeriodic() override;
 
 private:
+    frc::DigitalInput upperSensor{frc3512::HWConfig::upperSensorID};
+    frc::DigitalInput lowerSensor{frc3512::HWConfig::lowerSensorID};
+    frc::DigitalInput barSensor{frc3512::HWConfig::barSensorID};
+
     rev::CANSparkMax m_leftTeleMotor{frc3512::HWConfig::kLeftTeleMotorID,
                                      rev::CANSparkMax::MotorType::kBrushless};
 

@@ -30,8 +30,16 @@ constexpr int kRightTeleSolenoid = 6;
 /// Temp ID for appendageStick1
 constexpr int appendageStick1PortID = 7;
 
-/// Temp ID of joyStick1
-constexpr int joyStick1PortID = 8;
+/// Temp ID of driveStick1
+constexpr int driveStick1PortID = 8;
 
+/// Temp ID for upper limit
+constexpr int upperSensorID = 9;
+
+/// Temp ID for lower limit
+constexpr int lowerSensorID = 10;
+
+/// Temp ID for bar sensor
+constexpr int barSensorID = 11;
 }  // namespace HWConfig
 }  // namespace frc3512

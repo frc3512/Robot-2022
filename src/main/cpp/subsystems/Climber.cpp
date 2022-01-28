@@ -26,3 +26,9 @@ void Climber::TelescopingIn() {
 }
 
 bool Climber::IsTelescopingOut() const { return m_rightTeleSolenoid.Get(); }
+
+bool Climber::UppperSensor() const { return upperSensor.Get(); }
+
+bool Climber::LowerSensor() const { return lowerSensor.Get(); }
+
+bool Climber::BarSensor() const { return barSensor.Get(); }
