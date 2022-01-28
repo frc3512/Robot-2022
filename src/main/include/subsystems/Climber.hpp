@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <frc/DigitalInput.h>
 #include <frc/Solenoid.h>
 #include <rev/CANSparkMax.h>
 

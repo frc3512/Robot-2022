@@ -27,9 +27,11 @@ constexpr int kLeftTeleSolenoid = 5;
 /// ID for the Right climber Solenoid
 constexpr int kRightTeleSolenoid = 6;
 
-/// Temp value for some sort of sensor to determine wheather or not o keep
-/// extending
-constexpr bool kTEMPSensorVal = true;
+/// Temp ID for appendageStick1
+constexpr int appendageStick1PortID = 7;
+
+/// Temp ID of joyStick1
+constexpr int joyStick1PortID = 8;
 
 }  // namespace HWConfig
 }  // namespace frc3512

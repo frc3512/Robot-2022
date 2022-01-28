@@ -5,8 +5,10 @@
 #include <stdexcept>
 
 #include <frc/DriverStation.h>
+#include <frc/Joystick.h>
 
 #include "Constants.hpp"
+#include "HWConfig.hpp"
 #include "RealTimePriorities.hpp"
 #include "logging/CSVUtil.hpp"
 
@@ -15,6 +17,10 @@ namespace frc3512 {
 Robot::Robot() {}
 
 Robot::~Robot() {}
+
+frc::DigitalInput upperSensor;
+frc::DigitalInput lowerSensor;
+frc::DigitalInput barSensor;
 
 units::second_t Robot::SelectedAutonomousDuration() const {
     return m_autonChooser.SelectedAutonomousDuration();
@@ -53,7 +59,18 @@ void Robot::AutonomousPeriodic() {
     m_autonChooser.ResumeAutonomous();
 }
 
-void Robot::TeleopPeriodic() { SubsystemBase::RunAllTeleopPeriodic(); }
+void Robot::TeleopPeriodic() {
+    SubsystemBase::RunAllTeleopPeriodic();
+
+    static frc::Joystick appendageStick1{HWConfig::appendageStick1PortID};
+    static frc::Joystick joyStick1{HWConfig::joyStick1PortID};
+
+    if (appendageStick1.GetRawButton(1)) {
+        m_state = ClimbingStates::kSecondRung;
+    }
+
+    ClimbingSequenceSM();
+}
 
 void Robot::TestPeriodic() { SubsystemBase::RunAllTestPeriodic(); }
 
@@ -84,33 +101,25 @@ void Robot::ExpectAutonomousEndConds() {
 
 void Robot::ClimbingSequenceSM() {
     switch (m_state) {
-        case ClimbingStates::kGround: {
-            climber.TelescopingExtention(1.00);
-            climber.TelescopingExtention(-1.00);
-
-            m_state = ClimbingStates::kSecondRung;
-            break;
-        }
         case ClimbingStates::kSecondRung: {
-            climber.TelescopingOut();
-            climber.TelescopingExtention(1.00);
-            climber.TelescopingIn();
-            climber.TelescopingExtention(-1.00);
+            solenoidTimer.Start();
+            if (solenoidTimer.HasElapsed(1_s)) {
+                climber.TelescopingOut();
+            } else if ((!barSensor.Get()) && (!upperSensor.Get())) {
+                climber.TelescopingExtention(0.65);
+            }
 
-            m_state = ClimbingStates::kThridRung;
+            if ((barSensor.Get()) && (!lowerSensor.Get())) {
+                climber.TelescopingExtention(-0.65);
+            }
+
+            if (lowerSensor.Get()) {
+                climber.TelescopingIn();
+                m_state = ClimbingStates::kThridRung;
+            }
             break;
         }
         case ClimbingStates::kThridRung: {
-            climber.TelescopingOut();
-            climber.TelescopingExtention(1.00);
-            climber.TelescopingIn();
-            climber.TelescopingExtention(-1.00);
-
-            m_state = ClimbingStates::kTraversalRung;
-            break;
-        }
-        case ClimbingStates::kTraversalRung: {
-            climber.TelescopingExtention(-1.00);
             break;
         }
     }

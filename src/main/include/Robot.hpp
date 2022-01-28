@@ -49,10 +49,10 @@ public:
      * States used for climbing state machine
      */
     enum class ClimbingStates {
-        kGround,
         kSecondRung,
         kThridRung,
-        kTraversalRung
+        kTraversalRung,
+        kManual
     };
 
     /// The Climber Subsystem
@@ -155,7 +155,8 @@ public:
     void ClimbingSequenceSM();
 
 private:
-    ClimbingStates m_state = ClimbingStates::kGround;
+    ClimbingStates m_state = ClimbingStates::kManual;
+    frc::Timer solenoidTimer;
     AutonomousChooser m_autonChooser{"No-op", [=] { AutoNoOp(); }};
 };
 }  // namespace frc3512

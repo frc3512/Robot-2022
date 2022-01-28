@@ -9,10 +9,8 @@ using namespace frc3512;
 Climber::Climber() {}
 
 void Climber::TelescopingExtention(double yAxis) {
-    if (HWConfig::kTEMPSensorVal) {
-        m_leftTeleMotor.Set(yAxis);
-        m_rightTeleMotor.Set(yAxis);
-    }
+    m_leftTeleMotor.Set(yAxis);
+    m_rightTeleMotor.Set(yAxis);
 }
 
 void Climber::TeleopPeriodic() {}
