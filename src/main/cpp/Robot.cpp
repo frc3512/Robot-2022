@@ -82,6 +82,40 @@ void Robot::ExpectAutonomousEndConds() {
     }
 }
 
+void Robot::ClimbingSequenceSM() {
+    switch (m_state) {
+        case ClimbingStates::kGround: {
+            climber.TelescopingExtention(1.00);
+            climber.TelescopingExtention(-1.00);
+
+            m_state = ClimbingStates::kSecondRung;
+            break;
+        }
+        case ClimbingStates::kSecondRung: {
+            climber.TelescopingOut();
+            climber.TelescopingExtention(1.00);
+            climber.TelescopingIn();
+            climber.TelescopingExtention(-1.00);
+
+            m_state = ClimbingStates::kThridRung;
+            break;
+        }
+        case ClimbingStates::kThridRung: {
+            climber.TelescopingOut();
+            climber.TelescopingExtention(1.00);
+            climber.TelescopingIn();
+            climber.TelescopingExtention(-1.00);
+
+            m_state = ClimbingStates::kTraversalRung;
+            break;
+        }
+        case ClimbingStates::kTraversalRung: {
+            climber.TelescopingExtention(-1.00);
+            break;
+        }
+    }
+}
+
 }  // namespace frc3512
 
 #ifndef RUNNING_FRC_TESTS

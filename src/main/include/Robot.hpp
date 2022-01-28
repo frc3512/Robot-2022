@@ -12,6 +12,7 @@
 #include <units/time.h>
 
 #include "AutonomousChooser.hpp"
+#include "subsystems/Climber.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
 #if RUNNING_FRC_TESTS
@@ -44,6 +45,18 @@ class Robot : public frc::TimedRobot {
 public:
     Robot();
     ~Robot();
+    /**
+     * States used for climbing state machine
+     */
+    enum class ClimbingStates {
+        kGround,
+        kSecondRung,
+        kThridRung,
+        kTraversalRung
+    };
+
+    /// The Climber Subsystem
+    Climber climber;
 
     /**
      * Returns the selected autonomous mode's expected duration.
@@ -136,7 +149,13 @@ public:
      */
     void ExpectAutonomousEndConds();
 
+    /**
+     * State Machine controlling the climbing sequence
+     */
+    void ClimbingSequenceSM();
+
 private:
+    ClimbingStates m_state = ClimbingStates::kGround;
     AutonomousChooser m_autonChooser{"No-op", [=] { AutoNoOp(); }};
 };
 }  // namespace frc3512

@@ -6,6 +6,8 @@
 
 using namespace frc3512;
 
+Climber::Climber() {}
+
 void Climber::TelescopingExtention(double yAxis) {
     if (HWConfig::kTEMPSensorVal) {
         m_leftTeleMotor.Set(yAxis);
