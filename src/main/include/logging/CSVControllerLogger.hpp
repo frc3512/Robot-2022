@@ -3,10 +3,12 @@
 #pragma once
 
 #include <array>
+#include <string_view>
 #include <tuple>
 #include <utility>
 
 #include <Eigen/Core>
+#include <fmt/format.h>
 #include <frc/logging/CSVLogFile.h>
 #include <units/time.h>
 
@@ -36,12 +38,12 @@ public:
         const std::array<ControllerLabel, States>& stateLabels,
         const std::array<ControllerLabel, Inputs>& inputLabels,
         const std::array<ControllerLabel, Outputs>& outputLabels)
-        : m_stateLogger{(controllerName + " states").str(),
+        : m_stateLogger{fmt::format("{} states", controllerName),
                         std::tuple_cat(MakeReferenceLabels(stateLabels),
                                        MakeStateEstimateLabels(stateLabels))},
-          m_inputLogger{(controllerName + " inputs").str(),
+          m_inputLogger{fmt::format("{} inputs", controllerName),
                         MakeInputLabels(inputLabels)},
-          m_outputLogger{(controllerName + " outputs").str(),
+          m_outputLogger{fmt::format("{} outputs", controllerName),
                          MakeOutputLabels(outputLabels)} {}
 
     /**

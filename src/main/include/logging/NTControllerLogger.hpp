@@ -3,9 +3,10 @@
 #pragma once
 
 #include <array>
-#include <string>
+#include <string_view>
 
 #include <Eigen/Core>
+#include <fmt/format.h>
 #include <networktables/NetworkTableEntry.h>
 #include <networktables/NetworkTableInstance.h>
 
@@ -35,26 +36,24 @@ public:
         const std::array<ControllerLabel, States>& stateLabels,
         const std::array<ControllerLabel, Inputs>& inputLabels,
         const std::array<ControllerLabel, Outputs>& outputLabels) {
-        std::string entryPrefix = fmt::format("/Diagnostics/" + controllerName);
-
         nt::NetworkTableInstance instance =
             nt::NetworkTableInstance::GetDefault();
         for (int state = 0; state < States; ++state) {
             const auto& label = stateLabels[state];
-            m_refEntries[state] =
-                instance.GetEntry(entryPrefix + "/References/" + label.name);
-            m_stateEntries[state] =
-                instance.GetEntry(entryPrefix + "/States/" + label.name);
+            m_refEntries[state] = instance.GetEntry(fmt::format(
+                "/Diagnostics/{}/References/{}", controllerName, label.name));
+            m_stateEntries[state] = instance.GetEntry(fmt::format(
+                "/Diagnostics/{}/States/{}", controllerName, label.name));
         }
         for (int input = 0; input < Inputs; ++input) {
             const auto& label = inputLabels[input];
-            m_inputEntries[input] =
-                instance.GetEntry(entryPrefix + "/Inputs/" + label.name);
+            m_inputEntries[input] = instance.GetEntry(fmt::format(
+                "/Diagnostics/{}/Inputs/{}", controllerName, label.name));
         }
         for (int output = 0; output < Outputs; ++output) {
             const auto& label = outputLabels[output];
-            m_outputEntries[output] =
-                instance.GetEntry(entryPrefix + "/Outputs/" + label.name);
+            m_outputEntries[output] = instance.GetEntry(fmt::format(
+                "/Diagnostics/{}/Outputs/{}", controllerName, label.name));
         }
     }
 
@@ -76,10 +75,10 @@ public:
      * @param u Input vector.
      * @param y Output vector.
      */
-    void Log(const Eigen::Matrix<double, States, 1>& r,
-             const Eigen::Matrix<double, States, 1>& x,
-             const Eigen::Matrix<double, Inputs, 1>& u,
-             const Eigen::Matrix<double, Outputs, 1>& y) {
+    void Log(const Eigen::Vector<double, States>& r,
+             const Eigen::Vector<double, States>& x,
+             const Eigen::Vector<double, Inputs>& u,
+             const Eigen::Vector<double, Outputs>& y) {
         for (int state = 0; state < States; ++state) {
             m_refEntries[state].SetDouble(r(state));
             m_stateEntries[state].SetDouble(x(state));

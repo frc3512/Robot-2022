@@ -12,6 +12,8 @@
 #include <units/time.h>
 
 #include "AutonomousChooser.hpp"
+#include "NetworkTableUtil.hpp"
+#include "subsystems/Drivetrain.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
 #if RUNNING_FRC_TESTS
@@ -42,7 +44,13 @@ namespace frc3512 {
  */
 class Robot : public frc::TimedRobot {
 public:
+    // The subsystem initialization order determines the controller run order.
+
+    /// Drivetrain subsystem.
+    Drivetrain drivetrain;
+
     Robot();
+
     ~Robot();
 
     /**
@@ -137,6 +145,14 @@ public:
     void ExpectAutonomousEndConds();
 
 private:
+    frc::Timer m_timer;
+
     AutonomousChooser m_autonChooser{"No-op", [=] { AutoNoOp(); }};
+
+    frc::CSVLogFile m_batteryLogger{"Battery", "Battery voltage (V)"};
+    frc::CSVLogFile m_eventLogger{"Events", "Event"};
+
+    nt::NetworkTableEntry m_batteryVoltageEntry =
+        NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Robot/batteryVoltage");
 };
 }  // namespace frc3512
