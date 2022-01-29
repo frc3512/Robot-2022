@@ -12,15 +12,13 @@
 #include <units/math.h>
 #include <wpi/numbers>
 
-
 using namespace frc3512;
 
 Flywheel::Flywheel()
     : ControlledSubsystemBase("Flywheel",
                               {ControllerLabel{"Angular velocity", "rad/s"}},
                               {ControllerLabel{"Voltage", "V"}},
-                              {ControllerLabel{"Angular velocity", "rad/s"}})
-    {
+                              {ControllerLabel{"Angular velocity", "rad/s"}}) {
     m_leftGrbx.SetSmartCurrentLimit(40);
     m_rightGrbx.SetSmartCurrentLimit(40);
 
@@ -59,10 +57,7 @@ units::radians_per_second_t Flywheel::GetGoal() const {
 
 bool Flywheel::AtGoal() const { return m_controller.AtGoal(); }
 
-void Flywheel::SetHoodPose(HootPose pose)
-{
-    m_hoodPose = pose;
-}
+void Flywheel::SetHoodPose(HoodPose pose) { m_hoodPose = pose; }
 
 bool Flywheel::IsOn() const { return GetGoal() > 0_rad_per_s; }
 
@@ -80,42 +75,34 @@ void Flywheel::Reset() {
 void Flywheel::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    if (frc::DriverStation::GetInstance().IsTest()) {
-
+    if (frc::DriverStation::IsTest()) {
         m_testThrottle = appendageStick2.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
         fmt::print("Manual angular velocity: {}\n",
                    units::revolutions_per_minute_t{manualRef});
     }
 
-    if (appendageStick2.GetRawButtonPressed(3))
-    {
+    if (appendageStick2.GetRawButtonPressed(3)) {
         SetHoodPose(HoodPose::kHigh);
-    } else if (appendageStick2.GetRawButtonPressed(4))
-    {
+    } else if (appendageStick2.GetRawButtonPressed(4)) {
         SetHoodPose(HoodPose::kLow);
     }
-    if (appendageStick2.GetRawButtonPressed(1))
-    {
+    if (appendageStick2.GetRawButtonPressed(1)) {
         Shoot();
     }
 
-    if (m_highGoalSwitch.Get() || m_lowGoalSwitch.Get())
-    {
-        m_hoodMotor.Set();
+    if (m_highGoalSwitch.Get() || m_lowGoalSwitch.Get()) {
+        m_hoodMotor.Set(0.0);
     }
 
-    switch (m_hoodPose)
-    {
+    switch (m_hoodPose) {
         case HoodPose::kLow:
-            if (!m_lowGoalSwitch.Get())
-            {
+            if (!m_lowGoalSwitch.Get()) {
                 m_hoodMotor.Set(-0.75);
-            } 
+            }
             break;
         case HoodPose::kHigh:
-            if (!m_highGoalSwitch.Get())
-            {
+            if (!m_highGoalSwitch.Get()) {
                 m_hoodMotor.Set(0.75);
             }
             break;
@@ -150,7 +137,6 @@ void Flywheel::ControllerPeriodic() {
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 
-
     m_lastAngle = m_angle;
     m_lastTime = m_time;
 }
@@ -171,10 +157,8 @@ units::radians_per_second_t Flywheel::ThrottleToReference(double throttle) {
     return units::math::round(rescale);
 }
 
-void Flywheel::Shoot()
-{
-    if (!m_lowGoalSwitch.Get() && !m_highGoalSwitch.Get())
-    {
+void Flywheel::Shoot() {
+    if (!m_lowGoalSwitch.Get() && !m_highGoalSwitch.Get()) {
         m_hoodPose = HoodPose::kHigh;
     }
 

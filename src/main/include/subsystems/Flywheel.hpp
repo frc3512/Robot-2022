@@ -2,23 +2,23 @@
 
 #pragma once
 
+#include <frc/DigitalInput.h>
 #include <frc/Encoder.h>
-#include <frc/filter/LinearFilter.h>
+#include <frc/Timer.h>
 #include <frc/estimator/KalmanFilter.h>
+#include <frc/filter/LinearFilter.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/simulation/EncoderSim.h>
 #include <frc/simulation/FlywheelSim.h>
 #include <frc/simulation/LinearSystemSim.h>
 #include <frc/system/LinearSystem.h>
 #include <frc/system/plant/LinearSystemId.h>
+#include <rev/CANSparkMax.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 #include <units/current.h>
 #include <units/length.h>
 #include <units/voltage.h>
-#include <rev/CANSparkMax.h>
-#include <frc/Timer.h>
-#include <frc/DigitalInput.h>
 
 #include "Constants.hpp"
 #include "HWConfig.hpp"
@@ -35,16 +35,15 @@ namespace frc3512 {
  */
 class Flywheel : public ControlledSubsystemBase<1, 1, 1> {
 public:
-
     /**
      * Hood Position
-     */ 
-    enum class HoodPose {kLow, kHigh};
+     */
+    enum class HoodPose { kLow, kHigh };
 
     /**
      * Constructs a Flywheel.
      */
-    explicit Flywheel();
+    Flywheel();
 
     Flywheel(const Flywheel&) = delete;
     Flywheel& operator=(const Flywheel&) = delete;
@@ -91,9 +90,9 @@ public:
 
     /**
      * Set the Position of the hood for either high goal or low goal.
-     * 
+     *
      * @param pose The position of the hood.
-     */ 
+     */
     void SetHoodPose(HoodPose pose);
 
     /**
@@ -117,7 +116,6 @@ public:
      */
     units::ampere_t GetCurrentDraw() const;
 
-
     void DisabledInit() override { Disable(); }
 
     void AutonomousInit() override { Enable(); }
@@ -129,21 +127,24 @@ public:
     void ControllerPeriodic() override;
 
 private:
-
     rev::CANSparkMax m_leftGrbx{HWConfig::Flywheel::kLeftMotorID,
                                 rev::CANSparkMax::MotorType::kBrushless};
     rev::CANSparkMax m_rightGrbx{HWConfig::Flywheel::kRightMotorID,
                                  rev::CANSparkMax::MotorType::kBrushless};
-    rev::CANSparkMax m_rightFollower{HWConfig::Flywheel::kRightFollowID, rev::CANSparkMax::MotorType::kBrushless};
+    rev::CANSparkMax m_rightFollower{HWConfig::Flywheel::kRightFollowID,
+                                     rev::CANSparkMax::MotorType::kBrushless};
     frc::Encoder m_encoder{HWConfig::Flywheel::kEncoderA,
                            HWConfig::Flywheel::kEncoderB};
 
-    static constexpr units::radians_per_second_t kShootSpeed = 500_rad_per_s; 
+    static constexpr units::radians_per_second_t kShootSpeed = 500_rad_per_s;
 
-    rev::CANSparkMax m_hoodMotor{HWConfig::Flywheel::kHoodMotorID, rev::CANSparkMax::MotorType::kBrushless};
+    rev::CANSparkMax m_hoodMotor{HWConfig::Flywheel::kHoodMotorID,
+                                 rev::CANSparkMax::MotorType::kBrushless};
     HoodPose m_hoodPose = HoodPose::kLow;
-    frc::DigitalInput m_lowGoalSwitch{HWConfig::Flywheel::kLowGoalLimitSwitchChannel};
-    frc::DigitalInput m_highGoalSwitch{HWConfig::Flywheel::kHighGoalLimitSwitchChannel};
+    frc::DigitalInput m_lowGoalSwitch{
+        HWConfig::Flywheel::kLowGoalLimitSwitchChannel};
+    frc::DigitalInput m_highGoalSwitch{
+        HWConfig::Flywheel::kHighGoalLimitSwitchChannel};
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
@@ -187,11 +188,11 @@ private:
     static units::radians_per_second_t ThrottleToReference(double throttle);
 
     /**
-     * Sets flywheel to constant speed. The flywheel will shoot either high or low
-     * depending on the position of the hooded shooter. When shooting, check if the
-     * hood is not set to a fixed position, if not, default to a high goal shot and 
-     * then shoot. 
-     */ 
+     * Sets flywheel to constant speed. The flywheel will shoot either high or
+     * low depending on the position of the hooded shooter. When shooting, check
+     * if the hood is not set to a fixed position, if not, default to a high
+     * goal shot and then shoot.
+     */
     void Shoot();
 };
 
