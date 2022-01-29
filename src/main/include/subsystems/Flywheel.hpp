@@ -21,6 +21,7 @@
 #include <units/voltage.h>
 
 #include "Constants.hpp"
+#include "FlywheelSim.hpp"
 #include "HWConfig.hpp"
 #include "controllers/FlywheelController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
@@ -171,6 +172,12 @@ private:
     // Used in test mode for manually setting flywheel goal. This is helpful for
     // measuring flywheel lookup table values.
     double m_testThrottle = 0.0;
+
+    // Measurement noise isn't added because the simulated encoder stores the
+    // count as an integer, which already introduces quantization noise.
+    FlywheelSim m_flywheelSim{m_controller.GetPlant(), frc::DCMotor::NEO(2),
+                              1.0 / 2.0};
+    frc::sim::EncoderSim m_encoderSim{m_encoder};
 
     /**
      * Sets the voltage of the flywheel motor.
