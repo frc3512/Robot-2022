@@ -2,6 +2,8 @@
 
 #include "subsystems/Climber.hpp"
 
+#include <frc/Joystick.h>
+
 #include "HWConfig.hpp"
 
 using namespace frc3512;
@@ -12,8 +14,6 @@ void Climber::TelescopingExtention(double yAxis) {
     m_leftTeleMotor.Set(yAxis);
     m_rightTeleMotor.Set(yAxis);
 }
-
-void Climber::TeleopPeriodic() {}
 
 void Climber::TelescopingOut() {
     m_leftTeleSolenoid.Set(true);
@@ -27,8 +27,40 @@ void Climber::TelescopingIn() {
 
 bool Climber::IsTelescopingOut() const { return m_rightTeleSolenoid.Get(); }
 
-bool Climber::UpperSensor() const { return m_upperSensor.Get(); }
+bool Climber::IsUpperSensorTriggered() const { return m_upperSensor.Get(); }
 
-bool Climber::LowerSensor() const { return m_lowerSensor.Get(); }
+bool Climber::IsLowerSensorTriggered() const { return m_lowerSensor.Get(); }
 
-bool Climber::BarSensor() const { return m_barSensor.Get(); }
+bool Climber::IsBarSensorTriggered() const { return m_barSensor.Get(); }
+
+void Climber::UpdateClimberSim(double extention) {
+    if (IsTelescopingOut()) {
+        m_climberSim->SetAngle(-180_deg);
+    } else {
+        m_climberSim->SetAngle(-90_deg);
+    }
+
+    double extentionLength = m_extentionBase->GetLength();
+
+    extention += extentionLength;
+
+    if (extention < -40) {
+        extention = -40;
+    }
+
+    if (extention > -20) {
+        extention = -20;
+    }
+
+    m_extentionBase->SetLength(extention);
+}
+
+void Climber::RobotPeriodic() {
+    frc::SmartDashboard::PutData("Climber", &m_mech2d);
+}
+
+void Climber::SimulationPeriodic() {
+    static frc::Joystick appendageStick1{HWConfig::appendageStick1PortID};
+
+    UpdateClimberSim(appendageStick1.GetRawAxis(1));
+}

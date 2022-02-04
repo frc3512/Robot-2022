@@ -61,7 +61,25 @@ void Robot::TeleopPeriodic() {
     static frc::Joystick appendageStick1{HWConfig::appendageStick1PortID};
     static frc::Joystick driveStick1{HWConfig::driveStick1PortID};
 
-    if (appendageStick1.GetRawButton(1)) {
+    if (appendageStick1.GetRawButtonPressed(4)) {
+        intake.Deploy();
+    }
+
+    if (appendageStick1.GetRawButtonPressed(5)) {
+        intake.Stow();
+    }
+
+    if (appendageStick1.GetRawButtonPressed(2)) {
+        climber.TelescopingIn();
+    }
+
+    if (appendageStick1.GetRawButtonPressed(3)) {
+        climber.TelescopingOut();
+    }
+
+    climber.TelescopingExtention(appendageStick1.GetRawAxis(1));
+
+    if (appendageStick1.GetRawButtonPressed(1)) {
         m_state = ClimbingStates::kSecondRung;
     }
 
@@ -124,23 +142,25 @@ void Robot::ClimbingSequence() {
     solenoidTimer.Start();
     if (solenoidTimer.HasElapsed(1_s)) {
         climber.TelescopingOut();
-    } else if ((!climber.BarSensor()) && (!climber.UpperSensor())) {
+    } else if ((!climber.IsBarSensorTriggered()) &&
+               (!climber.IsUpperSensorTriggered())) {
         climber.TelescopingExtention(0.65);
     }
 
-    if (climber.UpperSensor()) {
+    if (climber.IsUpperSensorTriggered()) {
         climber.TelescopingExtention(0.00);
     }
 
-    if ((climber.BarSensor()) && (!climber.LowerSensor())) {
+    if ((climber.IsBarSensorTriggered()) &&
+        (!climber.IsLowerSensorTriggered())) {
         climber.TelescopingExtention(-0.65);
     }
 
-    if (climber.LowerSensor()) {
+    if (climber.IsLowerSensorTriggered()) {
         climber.TelescopingExtention(0.00);
     }
 
-    if ((climber.LowerSensor()) && (solenoidTimer.HasElapsed(8_s))) {
+    if ((climber.IsLowerSensorTriggered()) && (solenoidTimer.HasElapsed(8_s))) {
         climber.TelescopingIn();
         solenoidTimer.Stop();
         solenoidTimer.Reset();

@@ -6,6 +6,8 @@
 
 using namespace frc3512;
 
+Intake::Intake() {}
+
 void Intake::Deploy() { Intake::SetFourbar(FourbarDirection::kDeployed); }
 
 void Intake::Stow() { Intake::SetFourbar(FourbarDirection::kStowed); }
@@ -22,6 +24,14 @@ void Intake::SetConveyor(double speed) { m_conveyor.Set(speed); }
 
 bool Intake::IsConveyorRunning() const { return m_conveyor.Get() != 0.0; }
 
+void Intake::UpdateIntake() {
+    if (IsDeployed()) {
+        m_fourbarSim->SetAngle(0_deg);
+    } else {
+        m_fourbarSim->SetAngle(90_deg);
+    }
+}
+
 void Intake::SetFourbar(FourbarDirection direction) {
     if (direction == FourbarDirection::kDeployed) {
         m_fourbar.Set(true);
@@ -29,3 +39,8 @@ void Intake::SetFourbar(FourbarDirection direction) {
         m_fourbar.Set(false);
     }
 }
+void Intake::RobotPeriodic() {
+    frc::SmartDashboard::PutData("Intake", &m_mech2d);
+}
+
+void Intake::SimulationPeriodic() { UpdateIntake(); }

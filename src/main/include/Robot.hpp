@@ -8,13 +8,13 @@
 
 #include <frc/TimedRobot.h>
 #include <frc/Timer.h>
-#include <frc/logging/CSVLogFile.h>
 #include <units/time.h>
 
 #include "AutonomousChooser.hpp"
 #include "NetworkTableUtil.hpp"
-#include "subsystems/Drivetrain.hpp"
 #include "subsystems/Climber.hpp"
+#include "subsystems/Drivetrain.hpp"
+#include "subsystems/Intake.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
 #if RUNNING_FRC_TESTS
@@ -65,6 +65,9 @@ public:
 
     /// The Climber Subsystem
     Climber climber;
+
+    /// The intake subsystem
+    Intake intake;
 
     /**
      * Returns the selected autonomous mode's expected duration.

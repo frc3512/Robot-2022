@@ -4,6 +4,10 @@
 
 #include <frc/DigitalInput.h>
 #include <frc/Solenoid.h>
+#include <frc/smartdashboard/Mechanism2d.h>
+#include <frc/smartdashboard/MechanismLigament2d.h>
+#include <frc/smartdashboard/MechanismRoot2d.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <rev/CANSparkMax.h>
 
 #include "Constants.hpp"
@@ -43,21 +47,37 @@ public:
      * Returns if the upper sensor
      * detects anything
      */
-    bool UpperSensor() const;
+    bool IsUpperSensorTriggered() const;
     /**
      * Returns if the lower sensor
      * detects anything
      */
-    bool LowerSensor() const;
+    bool IsLowerSensorTriggered() const;
     /**
      * Returns if the bar sensor
      * detects anything
      */
-    bool BarSensor() const;
+    bool IsBarSensorTriggered() const;
+    /**
+     * Updates Climber sim
+     */
+    void UpdateClimberSim(double extention);
 
-    void TeleopPeriodic() override;
+    void RobotPeriodic() override;
+
+    void SimulationPeriodic() override;
 
 private:
+    frc::Mechanism2d m_mech2d{60, 60};
+    frc::MechanismRoot2d* m_climberBase =
+        m_mech2d.GetRoot("ClimberBase", 10, 20);
+    frc::MechanismLigament2d* m_climberSim =
+        m_climberBase->Append<frc::MechanismLigament2d>(
+            "Climber", 20, -90_deg, 5, frc::Color8Bit{frc::Color::kBlue});
+    frc::MechanismLigament2d* m_extentionBase =
+        m_climberSim->Append<frc::MechanismLigament2d>(
+            "Extended", -20, 0_deg, 5, frc::Color8Bit{frc::Color::kYellow});
+
     frc::DigitalInput m_upperSensor{frc3512::HWConfig::upperSensorID};
     frc::DigitalInput m_lowerSensor{frc3512::HWConfig::lowerSensorID};
     frc::DigitalInput m_barSensor{frc3512::HWConfig::barSensorID};
@@ -72,6 +92,6 @@ private:
                                      frc3512::HWConfig::kLeftTeleSolenoid};
 
     frc::Solenoid m_rightTeleSolenoid{frc::PneumaticsModuleType::CTREPCM,
-                                      frc3512::HWConfig::kLeftTeleSolenoid};
+                                      frc3512::HWConfig::kRightTeleSolenoid};
 };
 }  // namespace frc3512

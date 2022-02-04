@@ -113,41 +113,40 @@ constexpr int kClimberLockChannel = 3;
 constexpr int kColorSensorArmServoChannel = 9;
 }  // namespace Climber
 
-/// ID for the intake motor
-constexpr int kIntakeMotorID = 0;
-
-/// Channal for the Fourbar
-constexpr int kFourbarChannel = 1;
-
-/// ID for the conveyor motor
-constexpr int kConveyorMotorID = 2;
-
-/// ID for the Left Telescoping Motor
-constexpr int kLeftTeleMotorID = 3;
-
-/// ID for the Right Telescoping Motor
-constexpr int kRightTeleMotorID = 4;
-
-/// ID for the Left climber Solenoid
-constexpr int kLeftTeleSolenoid = 5;
-
-/// ID for the Right climber Solenoid
-constexpr int kRightTeleSolenoid = 6;
-
 /// Temp ID for appendageStick1
-constexpr int appendageStick1PortID = 7;
+constexpr int appendageStick1PortID = 0;
 
 /// Temp ID of driveStick1
-constexpr int driveStick1PortID = 8;
+constexpr int driveStick1PortID = 1;
+
+/// Channal for the Fourbar
+constexpr int kFourbarChannel = 2;
+
+/// ID for the conveyor motor
+constexpr int kConveyorMotorID = 3;
+
+/// ID for the Left Telescoping Motor
+constexpr int kLeftTeleMotorID = 4;
+
+/// ID for the Right Telescoping Motor
+constexpr int kRightTeleMotorID = 5;
+
+/// ID for the Left climber Solenoid
+constexpr int kLeftTeleSolenoid = 6;
+
+/// ID for the Right climber Solenoid
+constexpr int kRightTeleSolenoid = 7;
+
+/// ID for the intake motor
+constexpr int kIntakeMotorID = 8;
 
 /// Temp ID for upper limit
-constexpr int upperSensorID = 9;
+constexpr int upperSensorID = 10;
 
 /// Temp ID for lower limit
-constexpr int lowerSensorID = 10;
+constexpr int lowerSensorID = 11;
 
 /// Temp ID for bar sensor
-constexpr int barSensorID = 11;
+constexpr int barSensorID = 12;
 
 }  // namespace frc3512::HWConfig
-

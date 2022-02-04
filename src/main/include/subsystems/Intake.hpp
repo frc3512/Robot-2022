@@ -3,6 +3,11 @@
 #pragma once
 
 #include <frc/Solenoid.h>
+#include <frc/logging/CSVLogFile.h>
+#include <frc/smartdashboard/Mechanism2d.h>
+#include <frc/smartdashboard/MechanismLigament2d.h>
+#include <frc/smartdashboard/MechanismRoot2d.h>
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <rev/CANSparkMax.h>
 
 #include "Constants.hpp"
@@ -17,6 +22,8 @@ namespace frc3512 {
  */
 class Intake : public SubsystemBase {
 public:
+    Intake();
+
     /**
      *  Fourbar solenoid motor direction
      */
@@ -50,13 +57,25 @@ public:
      */
     void SetConveyor(double speed);
     /**
+     * Updates intake sim
+     */
+    void UpdateIntake();
+    /**
      *  Returns weather or not the conveyor is running
      */
     bool IsConveyorRunning() const;
 
     void RobotPeriodic() override;
 
+    void SimulationPeriodic() override;
+
 private:
+    frc::Mechanism2d m_mech2d{60, 60};
+    frc::MechanismRoot2d* m_intakeBase = m_mech2d.GetRoot("IntakeBase", 10, 00);
+    frc::MechanismLigament2d* m_fourbarSim =
+        m_intakeBase->Append<frc::MechanismLigament2d>(
+            "Intake", 15, -90_deg, 5, frc::Color8Bit{frc::Color::kBlue});
+
     rev::CANSparkMax m_intakeMotor{frc3512::HWConfig::kIntakeMotorID,
                                    rev::CANSparkMax::MotorType::kBrushless};
 
