@@ -79,15 +79,6 @@ constexpr int kEncoderChannel = 8;
 }  // namespace Turret
 
 namespace Intake {
-/// Arm motor CAN ID
-constexpr int kArmMotorID = 6;
-
-/// Conveyor motor CAN ID
-constexpr int kConveyorMotorID = 7;
-
-/// Funnel motor CAN ID
-constexpr int kFunnelLeftMotorID = 4;
-constexpr int kFunnelRightMotorID = 5;
 
 /// Lower proximity sensor digital input channel
 constexpr int kLowerSensorChannel = 4;
@@ -95,36 +86,17 @@ constexpr int kLowerSensorChannel = 4;
 /// Upper proximity sensor digital input channel
 constexpr int kUpperSensorChannel = 5;
 
-/// Arm solenoid channel
-constexpr int kArmChannel = 0;
-}  // namespace Intake
-
-namespace Climber {
-/// Elevator motor CAN ID
-constexpr int kElevatorMotorID = 3;
-
-/// Traverser motor CAN ID
-constexpr int kTraverserMotorID = 13;
-
-/// Climber lock solenoid channel
-constexpr int kClimberLockChannel = 3;
-
-/// Climber color sensor arm servo channel
-constexpr int kColorSensorArmServoChannel = 9;
-}  // namespace Climber
-
-/// Temp ID for appendageStick1
-constexpr int appendageStick1PortID = 0;
-
-/// Temp ID of driveStick1
-constexpr int driveStick1PortID = 1;
-
 /// Channal for the Fourbar
 constexpr int kFourbarChannel = 2;
 
 /// ID for the conveyor motor
 constexpr int kConveyorMotorID = 3;
 
+/// ID for the intake motor
+constexpr int kIntakeRollerMotorID = 8;
+}  // namespace Intake
+
+namespace Climber {
 /// ID for the Left Telescoping Motor
 constexpr int kLeftTeleMotorID = 4;
 
@@ -137,16 +109,10 @@ constexpr int kLeftTeleSolenoid = 6;
 /// ID for the Right climber Solenoid
 constexpr int kRightTeleSolenoid = 7;
 
-/// ID for the intake motor
-constexpr int kIntakeMotorID = 8;
+/// Rev count for CLimber
+constexpr int kRevs = 42;
 
-/// Temp ID for upper limit
-constexpr int upperSensorID = 10;
-
-/// Temp ID for lower limit
-constexpr int lowerSensorID = 11;
-
-/// Temp ID for bar sensor
-constexpr int barSensorID = 12;
-
+/// ID for CLimber sensor
+constexpr int kClimbSensor = 10;
+}  // namespace Climber
 }  // namespace frc3512::HWConfig

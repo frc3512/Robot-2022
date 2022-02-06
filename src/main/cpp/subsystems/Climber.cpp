@@ -3,6 +3,9 @@
 #include "subsystems/Climber.hpp"
 
 #include <frc/Joystick.h>
+#include <frc/RobotBase.h>
+#include <wpi/MathExtras.h>
+#include <wpi/numbers>
 
 #include "HWConfig.hpp"
 
@@ -10,7 +13,8 @@ using namespace frc3512;
 
 Climber::Climber() {}
 
-void Climber::TelescopingExtention(double yAxis) {
+void Climber::TelescopingExtension(double yAxis) {
+    
     m_leftTeleMotor.Set(yAxis);
     m_rightTeleMotor.Set(yAxis);
 }
@@ -27,32 +31,70 @@ void Climber::TelescopingIn() {
 
 bool Climber::IsTelescopingOut() const { return m_rightTeleSolenoid.Get(); }
 
-bool Climber::IsUpperSensorTriggered() const { return m_upperSensor.Get(); }
+bool Climber::IsOverExtended() const {
+    if (GetClimberPosition() > 0.1_m) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
-bool Climber::IsLowerSensorTriggered() const { return m_lowerSensor.Get(); }
+bool Climber::IsRetracted() const {
+    if (GetClimberPosition() == 0.0_m) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
-bool Climber::IsBarSensorTriggered() const { return m_barSensor.Get(); }
-
-void Climber::UpdateClimberSim(double extention) {
+void Climber::UpdateClimberSim(double extension) {
     if (IsTelescopingOut()) {
         m_climberSim->SetAngle(-180_deg);
     } else {
         m_climberSim->SetAngle(-90_deg);
     }
 
-    double extentionLength = m_extentionBase->GetLength();
+    double extensionLength = m_extensionBase->GetLength();
 
-    extention += extentionLength;
+    extension += extensionLength;
 
-    if (extention < -40) {
-        extention = -40;
+    if (extension < -40) {
+        extension = -40;
     }
 
-    if (extention > -20) {
-        extention = -20;
+    if (extension > -20) {
+        extension = -20;
     }
 
-    m_extentionBase->SetLength(extention);
+    m_extensionBase->SetLength(extension);
+}
+
+units::meter_t Climber::GetClimberPosition() const {
+    constexpr double kG = 1.0 / 20.0;  // Gear ratio
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        return units::meter_t{m_climberSimLS.GetOutput(0)};
+    } else {
+        double rotations = -m_climberEncoder.GetPosition();
+        return units::meter_t{
+            0.04381 * wpi::numbers::pi * kG * rotations /
+            (1.0 + 0.014983 * wpi::numbers::pi * kG * rotations)};
+    }
+}
+
+bool Climber::IsBarSensorTriggered() const { return m_barSensor.Get(); }
+
+void Climber::TeleopPeriodic() {
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+
+    if (appendageStick1.GetRawButtonPressed(2)) {
+        TelescopingIn();
+    }
+
+    if (appendageStick1.GetRawButtonPressed(3)) {
+        TelescopingOut();
+    }
+
+    TelescopingExtension(-appendageStick1.GetY());
 }
 
 void Climber::RobotPeriodic() {
@@ -60,7 +102,7 @@ void Climber::RobotPeriodic() {
 }
 
 void Climber::SimulationPeriodic() {
-    static frc::Joystick appendageStick1{HWConfig::appendageStick1PortID};
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
     UpdateClimberSim(appendageStick1.GetRawAxis(1));
 }

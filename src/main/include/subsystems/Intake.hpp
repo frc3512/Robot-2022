@@ -67,6 +67,8 @@ public:
 
     void RobotPeriodic() override;
 
+    void TeleopPeriodic() override;
+
     void SimulationPeriodic() override;
 
 private:
@@ -76,13 +78,13 @@ private:
         m_intakeBase->Append<frc::MechanismLigament2d>(
             "Intake", 15, -90_deg, 5, frc::Color8Bit{frc::Color::kBlue});
 
-    rev::CANSparkMax m_intakeMotor{frc3512::HWConfig::kIntakeMotorID,
+    rev::CANSparkMax m_intakeMotor{frc3512::HWConfig::Intake::kIntakeRollerMotorID,
                                    rev::CANSparkMax::MotorType::kBrushless};
 
     frc::Solenoid m_fourbar{frc::PneumaticsModuleType::CTREPCM,
-                            frc3512::HWConfig::kFourbarChannel};
+                            frc3512::HWConfig::Intake::kFourbarChannel};
 
-    rev::CANSparkMax m_conveyor{frc3512::HWConfig::kConveyorMotorID,
+    rev::CANSparkMax m_conveyor{frc3512::HWConfig::Intake::kConveyorMotorID,
                                 rev::CANSparkMax::MotorType::kBrushless};
     /*
      *  Sets the fourbar to deployed or stowed

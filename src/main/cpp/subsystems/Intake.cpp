@@ -1,7 +1,8 @@
 // Copyright (c) FRC Team 3512. All Rights Reserved.
 
-#include "subsystems/Intake.hpp"
+#include <frc/Joystick.h>
 
+#include "subsystems/Intake.hpp"
 #include "HWConfig.hpp"
 
 using namespace frc3512;
@@ -41,6 +42,24 @@ void Intake::SetFourbar(FourbarDirection direction) {
 }
 void Intake::RobotPeriodic() {
     frc::SmartDashboard::PutData("Intake", &m_mech2d);
+}
+
+void Intake::TeleopPeriodic() {
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+
+    if (appendageStick1.GetRawButtonPressed(4)) {
+        Deploy();
+    }
+
+    if (appendageStick1.GetRawButtonPressed(5)) {
+        Stow();
+    }
+
+    if (appendageStick1.GetRawButtonPressed(6)) {
+        SetConveyor(.75);
+    }else {
+        SetConveyor(0.0);
+    }
 }
 
 void Intake::SimulationPeriodic() { UpdateIntake(); }

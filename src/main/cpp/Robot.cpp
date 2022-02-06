@@ -11,6 +11,7 @@
 #include "HWConfig.hpp"
 #include "RealTimePriorities.hpp"
 #include "logging/CSVUtil.hpp"
+#include "subsystems/Climber.hpp"
 
 namespace frc3512 {
 
@@ -58,26 +59,7 @@ void Robot::AutonomousPeriodic() {
 void Robot::TeleopPeriodic() {
     SubsystemBase::RunAllTeleopPeriodic();
 
-    static frc::Joystick appendageStick1{HWConfig::appendageStick1PortID};
-    static frc::Joystick driveStick1{HWConfig::driveStick1PortID};
-
-    if (appendageStick1.GetRawButtonPressed(4)) {
-        intake.Deploy();
-    }
-
-    if (appendageStick1.GetRawButtonPressed(5)) {
-        intake.Stow();
-    }
-
-    if (appendageStick1.GetRawButtonPressed(2)) {
-        climber.TelescopingIn();
-    }
-
-    if (appendageStick1.GetRawButtonPressed(3)) {
-        climber.TelescopingOut();
-    }
-
-    climber.TelescopingExtention(appendageStick1.GetRawAxis(1));
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
     if (appendageStick1.GetRawButtonPressed(1)) {
         m_state = ClimbingStates::kSecondRung;
@@ -143,24 +125,23 @@ void Robot::ClimbingSequence() {
     if (solenoidTimer.HasElapsed(1_s)) {
         climber.TelescopingOut();
     } else if ((!climber.IsBarSensorTriggered()) &&
-               (!climber.IsUpperSensorTriggered())) {
-        climber.TelescopingExtention(0.65);
+               (!climber.IsOverExtended())) {
+        climber.TelescopingExtension(0.65);
     }
 
-    if (climber.IsUpperSensorTriggered()) {
-        climber.TelescopingExtention(0.00);
+    if (climber.IsOverExtended()) {
+        climber.TelescopingExtension(0.00);
     }
 
-    if ((climber.IsBarSensorTriggered()) &&
-        (!climber.IsLowerSensorTriggered())) {
-        climber.TelescopingExtention(-0.65);
+    if ((climber.IsBarSensorTriggered()) && (!climber.IsRetracted())) {
+        climber.TelescopingExtension(-0.65);
     }
 
-    if (climber.IsLowerSensorTriggered()) {
-        climber.TelescopingExtention(0.00);
+    if (climber.IsRetracted()) {
+        climber.TelescopingExtension(0.00);
     }
 
-    if ((climber.IsLowerSensorTriggered()) && (solenoidTimer.HasElapsed(8_s))) {
+    if ((climber.IsRetracted()) && (solenoidTimer.HasElapsed(8_s))) {
         climber.TelescopingIn();
         solenoidTimer.Stop();
         solenoidTimer.Reset();

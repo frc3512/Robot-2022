@@ -4,10 +4,12 @@
 
 #include <frc/DigitalInput.h>
 #include <frc/Solenoid.h>
+#include <frc/simulation/LinearSystemSim.h>
 #include <frc/smartdashboard/Mechanism2d.h>
 #include <frc/smartdashboard/MechanismLigament2d.h>
 #include <frc/smartdashboard/MechanismRoot2d.h>
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <frc/system/plant/LinearSystemId.h>
 #include <rev/CANSparkMax.h>
 
 #include "Constants.hpp"
@@ -23,14 +25,11 @@ namespace frc3512 {
 class Climber : public SubsystemBase {
 public:
     Climber();
-    Climber(const Climber&) = delete;
-    Climber& operator=(const Climber&) = delete;
-
     /**
-     *  Changes the extention of the telescoping arms
+     *  Changes the extension of the telescoping arms
      *  by the giving y-Axis of a joystick
      */
-    void TelescopingExtention(double speed);
+    void TelescopingExtension(double speed);
     /**
      *  Deploys arm solenoids out
      */
@@ -44,24 +43,29 @@ public:
      */
     bool IsTelescopingOut() const;
     /**
-     * Returns if the upper sensor
-     * detects anything
+     * Returns if the climber encoder
+     * reads it as over extending
      */
-    bool IsUpperSensorTriggered() const;
+    bool IsOverExtended() const;
     /**
-     * Returns if the lower sensor
-     * detects anything
+     * Returns if climber encoder
+     * reads it as fully retracted
      */
-    bool IsLowerSensorTriggered() const;
-    /**
-     * Returns if the bar sensor
-     * detects anything
-     */
-    bool IsBarSensorTriggered() const;
+    bool IsRetracted() const;
     /**
      * Updates Climber sim
      */
-    void UpdateClimberSim(double extention);
+    void UpdateClimberSim(double extension);
+    /**
+     * Returns encoder value for the climber
+     */
+    units::meter_t GetClimberPosition() const;
+    /**
+     * Returns if bar sensor is triggered
+     */
+    bool IsBarSensorTriggered() const;
+    
+    void TeleopPeriodic() override;
 
     void RobotPeriodic() override;
 
@@ -74,24 +78,35 @@ private:
     frc::MechanismLigament2d* m_climberSim =
         m_climberBase->Append<frc::MechanismLigament2d>(
             "Climber", 20, -90_deg, 5, frc::Color8Bit{frc::Color::kBlue});
-    frc::MechanismLigament2d* m_extentionBase =
+    frc::MechanismLigament2d* m_extensionBase =
         m_climberSim->Append<frc::MechanismLigament2d>(
             "Extended", -20, 0_deg, 5, frc::Color8Bit{frc::Color::kYellow});
 
-    frc::DigitalInput m_upperSensor{frc3512::HWConfig::upperSensorID};
-    frc::DigitalInput m_lowerSensor{frc3512::HWConfig::lowerSensorID};
-    frc::DigitalInput m_barSensor{frc3512::HWConfig::barSensorID};
-
-    rev::CANSparkMax m_leftTeleMotor{frc3512::HWConfig::kLeftTeleMotorID,
+    rev::CANSparkMax m_climberSensor{frc3512::HWConfig::Climber::kClimbSensor,
                                      rev::CANSparkMax::MotorType::kBrushless};
 
-    rev::CANSparkMax m_rightTeleMotor{frc3512::HWConfig::kRightTeleMotorID,
+    rev::SparkMaxRelativeEncoder m_climberEncoder =
+        m_climberSensor.rev::CANSparkMax::GetEncoder(
+            rev::SparkMaxRelativeEncoder::Type::kHallSensor,
+            frc3512::HWConfig::Climber::kRevs);
+
+    frc::DigitalInput m_barSensor{frc3512::HWConfig::Climber::kClimbSensor};
+
+    rev::CANSparkMax m_leftTeleMotor{frc3512::HWConfig::Climber::kLeftTeleMotorID,
+                                     rev::CANSparkMax::MotorType::kBrushless};
+
+    rev::CANSparkMax m_rightTeleMotor{frc3512::HWConfig::Climber::kRightTeleMotorID,
                                       rev::CANSparkMax::MotorType::kBrushless};
 
     frc::Solenoid m_leftTeleSolenoid{frc::PneumaticsModuleType::CTREPCM,
-                                     frc3512::HWConfig::kLeftTeleSolenoid};
+                                     frc3512::HWConfig::Climber::kLeftTeleSolenoid};
 
     frc::Solenoid m_rightTeleSolenoid{frc::PneumaticsModuleType::CTREPCM,
-                                      frc3512::HWConfig::kRightTeleSolenoid};
+                                      frc3512::HWConfig::Climber::kRightTeleSolenoid};
+
+    // Simulation variables
+    frc::sim::LinearSystemSim<2, 1, 1> m_climberSimLS{
+        frc::LinearSystemId::ElevatorSystem(frc::DCMotor::NEO(), 4.5_kg,
+                                            0.86_in, 20.0)};
 };
 }  // namespace frc3512
