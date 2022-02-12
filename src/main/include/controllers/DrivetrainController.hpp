@@ -10,6 +10,7 @@
 #include <frc/controller/ControlAffinePlantInversionFeedforward.h>
 #include <frc/controller/LTVDiffDriveController.h>
 #include <frc/geometry/Pose2d.h>
+#include <frc/geometry/Velocity2d.h>
 #include <frc/system/LinearSystem.h>
 #include <frc/trajectory/Trajectory.h>
 #include <frc/trajectory/TrajectoryConfig.h>
@@ -167,6 +168,29 @@ public:
     DrivetrainController& operator=(DrivetrainController&&) = default;
 
     /**
+     * Set yaw of the vision measurment.
+     *
+     * @param yaw yaw measurement in radians from the vision subsystem.
+     */
+    void SetVisionMeasurements(units::radian_t yaw);
+
+    /**
+     * Returns the angle the robot must rotate to in the global frame to point
+     * at the target.
+     *
+     * @param targetInGlobal Next timestep's X and Y of the target in the
+     *                       global frame.
+     * @param drivetrainInGlobal Next timestep's X and Y of the drivetrain in
+     * the global frame.
+     */
+    units::radian_t CalculateHeading(frc::Translation2d targetInGlobal,
+                                     frc::Translation2d drivetrainInGlobal);
+    /**
+     * Sets the current estimated global pose of the drivetrain.
+     */
+    void SetDrivetrainStates(const Eigen::Vector<double, 7>& x);
+
+    /**
      * Adds a trajectory with the given waypoints.
      *
      * This can be called more than once to create a queue of trajectories.
@@ -319,6 +343,13 @@ private:
     frc::Trajectory m_trajectory;
     frc::Pose2d m_goal;
     frc::Timer m_trajectoryTimeElapsed;
+
+    units::radian_t m_visionYaw = 0_rad;
+    units::second_t m_timestamp = 0_s;
+
+    frc::Pose2d m_drivetrainNextPoseInGlobal;
+    units::meters_per_second_t m_drivetrainLeftVelocity = 0_mps;
+    units::meters_per_second_t m_drivetrainRightVelocity = 0_mps;
 
     /**
      * Converts velocity and curvature of drivetrain into left and right wheel

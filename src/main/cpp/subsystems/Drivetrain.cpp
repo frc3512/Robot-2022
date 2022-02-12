@@ -155,6 +155,13 @@ void Drivetrain::ControllerPeriodic() {
 
     Eigen::Vector<double, 7> controllerState = GetStates();
 
+    while (visionQueue.size() > 0) {
+        auto measurement = visionQueue.pop_front();
+
+        m_controller.SetVisionMeasurements(measurement.yaw);
+        m_yawControllerEntry.SetDouble(measurement.yaw.value());
+    }
+
     if (m_controller.HaveTrajectory()) {
         m_u = m_controller.Calculate(GetStates());
 

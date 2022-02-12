@@ -108,6 +108,8 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     if constexpr (!IsSimulation()) {
         frc::CameraServer::StartAutomaticCapture();
     }
+
+    vision.SubscribeToVisionData(drivetrain.visionQueue);
 }
 
 Robot::~Robot() {}

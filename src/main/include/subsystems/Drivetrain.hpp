@@ -39,6 +39,7 @@
 #include "Constants.hpp"
 #include "HWConfig.hpp"
 #include "NetworkTableUtil.hpp"
+#include "Vision.hpp"
 #include "controllers/DrivetrainController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
 
@@ -58,6 +59,12 @@ public:
      * Distance from middle of robot to intake.
      */
     static constexpr units::meter_t kMiddleOfRobotToIntake = 0.656_m;
+
+    /**
+     * Producer-consumer queue for global pose measurements from Vision
+     * subsystem.
+     */
+    wpi::static_circular_buffer<Vision::GlobalMeasurements, 8> visionQueue;
 
     Drivetrain();
 
@@ -338,6 +345,17 @@ private:
     frc::sim::EncoderSim m_rightEncoderSim{m_rightEncoder};
     frc::sim::ADIS16470_IMUSim m_imuSim{m_imu};
     frc::Field2d m_field;
+
+    nt::NetworkTableEntry m_headingGoalEntry = NetworkTableUtil::MakeBoolEntry(
+        "/Diagnostics/Drivetrain/Outputs/Goal Heading Achieved");
+
+    nt::NetworkTableEntry m_yawControllerEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Controller Yaw Value");
+
+    nt::NetworkTableEntry m_hasHeadingGoalEntry =
+        NetworkTableUtil::MakeBoolEntry(
+            "/Diagnostics/Drivetrain/Outputs/Has New Goal Heading");
 
     /**
      * Set drivetrain motors to brake mode, which the feedback controllers

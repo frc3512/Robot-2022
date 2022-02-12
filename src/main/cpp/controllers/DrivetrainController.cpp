@@ -11,6 +11,8 @@
 #include <frc/trajectory/constraint/CentripetalAccelerationConstraint.h>
 #include <frc/trajectory/constraint/DifferentialDriveVelocitySystemConstraint.h>
 
+#include "TargetModel.hpp"
+
 using namespace frc3512;
 
 const frc::LinearSystem<2, 2, 2> DrivetrainController::kPlant{GetPlant()};
@@ -20,6 +22,36 @@ DrivetrainController::DrivetrainController() {
         frc::Pose2d{{kPositionTolerance, kPositionTolerance}, kAngleTolerance},
         kVelocityTolerance, kVelocityTolerance);
     m_trajectoryTimeElapsed.Start();
+}
+
+void DrivetrainController::SetVisionMeasurements(units::radian_t yaw) {
+    m_visionYaw = yaw;
+}
+
+units::radian_t DrivetrainController::CalculateHeading(
+    frc::Translation2d targetInGlobal, frc::Translation2d drivetrainInGlobal) {
+    units::radian_t drivetrainHeading =
+        m_drivetrainNextPoseInGlobal.Rotation().Radians();
+    units::meters_per_second_t drivetrainSpeed{
+        (m_drivetrainLeftVelocity + m_drivetrainRightVelocity) / 2.0};
+    frc::Velocity2d drivetrainVelocity{drivetrainSpeed,
+                                       frc::Rotation2d{drivetrainHeading}};
+
+    return units::math::atan2(targetInGlobal.Y() - drivetrainInGlobal.Y(),
+                              targetInGlobal.X() - drivetrainInGlobal.X());
+}
+
+void DrivetrainController::SetDrivetrainStates(
+    const Eigen::Vector<double, 7>& x) {
+    using State = DrivetrainController::State;
+
+    m_drivetrainNextPoseInGlobal =
+        frc::Pose2d(units::meter_t{x(State::kX)}, units::meter_t{x(State::kY)},
+                    units::radian_t{x(State::kHeading)});
+    m_drivetrainLeftVelocity =
+        units::meters_per_second_t{x(State::kLeftVelocity)};
+    m_drivetrainRightVelocity =
+        units::meters_per_second_t{x(State::kRightVelocity)};
 }
 
 void DrivetrainController::AddTrajectory(
