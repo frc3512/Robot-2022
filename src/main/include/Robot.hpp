@@ -14,6 +14,7 @@
 #include "AutonomousChooser.hpp"
 #include "NetworkTableUtil.hpp"
 #include "subsystems/Drivetrain.hpp"
+#include "subsystems/Intake.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
 #if RUNNING_FRC_TESTS
@@ -48,6 +49,9 @@ public:
 
     /// Drivetrain subsystem.
     Drivetrain drivetrain;
+
+    /// Intake subsystem.
+    Intake intake;
 
     Robot();
 

@@ -80,8 +80,17 @@ constexpr int kLowerSensorChannel = 4;
 /// Upper proximity sensor digital input channel
 constexpr int kUpperSensorChannel = 5;
 
-/// Arm solenoid channel
-constexpr int kArmChannel = 0;
+/// Channal for the Fourbar
+constexpr int kFourbarChannel = 2;
+
+/// ID for the left conveyor motor
+constexpr int kLeftConveyorMotorID = 3;
+
+// ID for the right conveyor motor
+constexpr int kRightConveyorMotorID = 4;
+
+/// ID for the intake motor
+constexpr int kIntakeRollerMotorID = 8;
 }  // namespace Intake
 
 namespace Climber {
