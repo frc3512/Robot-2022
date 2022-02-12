@@ -68,9 +68,9 @@ void Intake::RobotPeriodic() {
         Stop();
     }
 
-    if (appendageStick2.GetRawButton(5)) {
+    if (!IsDeployed() && appendageStick2.GetRawButton(5)) {
         Deploy();
-    } else if (appendageStick2.GetRawButton(6)) {
+    } else if (appendageStick2.GetRawButton(5)) {
         Stow();
     }
 

@@ -92,10 +92,30 @@ constexpr int kArmChannel = 4;
 }  // namespace Intake
 
 namespace Climber {
-/// Right Climber CAN ID
-constexpr int kRightClimbMotorID = 2;
+/// Left pivoting arm CAN ID
+constexpr int kLeftPivotingArmID = 3;
 
-constexpr int kLeftClimbMotorID = 13;
+/// Right pivoting arm CAN ID
+constexpr int kRightPivotingArmID = 4;
+
+/// Left pivoting arm lock solenoid channel
+constexpr int kLeftClimberLockChannel = 3;
+
+/// Right pivoting arm lock solenoid channel
+constexpr int kRightClimberLockChannel = 4;
+
+/// Left infrared sensor channel for left arm
+constexpr int kLeftArmLeftInfraredSensorChannel = 8;
+
+/// Right infrared sensor channel for left arm
+constexpr int kLeftArmRightInfraredSensorChannel = 9;
+
+/// Left infrared sensor channel for right arm
+constexpr int kRightArmLeftInfraredSensorChannel = 6;
+
+/// Right infrared sensor channel for right arm
+constexpr int kRightArmRightInfraredSensorChannel = 7;
+
 }  // namespace Climber
 
 }  // namespace frc3512::HWConfig
