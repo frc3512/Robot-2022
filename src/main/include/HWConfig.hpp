@@ -26,16 +26,16 @@ constexpr int kAppendageStick2Port = 3;
 
 namespace Drivetrain {
 /// Left motor leader CAN ID
-constexpr int kLeftMotorLeaderID = 16;
+constexpr int kLeftMotorLeaderID = 14;
 
 /// Left motor follower CAN ID
-constexpr int kLeftMotorFollowerID = 1;
+constexpr int kLeftMotorFollowerID = 15;
 
 /// Right motor leader CAN ID
-constexpr int kRightMotorLeaderID = 14;
+constexpr int kRightMotorLeaderID = 16;
 
 /// Right motor follower CAN ID
-constexpr int kRightMotorFollowerID = 15;
+constexpr int kRightMotorFollowerID = 1;
 
 // Encoder channels
 constexpr int kLeftEncoderA = 0;
@@ -51,11 +51,11 @@ constexpr int kRightUltrasonicChannel = 2;
 }  // namespace Drivetrain
 
 namespace Flywheel {
-/// Left motor CAN ID
-constexpr int kLeftMotorID = 9;
+/// Front motor CAN ID
+constexpr int kFrontMotorID = 10;
 
-/// Right motor CAN ID
-constexpr int kRightMotorID = 10;
+/// Back motor CAN ID
+constexpr int kBackMotorID = 5;
 
 /// Encoder channel A
 constexpr int kEncoderA = 6;
@@ -64,30 +64,15 @@ constexpr int kEncoderA = 6;
 constexpr int kEncoderB = 7;
 }  // namespace Flywheel
 
-namespace Turret {
-/// Turret motor CAN ID
-constexpr int kMotorID = 8;
-
-/// Counterclockwise hall sensor digital input channel
-constexpr int kCCWHallChannel = 0;
-
-/// Clockwise hall sensor digital input channel
-constexpr int kCWHallChannel = 1;
-
-// Encoder digital input channel
-constexpr int kEncoderChannel = 8;
-}  // namespace Turret
-
 namespace Intake {
 /// Arm motor CAN ID
-constexpr int kArmMotorID = 6;
+constexpr int kArmMotorID = 9;
 
-/// Conveyor motor CAN ID
-constexpr int kConveyorMotorID = 7;
+/// Right Conveyor motor CAN ID
+constexpr int kConveyorRightMotorID = 4;
 
-/// Funnel motor CAN ID
-constexpr int kFunnelLeftMotorID = 4;
-constexpr int kFunnelRightMotorID = 5;
+/// Left Conveyor motor CAN ID
+constexpr int kConveyorLeftMotorID = 11;
 
 /// Lower proximity sensor digital input channel
 constexpr int kLowerSensorChannel = 4;
@@ -100,17 +85,10 @@ constexpr int kArmChannel = 0;
 }  // namespace Intake
 
 namespace Climber {
-/// Elevator motor CAN ID
-constexpr int kElevatorMotorID = 3;
+/// Right Climber CAN ID
+constexpr int kRightClimbMotorID = 2;
 
-/// Traverser motor CAN ID
-constexpr int kTraverserMotorID = 13;
-
-/// Climber lock solenoid channel
-constexpr int kClimberLockChannel = 3;
-
-/// Climber color sensor arm servo channel
-constexpr int kColorSensorArmServoChannel = 9;
+constexpr int kLeftClimbMotorID = 13;
 }  // namespace Climber
 
 }  // namespace frc3512::HWConfig
