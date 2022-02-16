@@ -37,11 +37,6 @@ namespace frc3512 {
 class Flywheel : public ControlledSubsystemBase<1, 1, 1> {
 public:
     /**
-     * Hood Position
-     */
-    enum class HoodPose { kLow, kHigh };
-
-    /**
      * Constructs a Flywheel.
      */
     Flywheel();
@@ -90,13 +85,6 @@ public:
     bool AtGoal() const;
 
     /**
-     * Set the Position of the hood for either high goal or low goal.
-     *
-     * @param pose The position of the hood.
-     */
-    void SetHoodPose(HoodPose pose);
-
-    /**
      * Returns true if the flywheel has been set to a nonzero goal.
      */
     bool IsOn() const;
@@ -128,24 +116,14 @@ public:
     void ControllerPeriodic() override;
 
 private:
-    rev::CANSparkMax m_leftGrbx{HWConfig::Flywheel::kLeftMotorID,
-                                rev::CANSparkMax::MotorType::kBrushless};
-    rev::CANSparkMax m_rightGrbx{HWConfig::Flywheel::kRightMotorID,
+    rev::CANSparkMax m_frontGrbx{HWConfig::Flywheel::kFrontMotorID,
                                  rev::CANSparkMax::MotorType::kBrushless};
-    rev::CANSparkMax m_rightFollower{HWConfig::Flywheel::kRightFollowID,
-                                     rev::CANSparkMax::MotorType::kBrushless};
+    rev::CANSparkMax m_backGrbx{HWConfig::Flywheel::kBackMotorID,
+                                rev::CANSparkMax::MotorType::kBrushless};
     frc::Encoder m_encoder{HWConfig::Flywheel::kEncoderA,
                            HWConfig::Flywheel::kEncoderB};
 
     static constexpr units::radians_per_second_t kShootSpeed = 500_rad_per_s;
-
-    rev::CANSparkMax m_hoodMotor{HWConfig::Flywheel::kHoodMotorID,
-                                 rev::CANSparkMax::MotorType::kBrushless};
-    HoodPose m_hoodPose = HoodPose::kLow;
-    frc::DigitalInput m_lowGoalSwitch{
-        HWConfig::Flywheel::kLowGoalLimitSwitchChannel};
-    frc::DigitalInput m_highGoalSwitch{
-        HWConfig::Flywheel::kHighGoalLimitSwitchChannel};
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{

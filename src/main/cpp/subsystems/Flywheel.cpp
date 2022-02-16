@@ -19,17 +19,17 @@ Flywheel::Flywheel()
                               {ControllerLabel{"Angular velocity", "rad/s"}},
                               {ControllerLabel{"Voltage", "V"}},
                               {ControllerLabel{"Angular velocity", "rad/s"}}) {
-    m_leftGrbx.SetSmartCurrentLimit(40);
-    m_rightGrbx.SetSmartCurrentLimit(40);
+    m_frontGrbx.SetSmartCurrentLimit(40);
+    m_backGrbx.SetSmartCurrentLimit(40);
 
     // Ensures CANSparkMax::Get() returns an initialized value
-    m_leftGrbx.Set(0.0);
-    m_rightGrbx.Set(0.0);
+    m_frontGrbx.Set(0.0);
+    m_backGrbx.Set(0.0);
 
     m_encoder.SetDistancePerPulse(FlywheelController::kDpP);
     m_encoder.SetSamplesToAverage(5);
-    m_leftGrbx.SetInverted(false);
-    m_rightGrbx.SetInverted(false);
+    m_frontGrbx.SetInverted(false);
+    m_backGrbx.SetInverted(false);
 
     Reset();
     SetGoal(0_rad_per_s);
@@ -57,8 +57,6 @@ units::radians_per_second_t Flywheel::GetGoal() const {
 
 bool Flywheel::AtGoal() const { return m_controller.AtGoal(); }
 
-void Flywheel::SetHoodPose(HoodPose pose) { m_hoodPose = pose; }
-
 bool Flywheel::IsOn() const { return GetGoal() > 0_rad_per_s; }
 
 bool Flywheel::IsReady() { return GetGoal() > 0_rad_per_s && AtGoal(); }
@@ -82,33 +80,8 @@ void Flywheel::RobotPeriodic() {
                    units::revolutions_per_minute_t{manualRef});
     }
 
-    if (appendageStick2.GetRawButtonPressed(3)) {
-        SetHoodPose(HoodPose::kHigh);
-    } else if (appendageStick2.GetRawButtonPressed(4)) {
-        SetHoodPose(HoodPose::kLow);
-    }
     if (appendageStick2.GetRawButtonPressed(1)) {
         Shoot();
-    }
-
-    if (m_highGoalSwitch.Get() || m_lowGoalSwitch.Get()) {
-        m_hoodMotor.Set(0.0);
-    }
-
-    switch (m_hoodPose) {
-        case HoodPose::kLow:
-            if (!m_lowGoalSwitch.Get()) {
-                m_hoodMotor.Set(-0.75);
-            }
-            break;
-        case HoodPose::kHigh:
-            if (!m_highGoalSwitch.Get()) {
-                m_hoodMotor.Set(0.75);
-            }
-            break;
-        default:
-            m_hoodMotor.Set(0.0);
-            break;
     }
 }
 
@@ -138,7 +111,7 @@ void Flywheel::ControllerPeriodic() {
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 
     if constexpr (frc::RobotBase::IsSimulation()) {
-        units::volt_t voltage{m_leftGrbx.Get() *
+        units::volt_t voltage{m_frontGrbx.Get() *
                               frc::RobotController::GetInputVoltage()};
         if (m_flywheelSim.GetAngularVelocity() > 0_rad_per_s) {
             voltage -= FlywheelController::kS;
@@ -156,8 +129,8 @@ void Flywheel::ControllerPeriodic() {
 }
 
 void Flywheel::SetVoltage(units::volt_t voltage) {
-    m_leftGrbx.SetVoltage(voltage);
-    m_rightGrbx.SetVoltage(-voltage);
+    m_frontGrbx.SetVoltage(voltage);
+    m_backGrbx.SetVoltage(-voltage);
 }
 
 units::radians_per_second_t Flywheel::ThrottleToReference(double throttle) {
@@ -171,10 +144,4 @@ units::radians_per_second_t Flywheel::ThrottleToReference(double throttle) {
     return units::math::round(rescale);
 }
 
-void Flywheel::Shoot() {
-    if (!m_lowGoalSwitch.Get() && !m_highGoalSwitch.Get()) {
-        m_hoodPose = HoodPose::kHigh;
-    }
-
-    SetGoal(kShootSpeed);
-}
+void Flywheel::Shoot() { SetGoal(kShootSpeed); }
