@@ -4,15 +4,87 @@
 
 #include <stdexcept>
 
+#include <fmt/format.h>
 #include <frc/DriverStation.h>
+#include <frc/Errors.h>
+#include <frc/Joystick.h>
+#include <frc/Notifier.h>
+#include <frc/Processes.h>
+#include <frc/RobotController.h>
+#include <frc/Threads.h>
+#include <frc/UidSetter.h>
+#include <frc/livewindow/LiveWindow.h>
+#include <frc/simulation/BatterySim.h>
+#include <frc/simulation/RoboRioSim.h>
 
 #include "Constants.hpp"
+#include "HWConfig.hpp"
 #include "RealTimePriorities.hpp"
+#include "Setup.hpp"
 #include "logging/CSVUtil.hpp"
 
 namespace frc3512 {
 
-Robot::Robot() {}
+Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
+    SetRTRuntimeLimit();
+
+    {
+        frc::UidSetter uidSetter{0};
+        if (!frc::Notifier::SetHALThreadPriority(true,
+                                                 kPrioHALNotifierThread)) {
+            throw std::runtime_error(
+                fmt::format("Giving HAL Notifier RT priority {} failed\n",
+                            kPrioHALNotifierThread));
+        }
+    }
+
+    if (!frc::SetProcessPriority("/usr/local/frc/bin/FRC_NetCommDaemon", true,
+                                 kPrioNetCommDaemon)) {
+        throw std::runtime_error(
+            fmt::format("Giving /usr/local/frc/bin/FRC_NetCommDaemon RT "
+                        "priority {} failed  ",
+                        kPrioNetCommDaemon));
+    }
+
+    {
+        frc::UidSetter uidSetter{0};
+        if (!frc::SetCurrentThreadPriority(true, kPrioMainRobotThread)) {
+            throw std::runtime_error(
+                fmt::format("Giving TimesliceRobot RT priority {} failed\n",
+                            kPrioMainRobotThread));
+        }
+    }
+
+    StopCrond();
+
+    // These warnings generate console prints that cause scheduling jitter
+    frc::DriverStation::SilenceJoystickConnectionWarning(true);
+
+    // This telemetry regularly causes loop overruns
+    frc::LiveWindow::DisableAllTelemetry();
+
+    // Log NT data every 20ms instead of every 100ms for higher resolution
+    // dashboard plots
+    SetNetworkTablesFlushEnabled(true);
+
+    // TIMESLICE ALLOCATION TABLE
+    //
+    // |  Subsystem | Duration (ms) | Allocation (ms) |
+    // |------------|---------------|-----------------|
+    // | **Total**  | 5.0           | 5.0             |
+    // | TimedRobot | ?             | 2.0             |
+    // | Drivetrain | 1.32          | 1.5             |
+    // | Flywheel   | 0.6           | 0.7             |
+    // | Turret     | 0.6           | 0.8             |
+    // | **Free**   | 0.0           | N/A             |
+    Schedule(
+        [=] {
+            if (IsEnabled()) {
+                drivetrain.ControllerPeriodic();
+            }
+        },
+        1.5_ms);
+}
 
 Robot::~Robot() {}
 
@@ -42,7 +114,19 @@ void Robot::TestInit() {
     SubsystemBase::RunAllTestInit();
 }
 
-void Robot::RobotPeriodic() { SubsystemBase::RunAllRobotPeriodic(); }
+void Robot::RobotPeriodic() {
+    SubsystemBase::RunAllRobotPeriodic();
+
+    auto batteryVoltage = frc::RobotController::GetInputVoltage();
+    m_batteryLogger.Log(
+        units::second_t{std::chrono::steady_clock::now().time_since_epoch()},
+        batteryVoltage);
+
+    if (frc::DriverStation::IsDisabled() ||
+        !frc::DriverStation::IsFMSAttached()) {
+        m_batteryVoltageEntry.SetDouble(batteryVoltage);
+    }
+}
 
 void Robot::SimulationPeriodic() { SubsystemBase::RunAllSimulationPeriodic(); }
 

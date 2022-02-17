@@ -6,8 +6,8 @@
 #include <string_view>
 #include <vector>
 
-#include <frc/TimedRobot.h>
 #include <frc/Timer.h>
+#include <frc/TimesliceRobot.h>
 #include <frc/logging/CSVLogFile.h>
 #include <units/time.h>
 
@@ -42,7 +42,7 @@ namespace frc3512 {
 /**
  * The main robot class.
  */
-class Robot : public frc::TimedRobot {
+class Robot : public frc::TimesliceRobot {
 public:
     // The subsystem initialization order determines the controller run order.
 
