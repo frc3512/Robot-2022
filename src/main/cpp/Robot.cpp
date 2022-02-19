@@ -67,6 +67,8 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     // dashboard plots
     SetNetworkTablesFlushEnabled(true);
 
+    m_autonChooser.AddAutonomous("Turn-In-Place", [=] { AutoTurnInPlace(); });
+
     // TIMESLICE ALLOCATION TABLE
     //
     // |  Subsystem | Duration (ms) | Allocation (ms) |
@@ -157,12 +159,12 @@ void Robot::ExpectAutonomousEndConds() {
         EXPECT_TRUE(drivetrain.AtGoal());
 
         // Verify left/right wheel velocities are close to zero
-        EXPECT_NEAR(
-            drivetrain.GetStates()(DrivetrainController::State::kLeftVelocity),
-            0.0, 0.01);
-        EXPECT_NEAR(
-            drivetrain.GetStates()(DrivetrainController::State::kRightVelocity),
-            0.0, 0.01);
+        EXPECT_NEAR(drivetrain.GetStates()(
+                        DrivetrainTrajectoryController::State::kLeftVelocity),
+                    0.0, 0.01);
+        EXPECT_NEAR(drivetrain.GetStates()(
+                        DrivetrainTrajectoryController::State::kRightVelocity),
+                    0.0, 0.01);
     }
 }
 

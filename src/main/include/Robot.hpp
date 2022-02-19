@@ -130,6 +130,11 @@ public:
     void AutoNoOp();
 
     /**
+     * Turns the drivetrain in place, testing out the new controller
+     */
+    void AutoTurnInPlace();
+
+    /**
      * Sets the selected autonomous mode for testing purposes.
      *
      * @param name The autonomous mode's name passed to

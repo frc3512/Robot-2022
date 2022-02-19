@@ -1,6 +1,6 @@
 // Copyright (c) FRC Team 3512. All Rights Reserved.
 
-#include "controllers/DrivetrainController.hpp"
+#include "controllers/DrivetrainTrajectoryController.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -13,16 +13,17 @@
 
 using namespace frc3512;
 
-const frc::LinearSystem<2, 2, 2> DrivetrainController::kPlant{GetPlant()};
+const frc::LinearSystem<2, 2, 2> DrivetrainTrajectoryController::kPlant{
+    GetPlant()};
 
-DrivetrainController::DrivetrainController() {
+DrivetrainTrajectoryController::DrivetrainTrajectoryController() {
     m_fb.SetTolerance(
         frc::Pose2d{{kPositionTolerance, kPositionTolerance}, kAngleTolerance},
         kVelocityTolerance, kVelocityTolerance);
     m_trajectoryTimeElapsed.Start();
 }
 
-void DrivetrainController::AddTrajectory(
+void DrivetrainTrajectoryController::AddTrajectory(
     const frc::Pose2d& start, const std::vector<frc::Translation2d>& interior,
     const frc::Pose2d& end, const frc::TrajectoryConfig& config) {
     bool hadTrajectory = HaveTrajectory();
@@ -38,7 +39,7 @@ void DrivetrainController::AddTrajectory(
     }
 }
 
-void DrivetrainController::AddTrajectory(
+void DrivetrainTrajectoryController::AddTrajectory(
     const std::vector<frc::Pose2d>& waypoints,
     const frc::TrajectoryConfig& config) {
     bool hadTrajectory = HaveTrajectory();
@@ -54,15 +55,15 @@ void DrivetrainController::AddTrajectory(
     }
 }
 
-bool DrivetrainController::HaveTrajectory() const {
+bool DrivetrainTrajectoryController::HaveTrajectory() const {
     return m_trajectory.States().size() > 0;
 }
 
-void DrivetrainController::AbortTrajectories() {
+void DrivetrainTrajectoryController::AbortTrajectories() {
     m_trajectory = frc::Trajectory{};
 }
 
-bool DrivetrainController::AtGoal() const {
+bool DrivetrainTrajectoryController::AtGoal() const {
     frc::Pose2d ref{units::meter_t{m_r(State::kX)},
                     units::meter_t{m_r(State::kY)},
                     units::radian_t{m_r(State::kHeading)}};
@@ -74,7 +75,7 @@ bool DrivetrainController::AtGoal() const {
            m_fb.AtReference();
 }
 
-void DrivetrainController::Reset(const frc::Pose2d& initialPose) {
+void DrivetrainTrajectoryController::Reset(const frc::Pose2d& initialPose) {
     Eigen::Vector<double, 7> xHat;
     xHat(0) = initialPose.X().value();
     xHat(1) = initialPose.Y().value();
@@ -88,15 +89,15 @@ void DrivetrainController::Reset(const frc::Pose2d& initialPose) {
     m_goal = initialPose;
 }
 
-Eigen::Vector<double, 2> DrivetrainController::Calculate(
+Eigen::Vector<double, 2> DrivetrainTrajectoryController::Calculate(
     const Eigen::Vector<double, 7>& x) {
     m_u = Eigen::Vector<double, 2>::Zero();
 
     if (HaveTrajectory()) {
         frc::Trajectory::State ref =
             m_trajectory.Sample(m_trajectoryTimeElapsed.Get());
-        auto [vlRef, vrRef] =
-            ToWheelVelocities(ref.velocity, ref.curvature, kWidth);
+        auto [vlRef, vrRef] = ToWheelVelocities(ref.velocity, ref.curvature,
+                                                DrivetrainConstants::kWidth);
 
         m_nextR =
             Eigen::Vector<double, 7>{ref.pose.X().value(),
@@ -127,22 +128,27 @@ Eigen::Vector<double, 2> DrivetrainController::Calculate(
     return m_u;
 }
 
-frc::LinearSystem<2, 2, 2> DrivetrainController::GetPlant() {
-    return frc::LinearSystemId::IdentifyDrivetrainSystem(kLinearV, kLinearA,
-                                                         kAngularV, kAngularA);
+frc::LinearSystem<2, 2, 2> DrivetrainTrajectoryController::GetPlant() {
+    return frc::LinearSystemId::IdentifyDrivetrainSystem(
+        DrivetrainConstants::Meters::kLinearV,
+        DrivetrainConstants::Meters::kLinearA,
+        DrivetrainConstants::Meters::kAngularV,
+        DrivetrainConstants::Meters::kAngularA);
 }
 
-frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig() {
+frc::TrajectoryConfig DrivetrainTrajectoryController::MakeTrajectoryConfig() {
     return MakeTrajectoryConfig(0_mps, 0_mps);
 }
 
-frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig(
+frc::TrajectoryConfig DrivetrainTrajectoryController::MakeTrajectoryConfig(
     units::meters_per_second_t startVelocity,
     units::meters_per_second_t endVelocity) {
-    frc::TrajectoryConfig config{kMaxV, 2.2_mps_sq};
+    frc::TrajectoryConfig config{DrivetrainConstants::Meters::kMaxLinearV,
+                                 2.2_mps_sq};
 
     config.AddConstraint(frc::DifferentialDriveVelocitySystemConstraint{
-        kPlant, frc::DifferentialDriveKinematics{kWidth}, 8_V});
+        kPlant, frc::DifferentialDriveKinematics{DrivetrainConstants::kWidth},
+        8_V});
 
     // Slows drivetrain down on curves to avoid understeer that introduces
     // odometry errors
@@ -154,7 +160,7 @@ frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig(
     return config;
 }
 
-Eigen::Vector<double, 7> DrivetrainController::Dynamics(
+Eigen::Vector<double, 7> DrivetrainTrajectoryController::Dynamics(
     const Eigen::Vector<double, 7>& x, const Eigen::Vector<double, 2>& u) {
     Eigen::Matrix<double, 4, 2> B;
     B.block<2, 2>(0, 0) = kPlant.B();
@@ -169,16 +175,20 @@ Eigen::Vector<double, 7> DrivetrainController::Dynamics(
     Eigen::Vector<double, 7> xdot;
     xdot(0) = v * std::cos(x(State::kHeading));
     xdot(1) = v * std::sin(x(State::kHeading));
-    xdot(2) =
-        ((x(State::kRightVelocity) - x(State::kLeftVelocity)) / kWidth).value();
+    xdot(2) = ((x(State::kRightVelocity) - x(State::kLeftVelocity)) /
+               DrivetrainConstants::kWidth)
+                  .value();
     xdot.block<4, 1>(3, 0) = A * x.block<4, 1>(3, 0) + B * u;
     return xdot;
 }
 
-Eigen::Vector<double, 5> DrivetrainController::LocalMeasurementModel(
+Eigen::Vector<double, 5> DrivetrainTrajectoryController::LocalMeasurementModel(
     const Eigen::Vector<double, 7>& x, const Eigen::Vector<double, 2>& u) {
     auto plant = frc::LinearSystemId::IdentifyDrivetrainSystem(
-        kLinearV, kLinearA, kAngularV, kAngularA);
+        DrivetrainConstants::Meters::kLinearV,
+        DrivetrainConstants::Meters::kLinearA,
+        DrivetrainConstants::Meters::kAngularV,
+        DrivetrainConstants::Meters::kAngularA);
     Eigen::Vector<double, 2> xdot =
         plant.A() * x.block<2, 1>(State::kLeftVelocity, 0) + plant.B() * u;
 
@@ -187,10 +197,10 @@ Eigen::Vector<double, 5> DrivetrainController::LocalMeasurementModel(
         (xdot(0) + xdot(1)) / 2.0,
         (x(State::kRightVelocity) * x(State::kRightVelocity) -
          x(State::kLeftVelocity) * x(State::kLeftVelocity)) /
-            (2.0 * kWidth.value())};
+            (2.0 * DrivetrainConstants::kWidth.value())};
 }
 
-Eigen::Vector<double, 2> DrivetrainController::GlobalMeasurementModel(
+Eigen::Vector<double, 2> DrivetrainTrajectoryController::GlobalMeasurementModel(
     const Eigen::Vector<double, 7>& x, const Eigen::Vector<double, 2>& u) {
     static_cast<void>(u);
 

@@ -42,12 +42,6 @@ constexpr int kLeftEncoderA = 6;
 constexpr int kLeftEncoderB = 7;
 constexpr int kRightEncoderA = 8;
 constexpr int kRightEncoderB = 9;
-
-/// Left ultrasonic sensor channel
-constexpr int kLeftUltrasonicChannel = 3;
-
-/// Right ultrasonic sensor channel
-constexpr int kRightUltrasonicChannel = 2;
 }  // namespace Drivetrain
 
 namespace Flywheel {

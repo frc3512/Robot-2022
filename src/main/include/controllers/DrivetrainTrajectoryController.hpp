@@ -20,6 +20,7 @@
 
 #include "Constants.hpp"
 #include "controllers/ControllerBase.hpp"
+#include "controllers/DrivetrainConstants.hpp"
 
 namespace frc3512 {
 
@@ -45,54 +46,8 @@ namespace frc3512 {
  * See section 9.6 in Controls Engineering in FRC for a derivation of the
  * control law we used shown in theorem 9.6.3.
  */
-class DrivetrainController : public ControllerBase<7, 2, 4> {
+class DrivetrainTrajectoryController : public ControllerBase<7, 2, 4> {
 public:
-    /// The wheel radius.
-    static constexpr units::meter_t kWheelRadius = 3.05_in;
-
-    /// The drivetrain gear ratio from the encoder to the wheel.
-    static constexpr double kDriveGearRatio = 1.0 / 1.0;
-
-    /// Drivetrain distance per encoder pulse.
-    static constexpr double kDpP =
-        (2.0 * wpi::numbers::pi * kWheelRadius.value()) * kDriveGearRatio /
-        2048.0;
-
-    /// Drivetrain chassis width.
-    static constexpr units::meter_t kWidth = [] {
-        auto absoluteValue = [](auto arg) {
-            return arg > decltype(arg){0} ? arg : -1.0 * arg;
-        };
-
-        // These values were collected by rotating the robot in place and
-        // recording the encoder position and gyro heading measurements.
-        // Difference is final measurement minus initial measurement.
-        constexpr auto kLeftPosition = 2.18274_m - 0_m;
-        constexpr auto kRightPosition = (-1.0 * 2.19665_m) - 0_m;
-        constexpr auto kHeading = (-1.0 * 3.1219_rad) - 3.1415_rad;
-
-        return (absoluteValue(kLeftPosition) + absoluteValue(kRightPosition)) /
-               absoluteValue(kHeading) * 1_rad;
-    }();
-
-    /// Linear velocity system ID gain.
-    static constexpr auto kLinearV = 3.02_V / 1_mps;
-
-    /// Linear acceleration system ID gain.
-    static constexpr auto kLinearA = 0.642_V / 1_mps_sq;
-
-    /// Angular velocity system ID gain.
-    static constexpr auto kAngularV = 1.382_V / 1_mps;
-
-    /// Angular acceleration system ID gain.
-    static constexpr auto kAngularA = 0.08495_V / 1_mps_sq;
-
-    /// Maximum linear velocity.
-    static constexpr auto kMaxV = 12_V / kLinearV;
-
-    /// Maximum linear acceleration.
-    static constexpr auto kMaxA = 12_V / kLinearA;
-
     /**
      * States of the drivetrain system.
      */
@@ -168,17 +123,18 @@ public:
     /**
      * Constructs a drivetrain controller.
      */
-    DrivetrainController();
+    DrivetrainTrajectoryController();
 
     /**
      * Move constructor.
      */
-    DrivetrainController(DrivetrainController&&) = default;
+    DrivetrainTrajectoryController(DrivetrainTrajectoryController&&) = default;
 
     /**
      * Move assignment operator.
      */
-    DrivetrainController& operator=(DrivetrainController&&) = default;
+    DrivetrainTrajectoryController& operator=(
+        DrivetrainTrajectoryController&&) = default;
 
     /**
      * Adds a trajectory with the given waypoints.
@@ -308,7 +264,7 @@ private:
     frc::ControlAffinePlantInversionFeedforward<7, 2> m_ff{
         Dynamics, Constants::kControllerPeriod};
     frc::LTVDiffDriveController m_fb{kPlant,
-                                     kWidth,
+                                     DrivetrainConstants::kWidth,
                                      {0.0625, 0.125, 2.5, 0.95, 0.95},
                                      {12.0, 12.0},
                                      Constants::kControllerPeriod};
