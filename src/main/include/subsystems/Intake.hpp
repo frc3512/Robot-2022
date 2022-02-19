@@ -103,30 +103,23 @@ public:
 private:
     frc::Timer m_conveyorTimer;
 
-    rev::CANSparkMax m_intakeMotor{
-        frc3512::HWConfig::Intake::kArmMotorID,
-        rev::CANSparkMax::MotorType::kBrushless};
+    rev::CANSparkMax m_intakeMotor{frc3512::HWConfig::Intake::kArmMotorID,
+                                   rev::CANSparkMax::MotorType::kBrushless};
 
-    rev::CANSparkMax m_shooterFront{10, rev::CANSparkMax::MotorType::kBrushless};
-    rev::CANSparkMax m_shooterBack{5, rev::CANSparkMax::MotorType::kBrushless};
+    rev::CANSparkMax m_miniArmMotor{frc3512::HWConfig::Intake::kMiniArmMotorID,
+                                    rev::CANSparkMax::MotorType::kBrushless};
+
+    rev::CANSparkMax m_conveyorMotor{
+        frc3512::HWConfig::Intake::kConveyorMotorID,
+        rev::CANSparkMax::MotorType::kBrushless};
 
     frc::Solenoid m_fourbar{frc::PneumaticsModuleType::CTREPCM,
                             frc3512::HWConfig::Intake::kArmChannel};
-
-    rev::CANSparkMax m_leftConveyorMotor{
-        frc3512::HWConfig::Intake::kConveyorLeftMotorID,
-        rev::CANSparkMax::MotorType::kBrushless};
-
-    rev::CANSparkMax m_rightConveyorMotor{
-        frc3512::HWConfig::Intake::kConveyorRightMotorID,
-        rev::CANSparkMax::MotorType::kBrushless};
 
     frc::DigitalInput m_upperSensor{
         frc3512::HWConfig::Intake::kUpperSensorChannel};
     frc::DigitalInput m_lowerSensor{
         frc3512::HWConfig::Intake::kLowerSensorChannel};
-
-    bool m_isShooting = false;
 
     frc::Mechanism2d m_intakeSim{60, 60};
     frc::MechanismRoot2d* m_intakeBase =

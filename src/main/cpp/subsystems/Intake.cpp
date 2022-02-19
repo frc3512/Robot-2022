@@ -11,14 +11,14 @@ using namespace frc3512;
 using namespace frc3512::HWConfig::Intake;
 
 Intake::Intake() {
-    SetCANSparkMaxBusUsage(m_leftConveyorMotor, Usage::kMinimal);
-    m_leftConveyorMotor.SetSmartCurrentLimit(80);
-    SetCANSparkMaxBusUsage(m_rightConveyorMotor, Usage::kMinimal);
-    m_rightConveyorMotor.SetSmartCurrentLimit(80);
+    SetCANSparkMaxBusUsage(m_miniArmMotor, Usage::kMinimal);
+    m_miniArmMotor.SetSmartCurrentLimit(80);
+    SetCANSparkMaxBusUsage(m_conveyorMotor, Usage::kMinimal);
+    m_conveyorMotor.SetSmartCurrentLimit(80);
     SetCANSparkMaxBusUsage(m_intakeMotor, Usage::kMinimal);
     m_intakeMotor.SetSmartCurrentLimit(80);
 
-    //m_fourbar.Set(false);
+    // m_fourbar.Set(false);
 }
 
 void Intake::Deploy() { m_fourbar.Set(true); }
@@ -30,28 +30,22 @@ bool Intake::IsDeployed() const { return m_fourbar.Get(); }
 void Intake::Start(IntakeDirection direction) {
     if (direction == IntakeDirection::kIntake) {
         m_intakeMotor.Set(0.8);
-        m_leftConveyorMotor.Set(-0.8);
+        m_miniArmMotor.Set(-0.8);
     } else if (direction == IntakeDirection::kOuttake) {
         m_intakeMotor.Set(-0.8);
         SetConveyor(0.8);
-        m_leftConveyorMotor.Set(0.8);
+        m_miniArmMotor.Set(0.8);
     } else {
         m_intakeMotor.Set(0.0);
-        m_leftConveyorMotor.Set(0.0);
+        m_miniArmMotor.Set(0.0);
     }
 }
 
-void Intake::Stop() {
-    Start(IntakeDirection::kIdle);
-}
+void Intake::Stop() { Start(IntakeDirection::kIdle); }
 
-void Intake::SetConveyor(double speed) {
-    m_rightConveyorMotor.Set(-speed);
-}
+void Intake::SetConveyor(double speed) { m_conveyorMotor.Set(-speed); }
 
-bool Intake::IsConveyorRunning() const {
-    return m_leftConveyorMotor.Get() > 0.0 && m_rightConveyorMotor.Get() > 0.0;
-}
+bool Intake::IsConveyorRunning() const { return m_conveyorMotor.Get() > 0.0; }
 
 bool Intake::IsUpperSensorBlocked() const { return !m_upperSensor.Get(); }
 
@@ -74,19 +68,7 @@ void Intake::RobotPeriodic() {
         Stow();
     }
 
-    if (appendageStick2.GetRawButton(1))
-    {
-        m_shooterFront.Set(0.25);
-        m_shooterBack.Set(0.25);
-        m_isShooting = true;
-    } else {
-        m_shooterFront.Set(0.0);
-        m_shooterBack.Set(0.0);
-        m_isShooting = false;
-    }
-
-    if ((!IsUpperSensorBlocked() && IsLowerSensorBlocked()) || m_isShooting)
-    {
+    if (!IsUpperSensorBlocked() && IsLowerSensorBlocked()) {
         SetConveyor(-0.7);
     } else {
         SetConveyor(0.0);

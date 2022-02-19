@@ -229,9 +229,7 @@ void Drivetrain::ControllerPeriodic() {
     }
 }
 
-void Drivetrain::RobotPeriodic() {
-   
-}
+void Drivetrain::RobotPeriodic() {}
 
 void Drivetrain::AddTrajectory(const frc::Pose2d& start,
                                const std::vector<frc::Translation2d>& interior,

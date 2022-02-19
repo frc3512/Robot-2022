@@ -58,10 +58,10 @@ constexpr int kFrontMotorID = 10;
 constexpr int kBackMotorID = 5;
 
 /// Encoder channel A
-//constexpr int kEncoderA = 6;
+// constexpr int kEncoderA = 6;
 
 /// Encoder channel B
-//constexpr int kEncoderB = 7;
+// constexpr int kEncoderB = 7;
 }  // namespace Flywheel
 
 namespace Intake {
@@ -69,10 +69,10 @@ namespace Intake {
 constexpr int kArmMotorID = 9;
 
 /// Right Conveyor motor CAN ID
-constexpr int kConveyorRightMotorID = 11;
+constexpr int kConveyorMotorID = 11;
 
 /// Left Conveyor motor CAN ID
-constexpr int kConveyorLeftMotorID = 4;
+constexpr int kMiniArmMotorID = 4;
 
 /// Lower proximity sensor digital input channel
 constexpr int kLowerSensorChannel = 3;
