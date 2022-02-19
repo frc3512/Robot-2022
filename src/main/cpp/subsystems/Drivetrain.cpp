@@ -88,14 +88,6 @@ frc::Pose2d Drivetrain::GetPose() const {
         units::radian_t{x(DrivetrainController::State::kHeading)}};
 }
 
-units::meter_t Drivetrain::GetLeftUltrasonicDistance() const {
-    return m_leftUltrasonicDistance;
-}
-
-units::meter_t Drivetrain::GetRightUltrasonicDistance() const {
-    return m_rightUltrasonicDistance;
-}
-
 units::radian_t Drivetrain::GetAngle() const {
     return units::degree_t{m_imu.GetAngle()} + m_headingOffset;
 }
@@ -237,26 +229,7 @@ void Drivetrain::ControllerPeriodic() {
     }
 }
 
-void Drivetrain::RobotPeriodic() {
-    m_leftUltrasonicDistance = m_leftDistanceFilter.Calculate(
-        units::volt_t{m_leftUltrasonic.GetVoltage()} * 1_m / 1_V);
-    m_rightUltrasonicDistance = m_rightDistanceFilter.Calculate(
-        units::volt_t{m_rightUltrasonic.GetVoltage()} * 1_m / 1_V);
-
-    if (frc::DriverStation::IsDisabled() ||
-        !frc::DriverStation::IsFMSAttached()) {
-        m_leftUltrasonicOutputEntry.SetDouble(m_leftUltrasonicDistance.value());
-        m_rightUltrasonicOutputEntry.SetDouble(
-            m_rightUltrasonicDistance.value());
-    }
-
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        m_leftUltrasonicDistance = m_leftDistanceFilter.Calculate(
-            units::volt_t{m_leftUltrasonicSim.GetVoltage()} * 1_m / 1_V);
-        m_rightUltrasonicDistance = m_rightDistanceFilter.Calculate(
-            units::volt_t{m_rightUltrasonicSim.GetVoltage()} * 1_m / 1_V);
-    }
-}
+void Drivetrain::RobotPeriodic() {}
 
 void Drivetrain::AddTrajectory(const frc::Pose2d& start,
                                const std::vector<frc::Translation2d>& interior,

@@ -38,10 +38,10 @@ constexpr int kRightMotorLeaderID = 16;
 constexpr int kRightMotorFollowerID = 1;
 
 // Encoder channels
-constexpr int kLeftEncoderA = 0;
-constexpr int kLeftEncoderB = 1;
-constexpr int kRightEncoderA = 2;
-constexpr int kRightEncoderB = 3;
+constexpr int kLeftEncoderA = 6;
+constexpr int kLeftEncoderB = 7;
+constexpr int kRightEncoderA = 8;
+constexpr int kRightEncoderB = 9;
 
 /// Left ultrasonic sensor channel
 constexpr int kLeftUltrasonicChannel = 3;
@@ -58,10 +58,10 @@ constexpr int kFrontMotorID = 10;
 constexpr int kBackMotorID = 5;
 
 /// Encoder channel A
-constexpr int kEncoderA = 6;
+// constexpr int kEncoderA = 6;
 
 /// Encoder channel B
-constexpr int kEncoderB = 7;
+// constexpr int kEncoderB = 7;
 }  // namespace Flywheel
 
 namespace Intake {
@@ -69,19 +69,20 @@ namespace Intake {
 constexpr int kArmMotorID = 9;
 
 /// Right Conveyor motor CAN ID
-constexpr int kConveyorRightMotorID = 4;
+constexpr int kConveyorMotorID = 11;
 
 /// Left Conveyor motor CAN ID
-constexpr int kConveyorLeftMotorID = 11;
+constexpr int kMiniArmMotorID = 4;
 
 /// Lower proximity sensor digital input channel
-constexpr int kLowerSensorChannel = 4;
+constexpr int kLowerSensorChannel = 3;
 
 /// Upper proximity sensor digital input channel
-constexpr int kUpperSensorChannel = 5;
+constexpr int kUpperSensorChannel = 2;
 
 /// Arm solenoid channel
-constexpr int kArmChannel = 0;
+constexpr int kArmChannel = 4;
+
 }  // namespace Intake
 
 namespace Climber {
