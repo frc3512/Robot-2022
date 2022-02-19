@@ -73,16 +73,6 @@ public:
     frc::Pose2d GetPose() const;
 
     /**
-     * Returns distance from the left ultrasonic sensor.
-     */
-    units::meter_t GetLeftUltrasonicDistance() const;
-
-    /**
-     * Returns distance from the right ultrasonic sensor.
-     */
-    units::meter_t GetRightUltrasonicDistance() const;
-
-    /**
      * Returns gyro's heading measurement in the global coordinate frame.
      */
     units::radian_t GetAngle() const;
@@ -255,18 +245,6 @@ private:
 
     static const frc::LinearSystem<2, 2, 2> kPlant;
 
-    frc::AnalogInput m_leftUltrasonic{
-        HWConfig::Drivetrain::kLeftUltrasonicChannel};
-    units::meter_t m_leftUltrasonicDistance;
-    frc::AnalogInput m_rightUltrasonic{
-        HWConfig::Drivetrain::kRightUltrasonicChannel};
-    units::meter_t m_rightUltrasonicDistance;
-    frc::LinearFilter<units::meter_t> m_leftDistanceFilter =
-        frc::LinearFilter<units::meter_t>::SinglePoleIIR(0.1, 0.02_s);
-
-    frc::LinearFilter<units::meter_t> m_rightDistanceFilter =
-        frc::LinearFilter<units::meter_t>::SinglePoleIIR(0.1, 0.02_s);
-
     rev::CANSparkMax m_leftLeader{HWConfig::Drivetrain::kLeftMotorLeaderID,
                                   rev::CANSparkMax::MotorType::kBrushless};
     rev::CANSparkMax m_leftFollower{HWConfig::Drivetrain::kLeftMotorFollowerID,
@@ -306,14 +284,6 @@ private:
     DrivetrainController m_controller;
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
 
-    nt::NetworkTableEntry m_leftUltrasonicOutputEntry =
-        NetworkTableUtil::MakeDoubleEntry(
-            "/Diagnostics/Drivetrain/Outputs/Left Ultrasonic Output");
-
-    nt::NetworkTableEntry m_rightUltrasonicOutputEntry =
-        NetworkTableUtil::MakeDoubleEntry(
-            "/Diagnostics/Drivetrain/Outputs/Right Ultrasonic Output");
-
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
             DrivetrainController::kLinearV,
@@ -331,8 +301,6 @@ private:
     frc::sim::EncoderSim m_leftEncoderSim{m_leftEncoder};
     frc::sim::EncoderSim m_rightEncoderSim{m_rightEncoder};
     frc::sim::ADIS16470_IMUSim m_imuSim{m_imu};
-    frc::sim::AnalogInputSim m_leftUltrasonicSim{m_leftUltrasonic};
-    frc::sim::AnalogInputSim m_rightUltrasonicSim{m_rightUltrasonic};
     frc::Field2d m_field;
 
     /**

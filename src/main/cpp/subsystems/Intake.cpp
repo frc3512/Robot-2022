@@ -30,23 +30,22 @@ bool Intake::IsDeployed() const { return m_fourbar.Get(); }
 void Intake::Start(IntakeDirection direction) {
     if (direction == IntakeDirection::kIntake) {
         m_intakeMotor.Set(0.8);
-        SetConveyor(0.8);
+        m_leftConveyorMotor.Set(-0.8);
     } else if (direction == IntakeDirection::kOuttake) {
         m_intakeMotor.Set(-0.8);
         SetConveyor(0.8);
+        m_leftConveyorMotor.Set(0.8);
     } else {
         m_intakeMotor.Set(0.0);
-        SetConveyor(0.0);
+        m_leftConveyorMotor.Set(0.0);
     }
 }
 
 void Intake::Stop() {
-    m_intakeMotor.Set(0.0);
-    SetConveyor(0.0);
+    Start(IntakeDirection::kIdle);
 }
 
 void Intake::SetConveyor(double speed) {
-    m_leftConveyorMotor.Set(speed);
     m_rightConveyorMotor.Set(-speed);
 }
 
@@ -54,9 +53,9 @@ bool Intake::IsConveyorRunning() const {
     return m_leftConveyorMotor.Get() > 0.0 && m_rightConveyorMotor.Get() > 0.0;
 }
 
-bool Intake::IsUpperSensorBlocked() const { return m_upperSensor.Get(); }
+bool Intake::IsUpperSensorBlocked() const { return !m_upperSensor.Get(); }
 
-bool Intake::IsLowerSensorBlocked() const { return m_lowerSensor.Get(); }
+bool Intake::IsLowerSensorBlocked() const { return !m_lowerSensor.Get(); }
 
 void Intake::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
@@ -73,6 +72,24 @@ void Intake::RobotPeriodic() {
         Deploy();
     } else if (appendageStick2.GetRawButton(6)) {
         Stow();
+    }
+
+    if (appendageStick2.GetRawButton(1))
+    {
+        m_shooterFront.Set(0.25);
+        m_shooterBack.Set(0.25);
+        m_isShooting = true;
+    } else {
+        m_shooterFront.Set(0.0);
+        m_shooterBack.Set(0.0);
+        m_isShooting = false;
+    }
+
+    if ((!IsUpperSensorBlocked() && IsLowerSensorBlocked()) || m_isShooting)
+    {
+        SetConveyor(-0.7);
+    } else {
+        SetConveyor(0.0);
     }
 
     frc::SmartDashboard::PutData("Intake", &m_intakeSim);
