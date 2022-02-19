@@ -104,7 +104,7 @@ private:
     frc::Timer m_conveyorTimer;
 
     rev::CANSparkMax m_intakeMotor{
-        frc3512::HWConfig::Intake::kIntakeRollerMotorID,
+        frc3512::HWConfig::Intake::kArmMotorID,
         rev::CANSparkMax::MotorType::kBrushless};
 
     frc::Solenoid m_fourbar{frc::PneumaticsModuleType::CTREPCM,

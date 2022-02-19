@@ -17,6 +17,8 @@ Intake::Intake() {
     m_rightConveyorMotor.SetSmartCurrentLimit(80);
     SetCANSparkMaxBusUsage(m_intakeMotor, Usage::kMinimal);
     m_intakeMotor.SetSmartCurrentLimit(80);
+
+    //m_fourbar.Set(false);
 }
 
 void Intake::Deploy() { m_fourbar.Set(true); }
@@ -45,7 +47,7 @@ void Intake::Stop() {
 
 void Intake::SetConveyor(double speed) {
     m_leftConveyorMotor.Set(speed);
-    m_rightConveyorMotor.Set(speed);
+    m_rightConveyorMotor.Set(-speed);
 }
 
 bool Intake::IsConveyorRunning() const {
@@ -59,7 +61,19 @@ bool Intake::IsLowerSensorBlocked() const { return m_lowerSensor.Get(); }
 void Intake::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    // TODO: Write logic once the flywheel controller is merged
+    if (appendageStick2.GetRawButton(3)) {
+        Start(IntakeDirection::kIntake);
+    } else if (appendageStick2.GetRawButton(4)) {
+        Start(IntakeDirection::kOuttake);
+    } else {
+        Stop();
+    }
+
+    if (appendageStick2.GetRawButton(5)) {
+        Deploy();
+    } else if (appendageStick2.GetRawButton(6)) {
+        Stow();
+    }
 
     frc::SmartDashboard::PutData("Intake", &m_intakeSim);
 

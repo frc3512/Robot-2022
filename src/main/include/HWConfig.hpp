@@ -81,16 +81,14 @@ constexpr int kLowerSensorChannel = 4;
 constexpr int kUpperSensorChannel = 5;
 
 /// Channal for the Fourbar
-constexpr int kFourbarChannel = 2;
+constexpr int kFourbarChannel = 5;
 
 /// ID for the left conveyor motor
-constexpr int kLeftConveyorMotorID = 3;
+constexpr int kLeftConveyorMotorID = 11;
 
 // ID for the right conveyor motor
 constexpr int kRightConveyorMotorID = 4;
 
-/// ID for the intake motor
-constexpr int kIntakeRollerMotorID = 8;
 }  // namespace Intake
 
 namespace Climber {
