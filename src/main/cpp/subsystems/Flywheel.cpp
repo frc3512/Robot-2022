@@ -26,13 +26,15 @@ Flywheel::Flywheel()
     m_frontGrbx.Set(0.0);
     m_backGrbx.Set(0.0);
 
-    m_encoder.SetDistancePerPulse(FlywheelController::kDpP);
-    m_encoder.SetSamplesToAverage(5);
     m_frontGrbx.SetInverted(false);
     m_backGrbx.SetInverted(false);
 
+    m_getGoalEntry.SetDouble(0.0);
+    m_encoderEntry.SetDouble(0.0);
+    m_isReadyEntry.SetBoolean(false);
+
     Reset();
-    SetGoal(0_rad_per_s);
+    Stop();
 }
 
 void Flywheel::SetMoveAndShoot(bool moveAndShoot) {
@@ -40,7 +42,7 @@ void Flywheel::SetMoveAndShoot(bool moveAndShoot) {
 }
 
 units::radian_t Flywheel::GetAngle() {
-    return units::radian_t{m_encoder.GetDistance()};
+    return units::radian_t{m_encoder.GetPosition()};
 }
 
 units::radians_per_second_t Flywheel::GetAngularVelocity() const {
@@ -55,22 +57,24 @@ units::radians_per_second_t Flywheel::GetGoal() const {
     return m_controller.GetGoal();
 }
 
+void Flywheel::Stop() { SetGoal(0_rad_per_s); }
+
 bool Flywheel::AtGoal() const { return m_controller.AtGoal(); }
 
 bool Flywheel::IsOn() const { return GetGoal() > 0_rad_per_s; }
 
-bool Flywheel::IsReady() { return GetGoal() > 0_rad_per_s && AtGoal(); }
+bool Flywheel::IsReady() { return IsOn() && AtGoal(); }
 
 void Flywheel::Reset() {
     m_observer.Reset();
     m_controller.Reset();
     m_u = Eigen::Matrix<double, 1, 1>::Zero();
-    m_encoder.Reset();
     m_angle = GetAngle();
     m_lastAngle = m_angle;
 }
 
 void Flywheel::RobotPeriodic() {
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     if (frc::DriverStation::IsTest()) {
@@ -80,9 +84,23 @@ void Flywheel::RobotPeriodic() {
                    units::revolutions_per_minute_t{manualRef});
     }
 
-    if (appendageStick2.GetRawButtonPressed(1)) {
-        Shoot();
+    if (!IsReady() && appendageStick1.GetRawButtonPressed(1)) {
+        SetGoal(kShootLow);
+    } else if (IsOn() && !AtGoal() && appendageStick1.GetRawButtonPressed(1)) {
+        Stop();
     }
+
+    if (!IsReady() && appendageStick2.GetRawButtonPressed(1)) {
+        SetGoal(kShootHigh);
+    } else if (IsOn() && !AtGoal() && appendageStick2.GetRawButtonPressed(1)) {
+        Stop();
+    }
+
+    m_frontGrbx.Set(appendageStick1.GetRawAxis(1));
+
+    m_getGoalEntry.SetDouble(GetGoal().value());
+    m_encoderEntry.SetDouble(m_encoder.GetPosition());
+    m_isReadyEntry.SetBoolean(IsReady());
 }
 
 void Flywheel::ControllerPeriodic() {
@@ -95,12 +113,7 @@ void Flywheel::ControllerPeriodic() {
     m_angle = GetAngle();
     m_time = frc::Timer::GetFPGATimestamp();
 
-    // WPILib uses the time between pulses in GetRate() to calculate velocity,
-    // but this is very noisy for high-resolution encoders. Instead, we
-    // calculate a velocity from the change in angle over change in time, which
-    // is more precise.
-    m_angularVelocity = m_velocityFilter.Calculate((m_angle - m_lastAngle) /
-                                                   (m_time - m_lastTime));
+    m_angularVelocity = units::radians_per_second_t{m_encoder.GetVelocity()};
 
     Eigen::Matrix<double, 1, 1> y;
     y << GetAngularVelocity().value();
@@ -121,7 +134,6 @@ void Flywheel::ControllerPeriodic() {
 
         m_flywheelSim.SetInput(Eigen::Vector<double, 1>{voltage.value()});
         m_flywheelSim.Update(GetDt());
-        m_encoderSim.SetDistance(m_flywheelSim.GetAngle().value());
     }
 
     m_lastAngle = m_angle;
@@ -130,7 +142,7 @@ void Flywheel::ControllerPeriodic() {
 
 void Flywheel::SetVoltage(units::volt_t voltage) {
     m_frontGrbx.SetVoltage(voltage);
-    m_backGrbx.SetVoltage(-voltage);
+    m_backGrbx.SetVoltage(voltage);
 }
 
 units::radians_per_second_t Flywheel::ThrottleToReference(double throttle) {
@@ -143,5 +155,3 @@ units::radians_per_second_t Flywheel::ThrottleToReference(double throttle) {
     // 3. Round to the nearest radian per second
     return units::math::round(rescale);
 }
-
-void Flywheel::Shoot() { SetGoal(kShootSpeed); }

@@ -14,7 +14,7 @@ void FlywheelController::SetGoal(units::radians_per_second_t angularVelocity) {
         return;
     }
 
-    m_nextR << angularVelocity.value();
+    m_nextR = Eigen::Vector<double, 1>{angularVelocity.value()};
     m_atGoal = false;
 }
 

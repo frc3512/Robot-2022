@@ -14,6 +14,7 @@
 #include <frc/system/LinearSystem.h>
 #include <frc/system/plant/LinearSystemId.h>
 #include <rev/CANSparkMax.h>
+#include <rev/SparkMaxRelativeEncoder.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 #include <units/current.h>
@@ -26,6 +27,7 @@
 #include "controllers/FlywheelController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
 #include "subsystems/Flywheel.hpp"
+#include "NetworkTableUtil.hpp"
 
 namespace frc3512 {
 
@@ -80,6 +82,11 @@ public:
     units::radians_per_second_t GetGoal() const;
 
     /**
+     * Sets the flywheel goal to zero
+     */
+    void Stop();
+
+    /**
      * Returns true if the flywheel has reached the goal angular velocity.
      */
     bool AtGoal() const;
@@ -120,10 +127,11 @@ private:
                                  rev::CANSparkMax::MotorType::kBrushless};
     rev::CANSparkMax m_backGrbx{HWConfig::Flywheel::kBackMotorID,
                                 rev::CANSparkMax::MotorType::kBrushless};
-    frc::Encoder m_encoder{HWConfig::Flywheel::kEncoderA,
-                           HWConfig::Flywheel::kEncoderB};
 
-    static constexpr units::radians_per_second_t kShootSpeed = 500_rad_per_s;
+    rev::SparkMaxRelativeEncoder m_encoder{m_frontGrbx.GetEncoder()};
+
+    static constexpr units::radians_per_second_t kShootHigh = 500_rad_per_s;
+    static constexpr units::radians_per_second_t kShootLow = 250_rad_per_s;
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
@@ -151,11 +159,14 @@ private:
     // measuring flywheel lookup table values.
     double m_testThrottle = 0.0;
 
+    nt::NetworkTableEntry m_getGoalEntry = NetworkTableUtil::MakeDoubleEntry("Diagnostics/Flywheel/Get Goal");
+    nt::NetworkTableEntry m_encoderEntry = NetworkTableUtil::MakeDoubleEntry("Diagnostics/Flywheel/Encoder");
+    nt::NetworkTableEntry m_isReadyEntry = NetworkTableUtil::MakeBoolEntry("Diagnostics/Flywheel/Is Ready");
+
     // Measurement noise isn't added because the simulated encoder stores the
     // count as an integer, which already introduces quantization noise.
     FlywheelSim m_flywheelSim{m_controller.GetPlant(), frc::DCMotor::NEO(2),
                               1.0 / 2.0};
-    frc::sim::EncoderSim m_encoderSim{m_encoder};
 
     /**
      * Sets the voltage of the flywheel motor.
@@ -171,14 +182,6 @@ private:
      * @param throttle Throttle value from -1 (forward) to 1 (back).
      */
     static units::radians_per_second_t ThrottleToReference(double throttle);
-
-    /**
-     * Sets flywheel to constant speed. The flywheel will shoot either high or
-     * low depending on the position of the hooded shooter. When shooting, check
-     * if the hood is not set to a fixed position, if not, default to a high
-     * goal shot and then shoot.
-     */
-    void Shoot();
 };
 
 }  // namespace frc3512

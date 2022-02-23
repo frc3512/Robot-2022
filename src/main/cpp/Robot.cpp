@@ -84,6 +84,14 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
             }
         },
         1.5_ms);
+
+    Schedule(
+        [=] {
+            if (IsEnabled()) {
+                flywheel.ControllerPeriodic();
+            }
+        }, 0.7_ms
+    );
 }
 
 Robot::~Robot() {}
@@ -137,7 +145,24 @@ void Robot::AutonomousPeriodic() {
     m_autonChooser.ResumeAutonomous();
 }
 
-void Robot::TeleopPeriodic() { SubsystemBase::RunAllTeleopPeriodic(); }
+void Robot::TeleopPeriodic() {
+    SubsystemBase::RunAllTeleopPeriodic();
+    static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+
+    if (flywheel.IsReady() && (appendageStick2.GetRawButtonPressed(1) ||
+                               appendageStick1.GetRawButtonPressed(1))) {
+        Shoot();
+        m_timer.Start();
+    }
+
+    if (m_timer.HasElapsed(3_s))
+    {
+        flywheel.Stop();
+        m_timer.Stop();
+        m_timer.Reset();
+    }
+}
 
 void Robot::TestPeriodic() { SubsystemBase::RunAllTestPeriodic(); }
 
@@ -165,6 +190,8 @@ void Robot::ExpectAutonomousEndConds() {
             0.0, 0.01);
     }
 }
+
+void Robot::Shoot() { intake.SetConveyor(0.2); }
 
 }  // namespace frc3512
 
