@@ -105,6 +105,10 @@ void Robot::SimulationInit() { SubsystemBase::RunAllSimulationInit(); }
 void Robot::DisabledInit() {
     m_autonChooser.ResumeAutonomous();
     SubsystemBase::RunAllDisabledInit();
+
+    // Reset teleop shooting state machine when disabling robot
+    flywheel.SetGoal(0_rad_per_s);
+    m_timer.Stop();
 }
 
 void Robot::AutonomousInit() {
@@ -149,6 +153,18 @@ void Robot::TeleopPeriodic() {
     SubsystemBase::RunAllTeleopPeriodic();
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+
+    if (!flywheel.AtGoal() && appendageStick1.GetRawButtonPressed(1)) {
+        flywheel.SetGoal(kShootLow);
+    } else if (IsOn() && !AtGoal() && appendageStick1.GetRawButtonPressed(1)) {
+        Stop();
+    }
+
+    if (!AtGoal() && appendageStick2.GetRawButtonPressed(1)) {
+        SetGoal(kShootHigh);
+    } else if (IsOn() && !AtGoal() && appendageStick2.GetRawButtonPressed(1)) {
+        Stop();
+    }
 
     if (flywheel.IsReady() && (appendageStick2.GetRawButtonPressed(1) ||
                                appendageStick1.GetRawButtonPressed(1))) {

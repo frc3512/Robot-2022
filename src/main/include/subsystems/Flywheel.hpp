@@ -120,6 +120,8 @@ public:
 
     void RobotPeriodic() override;
 
+    void TeleopPeriodic() override;
+
     void ControllerPeriodic() override;
 
 private:
@@ -162,6 +164,7 @@ private:
     nt::NetworkTableEntry m_getGoalEntry = NetworkTableUtil::MakeDoubleEntry("Diagnostics/Flywheel/Get Goal");
     nt::NetworkTableEntry m_encoderEntry = NetworkTableUtil::MakeDoubleEntry("Diagnostics/Flywheel/Encoder");
     nt::NetworkTableEntry m_isReadyEntry = NetworkTableUtil::MakeBoolEntry("Diagnostics/Flywheel/Is Ready");
+    nt::NetworkTableEntry m_atGoalEntry = NetworkTableUtil::MakeBoolEntry("Diagnostics/Flywheel/At Goal");
 
     // Measurement noise isn't added because the simulated encoder stores the
     // count as an integer, which already introduces quantization noise.

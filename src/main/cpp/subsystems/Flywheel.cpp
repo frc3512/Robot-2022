@@ -34,7 +34,7 @@ Flywheel::Flywheel()
     m_isReadyEntry.SetBoolean(false);
 
     Reset();
-    Stop();
+    SetGoal(0_rad_per_s);
 }
 
 void Flywheel::SetMoveAndShoot(bool moveAndShoot) {
@@ -73,8 +73,7 @@ void Flywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void Flywheel::RobotPeriodic() {
-    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+void Flywheel::TeleopPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     if (frc::DriverStation::IsTest()) {
@@ -83,24 +82,13 @@ void Flywheel::RobotPeriodic() {
         fmt::print("Manual angular velocity: {}\n",
                    units::revolutions_per_minute_t{manualRef});
     }
+}
 
-    if (!IsReady() && appendageStick1.GetRawButtonPressed(1)) {
-        SetGoal(kShootLow);
-    } else if (IsOn() && !AtGoal() && appendageStick1.GetRawButtonPressed(1)) {
-        Stop();
-    }
-
-    if (!IsReady() && appendageStick2.GetRawButtonPressed(1)) {
-        SetGoal(kShootHigh);
-    } else if (IsOn() && !AtGoal() && appendageStick2.GetRawButtonPressed(1)) {
-        Stop();
-    }
-
-    m_frontGrbx.Set(appendageStick1.GetRawAxis(1));
-
+void Flywheel::RobotPeriodic() {
     m_getGoalEntry.SetDouble(GetGoal().value());
     m_encoderEntry.SetDouble(m_encoder.GetPosition());
     m_isReadyEntry.SetBoolean(IsReady());
+    m_atGoalEntry.SetBoolean(AtGoal());
 }
 
 void Flywheel::ControllerPeriodic() {
@@ -113,10 +101,14 @@ void Flywheel::ControllerPeriodic() {
     m_angle = GetAngle();
     m_time = frc::Timer::GetFPGATimestamp();
 
-    m_angularVelocity = units::radians_per_second_t{m_encoder.GetVelocity()};
+    // WPILib uses the time between pulses in GetRate() to calculate velocity,
+    // but this is very noisy for high-resolution encoders. Instead, we
+    // calculate a velocity from the change in angle over change in time, which
+    // is more precise.
+    m_angularVelocity = m_velocityFilter.Calculate((m_angle - m_lastAngle) /
+                                                   (m_time - m_lastTime));
 
-    Eigen::Matrix<double, 1, 1> y;
-    y << GetAngularVelocity().value();
+    Eigen::Matrix<double, 1, 1> y {GetAngularVelocity().value()};
     m_observer.Correct(m_controller.GetInputs(), y);
     m_u = m_controller.Calculate(m_observer.Xhat());
     SetVoltage(units::volt_t{m_u(Input::kVoltage)});

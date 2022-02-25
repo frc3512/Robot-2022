@@ -34,7 +34,7 @@ Eigen::Matrix<double, 1, 1> FlywheelController::Calculate(
     // To conserve battery when the flywheel doesn't have to be spinning, don't
     // apply a negative voltage to slow down.
     if (m_nextR(0) == 0.0) {
-        m_u << 0.0;
+        m_u = Eigen::Vector<double, 1>::Zero();
     } else {
         m_u = m_lqr.Calculate(x, m_r) + m_ff.Calculate(m_nextR) +
               Eigen::Matrix<double, 1, 1>(kS.value());
