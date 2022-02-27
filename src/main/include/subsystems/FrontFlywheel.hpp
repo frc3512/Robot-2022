@@ -22,32 +22,30 @@
 #include <units/voltage.h>
 
 #include "Constants.hpp"
-#include "FlywheelSim.hpp"
 #include "HWConfig.hpp"
+#include "NetworkTableUtil.hpp"
 #include "controllers/FlywheelController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
-#include "subsystems/Flywheel.hpp"
-#include "NetworkTableUtil.hpp"
 
 namespace frc3512 {
 
 /**
- * The flywheel subsystem.
+ * The front flywheel subsystem.
  *
  * The flywheel uses a Kalman filter for state estimation.
  */
-class Flywheel : public ControlledSubsystemBase<1, 1, 1> {
+class FrontFlywheel : public ControlledSubsystemBase<1, 1, 1> {
 public:
     /**
-     * Constructs a Flywheel.
+     * Constructs a FrontFlywheel.
      */
-    Flywheel();
+    FrontFlywheel();
 
-    Flywheel(const Flywheel&) = delete;
-    Flywheel& operator=(const Flywheel&) = delete;
+    FrontFlywheel(const FrontFlywheel&) = delete;
+    FrontFlywheel& operator=(const FrontFlywheel&) = delete;
 
     /**
-     * Sets whether the robot will adjust the flywheel's
+     * Sets whether the robot will adjust the front flywheel's
      * radians while the robot is moving
      *
      * @param moveAndShoot Whether or not to move and shoot.
@@ -55,7 +53,7 @@ public:
     void SetMoveAndShoot(bool moveAndShoot);
 
     /**
-     * Returns angular displacement of the flywheel
+     * Returns angular displacement of the front flywheel
      *
      * @return angular displacement in radians
      */
@@ -63,7 +61,7 @@ public:
     units::radian_t GetAngle();
 
     /**
-     * Returns angular velocity of the flywheel.
+     * Returns angular velocity of the front flywheel.
      *
      * @return angular velocity in radians per second
      */
@@ -82,23 +80,23 @@ public:
     units::radians_per_second_t GetGoal() const;
 
     /**
-     * Sets the flywheel goal to zero
+     * Sets the front flywheel goal to zero
      */
     void Stop();
 
     /**
-     * Returns true if the flywheel has reached the goal angular velocity.
+     * Returns true if the front flywheel has reached the goal angular velocity.
      */
     bool AtGoal() const;
 
     /**
-     * Returns true if the flywheel has been set to a nonzero goal.
+     * Returns true if the front flywheel has been set to a nonzero goal.
      */
     bool IsOn() const;
 
     /**
-     * Returns true if flywheel is spinning and it has reached the goal angular
-     * velocity.
+     * Returns true if front flywheel is spinning and it has reached the goal
+     * angular velocity.
      */
     bool IsReady();
 
@@ -127,22 +125,18 @@ public:
 private:
     rev::CANSparkMax m_frontGrbx{HWConfig::Flywheel::kFrontMotorID,
                                  rev::CANSparkMax::MotorType::kBrushless};
-    rev::CANSparkMax m_backGrbx{HWConfig::Flywheel::kBackMotorID,
-                                rev::CANSparkMax::MotorType::kBrushless};
 
-    rev::SparkMaxRelativeEncoder m_encoder{m_frontGrbx.GetEncoder()};
+    rev::SparkMaxRelativeEncoder m_frontEncoder{m_frontGrbx.GetEncoder()};
 
-    static constexpr units::radians_per_second_t kShootHigh = 500_rad_per_s;
-    static constexpr units::radians_per_second_t kShootLow = 250_rad_per_s;
-
-    frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetPlant()};
+    frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetFrontPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
         m_plant,
         {200.0},
         {FlywheelController::kDpP / Constants::kControllerPeriod.value()},
         Constants::kControllerPeriod};
 
-    FlywheelController m_controller;
+    FlywheelController m_controller{FlywheelPose::kFront};
+
     Eigen::Matrix<double, 1, 1> m_u = Eigen::Matrix<double, 1, 1>::Zero();
 
     bool m_moveAndShoot = true;
@@ -153,7 +147,7 @@ private:
     units::second_t m_lastTime = m_time - Constants::kControllerPeriod;
 
     // Filters out encoder quantization noise
-    units::radians_per_second_t m_angularVelocity = 0_rad_per_s;
+    units::radians_per_second_t m_angularVelocity;
     frc::LinearFilter<units::radians_per_second_t> m_velocityFilter =
         frc::LinearFilter<units::radians_per_second_t>::MovingAverage(4);
 
@@ -161,15 +155,16 @@ private:
     // measuring flywheel lookup table values.
     double m_testThrottle = 0.0;
 
-    nt::NetworkTableEntry m_getGoalEntry = NetworkTableUtil::MakeDoubleEntry("Diagnostics/Flywheel/Get Goal");
-    nt::NetworkTableEntry m_encoderEntry = NetworkTableUtil::MakeDoubleEntry("Diagnostics/Flywheel/Encoder");
-    nt::NetworkTableEntry m_isReadyEntry = NetworkTableUtil::MakeBoolEntry("Diagnostics/Flywheel/Is Ready");
-    nt::NetworkTableEntry m_atGoalEntry = NetworkTableUtil::MakeBoolEntry("Diagnostics/Flywheel/At Goal");
-
-    // Measurement noise isn't added because the simulated encoder stores the
-    // count as an integer, which already introduces quantization noise.
-    FlywheelSim m_flywheelSim{m_controller.GetPlant(), frc::DCMotor::NEO(2),
-                              1.0 / 2.0};
+    nt::NetworkTableEntry m_getGoalEntry = NetworkTableUtil::MakeDoubleEntry(
+        "Diagnostics/Front Flywheel/Get Goal");
+    nt::NetworkTableEntry m_encoderEntry =
+        NetworkTableUtil::MakeDoubleEntry("Diagnostics/Front Flywheel/Encoder");
+    nt::NetworkTableEntry m_isReadyEntry =
+        NetworkTableUtil::MakeBoolEntry("Diagnostics/Front Flywheel/Is Ready");
+    nt::NetworkTableEntry m_atGoalEntry =
+        NetworkTableUtil::MakeBoolEntry("Diagnostics/Front Flywheel/At Goal");
+    nt::NetworkTableEntry m_manualRefEntry = NetworkTableUtil::MakeDoubleEntry(
+        "Diagnostics/Front Flywheel/ Manual Ref");
 
     /**
      * Sets the voltage of the flywheel motor.

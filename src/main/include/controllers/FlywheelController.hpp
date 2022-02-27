@@ -14,37 +14,25 @@
 
 #include "Constants.hpp"
 #include "controllers/ControllerBase.hpp"
+#include "controllers/FlywheelConstants.hpp"
 
 namespace frc3512 {
 
 /**
- * The flywheel controller.
+ * The front flywheel controller.
  *
  * The flywheel uses an LQR for feedback control and a plant inversion
  * feedforward to maintain steady-state velocity.
  */
 class FlywheelController : public ControllerBase<1, 1, 1> {
 public:
-    /// Static friction system ID gain.
-    static constexpr auto kS = 0.47564_V;
-
-    /// Angular velocity system ID gain.
-    static constexpr auto kV = 0.0088813_V / 1_rad_per_s;
-
-    /// Angular acceleration system ID gain.
-    static constexpr auto kA = 0.0045649_V / 1_rad_per_s_sq;
-
-    /// Gear ratio from encoder to flywheel.
-    static constexpr double kGearRatio = 8.0;
+    /// Gear ratio from encoder to both flywheels.
+    static constexpr double kGearRatio = 12.0 / 18.0;
 
     /// Angle per encoder pulse.
-    static constexpr double kDpP =
-        (wpi::numbers::pi * 2.0) * kGearRatio / 512.0;
+    static constexpr double kDpP = (wpi::numbers::pi * 2.0) * kGearRatio / 42;
 
-    /// Maximum flywheel angular velocity.
-    static constexpr auto kMaxAngularVelocity = 12_V / kV;
-
-    FlywheelController();
+    explicit FlywheelController(FlywheelPose pose);
 
     /**
      * Move constructor.
@@ -57,16 +45,16 @@ public:
     FlywheelController& operator=(FlywheelController&&) = default;
 
     /**
-     * States of the flywheel system.
+     * States of the front flywheel system.
      */
     class State {
     public:
-        /// Flywheel angular velocity.
+        /// Front Flywheel angular velocity.
         static constexpr int kAngularVelocity = 0;
     };
 
     /**
-     * Inputs of the flywheel system.
+     * Inputs of the front flywheel system.
      */
     class Input {
     public:
@@ -114,19 +102,32 @@ public:
         const Eigen::Matrix<double, 1, 1>& x) override;
 
     /**
-     * Returns the flywheel plant.
+     * Returns the front flywheel plant.
      */
-    static frc::LinearSystem<1, 1, 1> GetPlant();
+    static frc::LinearSystem<1, 1, 1> GetFrontPlant();
+
+    /**
+     * Returns the back flywheel plant.
+     */
+    static frc::LinearSystem<1, 1, 1> GetBackPlant();
 
 private:
     static constexpr auto kAngularVelocityShotThreshold = 25_rad_per_s;
-    static constexpr auto kAngularVelocityRecoveryThreshold = 5_rad_per_s;
+    static constexpr auto kAngularVelocityRecoveryThreshold = 15_rad_per_s;
 
-    frc::LinearSystem<1, 1, 1> m_plant{GetPlant()};
-    frc::LinearQuadraticRegulator<1, 1> m_lqr{
-        m_plant, {50.0}, {12.0}, Constants::kControllerPeriod};
-    frc::LinearPlantInversionFeedforward<1, 1> m_ff{
-        m_plant, Constants::kControllerPeriod};
+    FlywheelPose m_pose;
+
+    frc::LinearSystem<1, 1, 1> m_frontPlant{GetFrontPlant()};
+    frc::LinearQuadraticRegulator<1, 1> m_frontLQR{
+        m_frontPlant, {50.0}, {12.0}, Constants::kControllerPeriod};
+    frc::LinearPlantInversionFeedforward<1, 1> m_frontFF{
+        m_frontPlant, Constants::kControllerPeriod};
+
+    frc::LinearSystem<1, 1, 1> m_backPlant{GetBackPlant()};
+    frc::LinearQuadraticRegulator<1, 1> m_backLQR{
+        m_backPlant, {50.0}, {12.0}, Constants::kControllerPeriod};
+    frc::LinearPlantInversionFeedforward<1, 1> m_backFF{
+        m_backPlant, Constants::kControllerPeriod};
 
     bool m_atGoal = false;
 

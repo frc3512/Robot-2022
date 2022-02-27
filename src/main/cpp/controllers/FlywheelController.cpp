@@ -7,7 +7,10 @@
 
 using namespace frc3512;
 
-FlywheelController::FlywheelController() { Reset(); }
+FlywheelController::FlywheelController(FlywheelPose pose) {
+    Reset();
+    m_pose = pose;
+}
 
 void FlywheelController::SetGoal(units::radians_per_second_t angularVelocity) {
     if (m_nextR(0) == angularVelocity.value()) {
@@ -36,8 +39,15 @@ Eigen::Matrix<double, 1, 1> FlywheelController::Calculate(
     if (m_nextR(0) == 0.0) {
         m_u = Eigen::Vector<double, 1>::Zero();
     } else {
-        m_u = m_lqr.Calculate(x, m_r) + m_ff.Calculate(m_nextR) +
-              Eigen::Matrix<double, 1, 1>(kS.value());
+        if (m_pose == FlywheelPose::kFront) {
+            m_u =
+                m_frontLQR.Calculate(x, m_r) + m_frontFF.Calculate(m_nextR) +
+                Eigen::Matrix<double, 1, 1>(FrontFlywheelConstants::kS.value());
+        } else if (m_pose == FlywheelPose::kBack) {
+            m_u =
+                m_backLQR.Calculate(x, m_r) + m_backFF.Calculate(m_nextR) +
+                Eigen::Matrix<double, 1, 1>(BackFlywheelConstants::kS.value());
+        }
     }
 
     m_u = frc::DesaturateInputVector<1>(m_u, 12.0);
@@ -49,8 +59,14 @@ Eigen::Matrix<double, 1, 1> FlywheelController::Calculate(
     return m_u;
 }
 
-frc::LinearSystem<1, 1, 1> FlywheelController::GetPlant() {
-    return frc::LinearSystemId::IdentifyVelocitySystem<units::radian>(kV, kA);
+frc::LinearSystem<1, 1, 1> FlywheelController::GetFrontPlant() {
+    return frc::LinearSystemId::IdentifyVelocitySystem<units::radian>(
+        FrontFlywheelConstants::kV, FrontFlywheelConstants::kA);
+}
+
+frc::LinearSystem<1, 1, 1> FlywheelController::GetBackPlant() {
+    return frc::LinearSystemId::IdentifyVelocitySystem<units::radian>(
+        BackFlywheelConstants::kV, BackFlywheelConstants::kA);
 }
 
 void FlywheelController::UpdateAtGoal(units::radians_per_second_t error) {

@@ -13,8 +13,9 @@
 
 #include "AutonomousChooser.hpp"
 #include "NetworkTableUtil.hpp"
+#include "subsystems/BackFlywheel.hpp"
 #include "subsystems/Drivetrain.hpp"
-#include "subsystems/Flywheel.hpp"
+#include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/Intake.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
@@ -51,11 +52,14 @@ public:
     /// Drivetrain subsystem.
     Drivetrain drivetrain;
 
-    /// Intake subsystem.
-    Intake intake;
+    /// Rear Flywheel subsystem.
+    BackFlywheel backFlywheel;
 
-    /// Flywheel subsystem.
-    Flywheel flywheel;
+    /// Front Flywheel subsystem.
+    FrontFlywheel frontFlywheel;
+
+    /// Intake subsystem.
+    Intake intake{backFlywheel, frontFlywheel};
 
     Robot();
 

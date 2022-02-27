@@ -1,6 +1,6 @@
 // Copyright (c) FRC Team 3512. All Rights Reserved.
 
-#include "subsystems/Flywheel.hpp"
+#include "subsystems/FrontFlywheel.hpp"
 
 #include <fmt/core.h>
 #include <frc/DriverStation.h>
@@ -14,58 +14,56 @@
 
 using namespace frc3512;
 
-Flywheel::Flywheel()
-    : ControlledSubsystemBase("Flywheel",
+FrontFlywheel::FrontFlywheel()
+    : ControlledSubsystemBase("Front Flywheel",
                               {ControllerLabel{"Angular velocity", "rad/s"}},
                               {ControllerLabel{"Voltage", "V"}},
                               {ControllerLabel{"Angular velocity", "rad/s"}}) {
     m_frontGrbx.SetSmartCurrentLimit(40);
-    m_backGrbx.SetSmartCurrentLimit(40);
 
     // Ensures CANSparkMax::Get() returns an initialized value
     m_frontGrbx.Set(0.0);
-    m_backGrbx.Set(0.0);
 
     m_frontGrbx.SetInverted(false);
-    m_backGrbx.SetInverted(false);
 
     m_getGoalEntry.SetDouble(0.0);
     m_encoderEntry.SetDouble(0.0);
     m_isReadyEntry.SetBoolean(false);
+    m_manualRefEntry.SetDouble(0.0);
 
     Reset();
     SetGoal(0_rad_per_s);
 }
 
-void Flywheel::SetMoveAndShoot(bool moveAndShoot) {
+void FrontFlywheel::SetMoveAndShoot(bool moveAndShoot) {
     m_moveAndShoot = moveAndShoot;
 }
 
-units::radian_t Flywheel::GetAngle() {
-    return units::radian_t{m_encoder.GetPosition()};
+units::radian_t FrontFlywheel::GetAngle() {
+    return units::radian_t{m_frontEncoder.GetPosition()};
 }
 
-units::radians_per_second_t Flywheel::GetAngularVelocity() const {
+units::radians_per_second_t FrontFlywheel::GetAngularVelocity() const {
     return m_angularVelocity;
 }
 
-void Flywheel::SetGoal(units::radians_per_second_t velocity) {
+void FrontFlywheel::SetGoal(units::radians_per_second_t velocity) {
     m_controller.SetGoal(velocity);
 }
 
-units::radians_per_second_t Flywheel::GetGoal() const {
+units::radians_per_second_t FrontFlywheel::GetGoal() const {
     return m_controller.GetGoal();
 }
 
-void Flywheel::Stop() { SetGoal(0_rad_per_s); }
+void FrontFlywheel::Stop() { SetGoal(0_rad_per_s); }
 
-bool Flywheel::AtGoal() const { return m_controller.AtGoal(); }
+bool FrontFlywheel::AtGoal() const { return m_controller.AtGoal(); }
 
-bool Flywheel::IsOn() const { return GetGoal() > 0_rad_per_s; }
+bool FrontFlywheel::IsOn() const { return GetGoal() > 0_rad_per_s; }
 
-bool Flywheel::IsReady() { return IsOn() && AtGoal(); }
+bool FrontFlywheel::IsReady() { return IsOn() && AtGoal(); }
 
-void Flywheel::Reset() {
+void FrontFlywheel::Reset() {
     m_observer.Reset();
     m_controller.Reset();
     m_u = Eigen::Matrix<double, 1, 1>::Zero();
@@ -73,25 +71,25 @@ void Flywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void Flywheel::TeleopPeriodic() {
+void FrontFlywheel::TeleopPeriodic() {}
+
+void FrontFlywheel::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     if (frc::DriverStation::IsTest()) {
         m_testThrottle = appendageStick2.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
-        fmt::print("Manual angular velocity: {}\n",
-                   units::revolutions_per_minute_t{manualRef});
+        SetGoal(manualRef);
+        m_manualRefEntry.SetDouble(manualRef.value());
     }
-}
 
-void Flywheel::RobotPeriodic() {
     m_getGoalEntry.SetDouble(GetGoal().value());
-    m_encoderEntry.SetDouble(m_encoder.GetPosition());
+    m_encoderEntry.SetDouble(m_frontEncoder.GetPosition());
     m_isReadyEntry.SetBoolean(IsReady());
     m_atGoalEntry.SetBoolean(AtGoal());
 }
 
-void Flywheel::ControllerPeriodic() {
+void FrontFlywheel::ControllerPeriodic() {
     using Input = FlywheelController::Input;
 
     UpdateDt();
@@ -108,40 +106,27 @@ void Flywheel::ControllerPeriodic() {
     m_angularVelocity = m_velocityFilter.Calculate((m_angle - m_lastAngle) /
                                                    (m_time - m_lastTime));
 
-    Eigen::Matrix<double, 1, 1> y {GetAngularVelocity().value()};
+    Eigen::Matrix<double, 1, 1> y{GetAngularVelocity().value()};
     m_observer.Correct(m_controller.GetInputs(), y);
     m_u = m_controller.Calculate(m_observer.Xhat());
     SetVoltage(units::volt_t{m_u(Input::kVoltage)});
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        units::volt_t voltage{m_frontGrbx.Get() *
-                              frc::RobotController::GetInputVoltage()};
-        if (m_flywheelSim.GetAngularVelocity() > 0_rad_per_s) {
-            voltage -= FlywheelController::kS;
-        } else if (m_flywheelSim.GetAngularVelocity() < 0_rad_per_s) {
-            voltage += FlywheelController::kS;
-        }
-
-        m_flywheelSim.SetInput(Eigen::Vector<double, 1>{voltage.value()});
-        m_flywheelSim.Update(GetDt());
-    }
-
     m_lastAngle = m_angle;
     m_lastTime = m_time;
 }
 
-void Flywheel::SetVoltage(units::volt_t voltage) {
+void FrontFlywheel::SetVoltage(units::volt_t voltage) {
     m_frontGrbx.SetVoltage(voltage);
-    m_backGrbx.SetVoltage(voltage);
 }
 
-units::radians_per_second_t Flywheel::ThrottleToReference(double throttle) {
+units::radians_per_second_t FrontFlywheel::ThrottleToReference(
+    double throttle) {
     // 1. Remap input from [1..-1] to [0..1]
     auto remap = (1.0 - throttle) / 2.0;
     // 2. Rescale that to [400.0...800.0]
-    constexpr auto kLow = 400_rad_per_s;
+    constexpr auto kLow = 100_rad_per_s;
     constexpr auto kHigh = 800_rad_per_s;
     auto rescale = kLow + (kHigh - kLow) * remap;
     // 3. Round to the nearest radian per second
