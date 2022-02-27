@@ -8,6 +8,9 @@
 #include <units/voltage.h>
 
 namespace frc3512 {
+/**
+ * Flywheel physical robot placement.
+ */
 enum class FlywheelPose { kFront, kBack };
 
 namespace FrontFlywheelConstants {

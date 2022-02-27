@@ -10,8 +10,7 @@
 using namespace frc3512;
 using namespace frc3512::HWConfig::Intake;
 
-Intake::Intake(BackFlywheel& backFlywheel, FrontFlywheel& frontFlywheel)
-    : m_backFlywheel(backFlywheel), m_frontFlywheel(frontFlywheel) {
+Intake::Intake() {
     SetCANSparkMaxBusUsage(m_miniArmMotor, Usage::kMinimal);
     m_miniArmMotor.SetSmartCurrentLimit(80);
     SetCANSparkMaxBusUsage(m_conveyorMotor, Usage::kMinimal);

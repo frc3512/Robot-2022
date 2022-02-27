@@ -33,11 +33,8 @@ class Intake : public SubsystemBase {
 public:
     /**
      * Constructs Intake.
-     *
-     * @param backFlywheel the back flywheel object for the intake.
-     * @param frontFlywheel the front flywheel object for the intake.
      */
-    Intake(BackFlywheel& backFlywheel, FrontFlywheel& frontFlywheel);
+    Intake();
 
     Intake(const Intake&) = delete;
     Intake& operator=(const Intake&) = delete;
@@ -122,9 +119,6 @@ public:
 
 private:
     frc::Timer m_conveyorTimer;
-
-    BackFlywheel& m_backFlywheel;
-    FrontFlywheel& m_frontFlywheel;
 
     rev::CANSparkMax m_intakeMotor{frc3512::HWConfig::Intake::kArmMotorID,
                                    rev::CANSparkMax::MotorType::kBrushless};

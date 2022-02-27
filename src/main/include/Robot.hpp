@@ -59,7 +59,7 @@ public:
     FrontFlywheel frontFlywheel;
 
     /// Intake subsystem.
-    Intake intake{backFlywheel, frontFlywheel};
+    Intake intake;
 
     Robot();
 

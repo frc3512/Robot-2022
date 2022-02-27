@@ -32,6 +32,9 @@ public:
     /// Angle per encoder pulse.
     static constexpr double kDpP = (wpi::numbers::pi * 2.0) * kGearRatio / 42;
 
+    /**
+     * Constructs a flywheel controller
+     */
     explicit FlywheelController(FlywheelPose pose);
 
     /**

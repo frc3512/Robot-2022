@@ -15,9 +15,7 @@ class IntakeTest : public frc3512::SimulatorTest {};
 
 TEST_F(IntakeTest, Deploy) {
     frc3512::Drivetrain drivetrain;
-    frc3512::BackFlywheel backFlywheel;
-    frc3512::FrontFlywheel frontFlywheel;
-    frc3512::Intake intake{backFlywheel, frontFlywheel};
+    frc3512::Intake intake;
 
     frc3512::SubsystemBase::RunAllTeleopInit();
     frc::Notifier controllerPeriodic{[&] { intake.TeleopPeriodic(); }};
