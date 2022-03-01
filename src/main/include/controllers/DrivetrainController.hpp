@@ -48,10 +48,10 @@ namespace frc3512 {
 class DrivetrainController : public ControllerBase<7, 2, 4> {
 public:
     /// The wheel radius.
-    static constexpr units::meter_t kWheelRadius = 3.05_in;
+    static constexpr units::meter_t kWheelRadius = 3_in;
 
     /// The drivetrain gear ratio from the encoder to the wheel.
-    static constexpr double kDriveGearRatio = 1.0 / 1.0;
+    static constexpr double kDriveGearRatio = 5.818181 / 1.6;
 
     /// Drivetrain distance per encoder pulse.
     static constexpr double kDpP =
@@ -59,33 +59,19 @@ public:
         2048.0;
 
     /// Drivetrain chassis width.
-    static constexpr units::meter_t kWidth = [] {
-        auto absoluteValue = [](auto arg) {
-            return arg > decltype(arg){0} ? arg : -1.0 * arg;
-        };
-
-        // These values were collected by rotating the robot in place and
-        // recording the encoder position and gyro heading measurements.
-        // Difference is final measurement minus initial measurement.
-        constexpr auto kLeftPosition = 2.18274_m - 0_m;
-        constexpr auto kRightPosition = (-1.0 * 2.19665_m) - 0_m;
-        constexpr auto kHeading = (-1.0 * 3.1219_rad) - 3.1415_rad;
-
-        return (absoluteValue(kLeftPosition) + absoluteValue(kRightPosition)) /
-               absoluteValue(kHeading) * 1_rad;
-    }();
+    static constexpr units::meter_t kWidth = 1.083869_m;
 
     /// Linear velocity system ID gain.
-    static constexpr auto kLinearV = 3.02_V / 1_mps;
+    static constexpr auto kLinearV = 0.46116_V / 1_mps;
 
     /// Linear acceleration system ID gain.
-    static constexpr auto kLinearA = 0.642_V / 1_mps_sq;
+    static constexpr auto kLinearA = 0.076414_V / 1_mps_sq;
 
     /// Angular velocity system ID gain.
-    static constexpr auto kAngularV = 1.382_V / 1_mps;
+    static constexpr auto kAngularV = 0.4756_V / 1_mps;
 
     /// Angular acceleration system ID gain.
-    static constexpr auto kAngularA = 0.08495_V / 1_mps_sq;
+    static constexpr auto kAngularA = 0.064544_V / 1_mps_sq;
 
     /// Maximum linear velocity.
     static constexpr auto kMaxV = 12_V / kLinearV;

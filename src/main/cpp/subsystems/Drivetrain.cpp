@@ -281,7 +281,7 @@ units::ampere_t Drivetrain::GetCurrentDraw() const {
 frc::Pose2d Drivetrain::GetSimPose() const { return m_drivetrainSim.GetPose(); }
 
 void Drivetrain::DisabledInit() {
-    SetCoastMode();
+    SetBrakeMode();
     Disable();
 }
 
