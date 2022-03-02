@@ -84,6 +84,22 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
             }
         },
         1.5_ms);
+
+    Schedule(
+        [=] {
+            if (IsEnabled()) {
+                frontFlywheel.ControllerPeriodic();
+            }
+        },
+        0.7_ms);
+
+    Schedule(
+        [=] {
+            if (IsEnabled()) {
+                backFlywheel.ControllerPeriodic();
+            }
+        },
+        0.7_ms);
 }
 
 Robot::~Robot() {}
@@ -97,6 +113,11 @@ void Robot::SimulationInit() { SubsystemBase::RunAllSimulationInit(); }
 void Robot::DisabledInit() {
     m_autonChooser.ResumeAutonomous();
     SubsystemBase::RunAllDisabledInit();
+
+    // Reset teleop shooting state machine when disabling robot
+    frontFlywheel.SetGoal(0_rad_per_s);
+    backFlywheel.SetGoal(0_rad_per_s);
+    m_timer.Stop();
 }
 
 void Robot::AutonomousInit() {
@@ -137,9 +158,61 @@ void Robot::AutonomousPeriodic() {
     m_autonChooser.ResumeAutonomous();
 }
 
-void Robot::TeleopPeriodic() { SubsystemBase::RunAllTeleopPeriodic(); }
+void Robot::TeleopPeriodic() {
+    SubsystemBase::RunAllTeleopPeriodic();
+    static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
-void Robot::TestPeriodic() { SubsystemBase::RunAllTestPeriodic(); }
+    if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
+        if (appendageStick1.GetRawButtonPressed(1)) {
+            intake.SetTimeToShoot(true);
+            m_timer.Start();
+        }
+        if (appendageStick2.GetRawButtonPressed(1)) {
+            intake.SetTimeToShoot(true);
+            m_timer.Start();
+        }
+    } else {
+        if (appendageStick1.GetRawButtonPressed(1)) {
+            frontFlywheel.SetGoal(FrontFlywheelConstants::kShootLow);
+            backFlywheel.SetGoal(BackFlywheelConstants::kShootLow);
+        }
+        if (appendageStick2.GetRawButtonPressed(1)) {
+            frontFlywheel.SetGoal(FrontFlywheelConstants::kShootHigh);
+            backFlywheel.SetGoal(BackFlywheelConstants::kShootHigh);
+        }
+    }
+
+    if (appendageStick1.GetRawButtonPressed(2)) {
+        frontFlywheel.Stop();
+        backFlywheel.Stop();
+        intake.SetTimeToShoot(false);
+    }
+
+    if (m_timer.HasElapsed(2.5_s)) {
+        intake.SetTimeToShoot(false);
+        frontFlywheel.SetGoal(0_rad_per_s);
+        backFlywheel.SetGoal(0_rad_per_s);
+        m_timer.Reset();
+        m_timer.Stop();
+    }
+}
+
+void Robot::TestPeriodic() {
+    SubsystemBase::RunAllTestPeriodic();
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+
+    if (appendageStick1.GetRawButtonPressed(1)) {
+        intake.SetTimeToShoot(true);
+        m_timer.Start();
+    }
+
+    if (m_timer.HasElapsed(2_s)) {
+        intake.SetTimeToShoot(false);
+        m_timer.Reset();
+        m_timer.Stop();
+    }
+}
 
 void Robot::SelectAutonomous(std::string_view name) {
     m_autonChooser.SelectAutonomous(name);
@@ -165,6 +238,8 @@ void Robot::ExpectAutonomousEndConds() {
             0.0, 0.01);
     }
 }
+
+void Robot::Shoot() { intake.SetConveyor(0.2); }
 
 }  // namespace frc3512
 

@@ -18,6 +18,8 @@
 #include "Constants.hpp"
 #include "HWConfig.hpp"
 #include "NetworkTableUtil.hpp"
+#include "subsystems/BackFlywheel.hpp"
+#include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
 namespace frc3512 {
@@ -29,6 +31,9 @@ namespace frc3512 {
  */
 class Intake : public SubsystemBase {
 public:
+    /**
+     * Constructs Intake.
+     */
     Intake();
 
     Intake(const Intake&) = delete;
@@ -91,6 +96,18 @@ public:
     bool IsUpperSensorBlocked() const;
 
     /**
+     * Sets whether the conveyor needs to start to feed balls to the flywheel.
+     *
+     * @param timeToShoot whehter or not the drivers are ready to shoot.
+     */
+    void SetTimeToShoot(bool timeToShoot);
+
+    /**
+     * Returns whether it is time to shoot or not.
+     */
+    bool IsTimeToShoot() const;
+
+    /**
      * Returns whether or not the lower proximity sensor detects something; true
      * means something is detected, false means it is not.
      */
@@ -120,6 +137,8 @@ private:
         frc3512::HWConfig::Intake::kUpperSensorChannel};
     frc::DigitalInput m_lowerSensor{
         frc3512::HWConfig::Intake::kLowerSensorChannel};
+
+    bool m_timeToShoot = false;
 
     frc::Mechanism2d m_intakeSim{60, 60};
     frc::MechanismRoot2d* m_intakeBase =

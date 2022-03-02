@@ -6,7 +6,9 @@
 
 #include "Constants.hpp"
 #include "SimulatorTest.hpp"
+#include "subsystems/BackFlywheel.hpp"
 #include "subsystems/Drivetrain.hpp"
+#include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/Intake.hpp"
 
 class IntakeTest : public frc3512::SimulatorTest {};

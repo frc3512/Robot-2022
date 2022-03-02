@@ -51,6 +51,10 @@ bool Intake::IsUpperSensorBlocked() const { return !m_upperSensor.Get(); }
 
 bool Intake::IsLowerSensorBlocked() const { return !m_lowerSensor.Get(); }
 
+void Intake::SetTimeToShoot(bool timeToShoot) { m_timeToShoot = timeToShoot; }
+
+bool Intake::IsTimeToShoot() const { return m_timeToShoot; }
+
 void Intake::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
@@ -68,8 +72,11 @@ void Intake::RobotPeriodic() {
         Stow();
     }
 
-    if (!IsUpperSensorBlocked() && IsLowerSensorBlocked()) {
-        SetConveyor(-0.7);
+    if (IsTimeToShoot()) {
+        SetConveyor(-0.8);
+    } else if (!IsTimeToShoot() && !IsUpperSensorBlocked() &&
+               IsLowerSensorBlocked()) {
+        SetConveyor(-0.8);
     } else {
         SetConveyor(0.0);
     }

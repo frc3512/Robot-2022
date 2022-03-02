@@ -13,7 +13,9 @@
 
 #include "AutonomousChooser.hpp"
 #include "NetworkTableUtil.hpp"
+#include "subsystems/BackFlywheel.hpp"
 #include "subsystems/Drivetrain.hpp"
+#include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/Intake.hpp"
 #include "subsystems/SubsystemBase.hpp"
 
@@ -49,6 +51,12 @@ public:
 
     /// Drivetrain subsystem.
     Drivetrain drivetrain;
+
+    /// Rear Flywheel subsystem.
+    BackFlywheel backFlywheel;
+
+    /// Front Flywheel subsystem.
+    FrontFlywheel frontFlywheel;
 
     /// Intake subsystem.
     Intake intake;
@@ -147,6 +155,14 @@ public:
      * testing.
      */
     void ExpectAutonomousEndConds();
+
+    /**
+     * Sets flywheel to constant speed. The flywheel will shoot either high or
+     * low depending on the position of the hooded shooter. When shooting, check
+     * if the hood is not set to a fixed position, if not, default to a high
+     * goal shot and then shoot.
+     */
+    void Shoot();
 
 private:
     frc::Timer m_timer;

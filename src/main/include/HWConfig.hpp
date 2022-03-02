@@ -58,10 +58,10 @@ constexpr int kFrontMotorID = 10;
 constexpr int kBackMotorID = 5;
 
 /// Encoder channel A
-// constexpr int kEncoderA = 6;
+constexpr int kEncoderA = 6;
 
 /// Encoder channel B
-// constexpr int kEncoderB = 7;
+constexpr int kEncoderB = 7;
 }  // namespace Flywheel
 
 namespace Intake {
