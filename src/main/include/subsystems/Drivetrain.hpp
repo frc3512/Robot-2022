@@ -39,7 +39,6 @@
 #include "HWConfig.hpp"
 #include "NetworkTableUtil.hpp"
 #include "controllers/DrivetrainController.hpp"
-#include "static_concurrent_queue.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
 
 namespace frc3512 {
