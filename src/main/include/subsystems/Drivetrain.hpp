@@ -9,6 +9,7 @@
 #include <frc/AnalogInput.h>
 #include <frc/Encoder.h>
 #include <frc/controller/ImplicitModelFollower.h>
+#include <frc/controller/ProfiledPIDController.h>
 #include <frc/estimator/AngleStatistics.h>
 #include <frc/estimator/KalmanFilterLatencyCompensator.h>
 #include <frc/estimator/UnscentedKalmanFilter.h>
@@ -23,6 +24,7 @@
 #include <frc/smartdashboard/Field2d.h>
 #include <frc/system/plant/LinearSystemId.h>
 #include <frc/trajectory/TrajectoryConfig.h>
+#include <frc/trajectory/TrapezoidProfile.h>
 #include <networktables/NetworkTableEntry.h>
 #include <rev/CANSparkMax.h>
 #include <units/acceleration.h>
@@ -183,6 +185,24 @@ public:
                        const frc::TrajectoryConfig& config);
 
     /**
+     * Sets a new heading goal for the drivetrain to achieve.
+     *
+     * @param heading The heading you want to the drivetrain to achieve (in
+     * radians)
+     */
+    void SetHeadingGoal(const units::radian_t heading);
+
+    /**
+     * Returns whether or not a new heading goal is set.
+     */
+    bool HasHeadingGoal() const;
+
+    /**
+     * Aborts turning in place.
+     */
+    void AbortTurnInPlace();
+
+    /**
      * Returns a TrajectoryConfig containing a differential drive dynamics
      * constraint with the start and end velocities set to zero.
      */
@@ -203,6 +223,17 @@ public:
      * Returns whether the drivetrain controller is at the goal waypoint.
      */
     bool AtGoal() const;
+
+    /**
+     * Returns whether the drivetrain is at the goal heading.
+     */
+    bool AtHeading() const;
+
+    /**
+     * Returns the current heading state. Used for setting points after
+     * turn-in-places
+     */
+    units::radian_t GetHeading();
 
     /**
      * Returns the drivetrain state estimate.
@@ -241,6 +272,12 @@ public:
     void ControllerPeriodic() override;
 
 private:
+    static constexpr double kTurningP = 1.527459;
+    static constexpr double kTurningI = 0.0;
+    static constexpr double kTurningD = 0.0;
+
+    bool kHasNewHeading = false;
+
     static const Eigen::Matrix<double, 2, 2> kGlobalR;
 
     static const frc::LinearSystem<2, 2, 2> kPlant;
@@ -284,6 +321,12 @@ private:
     DrivetrainController m_controller;
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
 
+    frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
+        1.25_rad_per_s, 0.75_rad_per_s_sq};
+    frc::ProfiledPIDController<units::radian> m_turningPID{
+        kTurningP, kTurningI, kTurningD, m_turningConstraints,
+        Constants::kControllerPeriod};
+
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
             DrivetrainController::kLinearV,
@@ -301,6 +344,13 @@ private:
     frc::sim::EncoderSim m_rightEncoderSim{m_rightEncoder};
     frc::sim::ADIS16470_IMUSim m_imuSim{m_imu};
     frc::Field2d m_field;
+
+    nt::NetworkTableEntry m_headingGoalEntry = NetworkTableUtil::MakeBoolEntry(
+        "/Diagnostics/Drivetrain/Outputs/Goal Heading Achieved");
+
+    nt::NetworkTableEntry m_hasHeadingGoalEntry =
+        NetworkTableUtil::MakeBoolEntry(
+            "/Diagnostics/Drivetrain/Outputs/Has New Goal Heading");
 
     /**
      * Set drivetrain motors to brake mode, which the feedback controllers

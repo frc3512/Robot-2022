@@ -63,6 +63,19 @@ TEST_F(DrivetrainTest, ReachesReferenceOffsetCurve) {
     EXPECT_TRUE(drivetrain.AtGoal());
 }
 
+TEST_F(DrivetrainTest, ReachesReferenceHeading) {
+    // Initial Pose - Make is visible on Field2D for testing purposes
+    const frc::Pose2d kInitialPose{10_m, 5.662_m, 0_rad};
+
+    drivetrain.Reset(kInitialPose);
+
+    drivetrain.SetHeadingGoal(units::radian_t{wpi::numbers::pi});
+
+    frc::sim::StepTiming(10_s);
+
+    EXPECT_TRUE(drivetrain.AtHeading());
+}
+
 TEST_F(DrivetrainTest, TrajectoryQueue) {
     // Initial Pose - Right in line with the Target Zone
     const frc::Pose2d kInitialPose{12.89_m, 2.41_m,
@@ -97,6 +110,40 @@ TEST_F(DrivetrainTest, TrajectoryQueue) {
     drivetrain.AddTrajectory(kEndPose, {}, kMidPose, config2);
 
     frc::sim::StepTiming(10_s);
+
+    EXPECT_TRUE(drivetrain.AtGoal());
+}
+
+TEST_F(DrivetrainTest, RunBothControllers) {
+    // Initial Pose - Make is visible on Field2D for testing purposes
+    const frc::Pose2d kInitialPose{10_m, 5.662_m, 0_rad};
+
+    // Initial Pose - Make is visible on Field2D for testing purposes
+    const frc::Pose2d kTurningPose1{15_m, 5.662_m, 0_rad};
+
+    drivetrain.Reset(kInitialPose);
+
+    drivetrain.AddTrajectory(kInitialPose, {}, kTurningPose1);
+
+    frc::sim::StepTiming(5_s);
+
+    EXPECT_TRUE(drivetrain.AtGoal());
+
+    drivetrain.SetHeadingGoal(units::radian_t{wpi::numbers::pi});
+
+    frc::sim::StepTiming(5_s);
+
+    EXPECT_TRUE(drivetrain.AtHeading());
+
+    // Initial Pose - Make is visible on Field2D for testing purposes
+    const frc::Pose2d kTurningPose2{15_m, 5.662_m, drivetrain.GetHeading()};
+
+    // End Pose - Make is visible on Field2D for testing purposes
+    const frc::Pose2d kEndPose{10_m, 5.662_m, drivetrain.GetHeading()};
+
+    drivetrain.AddTrajectory(kTurningPose2, {}, kEndPose);
+
+    frc::sim::StepTiming(5_s);
 
     EXPECT_TRUE(drivetrain.AtGoal());
 }
