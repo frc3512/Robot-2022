@@ -69,6 +69,11 @@ Drivetrain::Drivetrain()
     // robot's testing configuration, so the turret won't hit the soft limits.
     Reset(frc::Pose2d{0_m, 0_m, units::radian_t{wpi::numbers::pi}});
 
+    m_turningPID.EnableContinuousInput(units::radian_t{-wpi::numbers::pi},
+                                       units::radian_t{wpi::numbers::pi});
+    m_turningPID.SetTolerance(units::radian_t{0.52},
+                              units::radians_per_second_t{2});
+
     frc::SmartDashboard::PutData(&m_field);
 }
 
@@ -121,11 +126,13 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
 
     m_observer.Reset();
     m_controller.Reset(initialPose);
+    m_turningPID.Reset(initialPose.Rotation().Radians());
     m_u = Eigen::Vector<double, 2>::Zero();
     m_leftEncoder.Reset();
     m_rightEncoder.Reset();
     m_imu.Reset();
     m_headingOffset = initialPose.Rotation().Radians();
+    kHasNewHeading = false;
 
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
@@ -168,6 +175,8 @@ void Drivetrain::ControllerPeriodic() {
                                    frc::Timer::GetFPGATimestamp());
     m_observer.Correct(m_controller.GetInputs(), y);
 
+    Eigen::Vector<double, 7> controllerState = GetStates();
+
     if (m_controller.HaveTrajectory()) {
         m_u = m_controller.Calculate(m_observer.Xhat());
 
@@ -177,6 +186,21 @@ void Drivetrain::ControllerPeriodic() {
         } else {
             m_leftGrbx.SetVoltage(0_V);
             m_rightGrbx.SetVoltage(0_V);
+        }
+    } else if (HasHeadingGoal()) {
+        // Update previous u stored in the controller. We don't care what the
+        // return value is.
+        static_cast<void>(m_controller.Calculate(m_observer.Xhat()));
+
+        if (!AtHeading()) {
+            m_leftGrbx.Set(-m_turningPID.Calculate(units::radian_t{
+                controllerState(DrivetrainController::State::kHeading)}));
+            m_rightGrbx.Set(m_turningPID.Calculate(units::radian_t{
+                controllerState(DrivetrainController::State::kHeading)}));
+        } else {
+            kHasNewHeading = false;
+            m_leftGrbx.Set(0.0);
+            m_rightGrbx.Set(0.0);
         }
     } else {
         // Update previous u stored in the controller. We don't care what the
@@ -189,6 +213,9 @@ void Drivetrain::ControllerPeriodic() {
                 frc::RobotController::GetInputVoltage(),
             std::clamp(m_rightGrbx.Get(), -1.0, 1.0) *
                 frc::RobotController::GetInputVoltage()};
+
+        m_turningPID.Calculate(units::radian_t{
+            controllerState(DrivetrainController::State::kHeading)});
     }
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
@@ -229,7 +256,18 @@ void Drivetrain::ControllerPeriodic() {
     }
 }
 
-void Drivetrain::RobotPeriodic() {}
+void Drivetrain::RobotPeriodic() {
+    if (frc::DriverStation::IsDisabled() ||
+        !frc::DriverStation::IsFMSAttached()) {
+        m_headingGoalEntry.SetBoolean(AtHeading());
+        m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
+    }
+
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        m_headingGoalEntry.SetBoolean(AtHeading());
+        m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
+    }
+}
 
 void Drivetrain::AddTrajectory(const frc::Pose2d& start,
                                const std::vector<frc::Translation2d>& interior,
@@ -253,6 +291,20 @@ void Drivetrain::AddTrajectory(const std::vector<frc::Pose2d>& waypoints,
     m_controller.AddTrajectory(waypoints, config);
 }
 
+void Drivetrain::SetHeadingGoal(const units::radian_t heading) {
+    m_turningPID.SetGoal(frc::AngleModulus(heading));
+    kHasNewHeading = true;
+}
+
+bool Drivetrain::HasHeadingGoal() const { return kHasNewHeading; }
+
+void Drivetrain::AbortTurnInPlace() {
+    Eigen::Vector<double, 7> controllerState = GetStates();
+    m_turningPID.SetGoal(units::radian_t{
+        controllerState(DrivetrainController::State::kHeading)});
+    kHasNewHeading = false;
+}
+
 frc::TrajectoryConfig Drivetrain::MakeTrajectoryConfig() {
     return DrivetrainController::MakeTrajectoryConfig();
 }
@@ -265,6 +317,14 @@ frc::TrajectoryConfig Drivetrain::MakeTrajectoryConfig(
 }
 
 bool Drivetrain::AtGoal() const { return m_controller.AtGoal(); }
+
+bool Drivetrain::AtHeading() const { return m_turningPID.AtGoal(); }
+
+units::radian_t Drivetrain::GetHeading() {
+    Eigen::Vector<double, 7> controllerState = GetStates();
+    return units::radian_t{
+        controllerState(DrivetrainController::State::kHeading)};
+}
 
 const Eigen::Vector<double, 7>& Drivetrain::GetStates() const {
     return m_observer.Xhat();
@@ -298,6 +358,11 @@ void Drivetrain::TeleopInit() {
     // trajectories so teleop driving can occur.
     m_controller.AbortTrajectories();
 
+    // If the robot was disabled while still turning in place in
+    // autonomous, it will continue to do so in teleop. This aborts any
+    // turning action so teleop driving can occur.
+    AbortTurnInPlace();
+
     Enable();
 }
 
@@ -308,6 +373,11 @@ void Drivetrain::TestInit() {
     // autonomous, it will continue to do so in teleop. This aborts any
     // trajectories so teleop driving can occur.
     m_controller.AbortTrajectories();
+
+    // If the robot was disabled while still turning in place in
+    // autonomous, it will continue to do so in teleop. This aborts any
+    // turning action so teleop driving can occur.
+    AbortTurnInPlace();
 
     Enable();
 }
