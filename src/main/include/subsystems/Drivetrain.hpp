@@ -10,6 +10,7 @@
 #include <frc/Encoder.h>
 #include <frc/controller/ImplicitModelFollower.h>
 #include <frc/controller/ProfiledPIDController.h>
+#include <frc/controller/SimpleMotorFeedforward.h>
 #include <frc/estimator/AngleStatistics.h>
 #include <frc/estimator/KalmanFilterLatencyCompensator.h>
 #include <frc/estimator/UnscentedKalmanFilter.h>
@@ -271,9 +272,9 @@ public:
     void ControllerPeriodic() override;
 
 private:
-    static constexpr double kTurningP = 1.527459;
+    static constexpr double kTurningP = 38.303;
     static constexpr double kTurningI = 0.0;
-    static constexpr double kTurningD = 0.0;
+    static constexpr double kTurningD = 1.9676;
 
     static const Eigen::Matrix<double, 2, 2> kGlobalR;
 
@@ -324,6 +325,8 @@ private:
         kTurningP, kTurningI, kTurningD, m_turningConstraints,
         Constants::kControllerPeriod};
     bool m_hasNewHeading = false;
+    frc::SimpleMotorFeedforward<units::radian> m_turningFeedforward{
+        0.15647_V, 0.075722_V / 1_rad_per_s};
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
