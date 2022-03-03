@@ -20,121 +20,86 @@ using namespace frc3512;
 using namespace frc3512::HWConfig::Climber;
 
 Climber::Climber() {
-    SetCANSparkMaxBusUsage(m_leftPivotArmMotor, Usage::kPositionOnly);
-    m_leftPivotArmMotor.SetSmartCurrentLimit(40);
-    SetCANSparkMaxBusUsage(m_rightPivotArmMotor, Usage::kPositionOnly);
-    m_rightPivotArmMotor.SetSmartCurrentLimit(40);
+    SetCANSparkMaxBusUsage(m_leftArmMotor, Usage::kPositionOnly);
+    m_leftArmMotor.SetSmartCurrentLimit(40);
+    SetCANSparkMaxBusUsage(m_rightArmMotor, Usage::kPositionOnly);
+    m_rightArmMotor.SetSmartCurrentLimit(40);
 }
 
-void Climber::DeployClimbers() {
-    m_leftPivotArmSolenoid.Set(true);
-    m_rightPivotArmSolenoid.Set(true);
-}
+void Climber::DeployClimbers() { m_solenoid.Set(false); }
 
-void Climber::StowClimbers() {
-    m_leftPivotArmSolenoid.Set(false);
-    m_rightPivotArmSolenoid.Set(false);
-}
+void Climber::StowClimbers() { m_solenoid.Set(true); }
 
-bool Climber::IsClimberDeployed() { return m_leftPivotArmSolenoid.Get(); }
+bool Climber::IsClimberDeployed() { return !m_solenoid.Get(); }
 
-bool Climber::HasReachedUpperLimit() {
-    return (GetLeftPivotPosition() > 1.1129_m &&
-            GetRightPivotPosition() > 1.1129_m);
-}
+bool Climber::HasReachedUpperLimit() { return m_extendedSensor.Get(); }
 
-bool Climber::HasReachedBottomLimit() {
-    return (GetLeftPivotPosition() < 0_m && GetRightPivotPosition() < 0_m);
-}
+bool Climber::HasReachedBottomLimit() { return m_retractedSensor.Get(); }
 
-bool Climber::IsReadyToClimb() const {
-    return (!m_leftInfraredSensorArmLeft.Get() &&
-            m_rightInfaredSensorArmRight.Get()) &&
-           (!m_leftInfraredSensorArmRight.Get() &&
-            m_rightInfaredSensorArmRight.Get());
-}
-
-units::meter_t Climber::GetLeftPivotPosition() {
-    constexpr double kG = 1.0 / 12.0;  // Gear ratio
-
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        return units::meter_t{m_leftClimberSimLS.GetOutput(0)};
-    } else {
-        double rotations = -m_leftPivotArmEncoder.GetPosition();
-        return units::meter_t{
-            0.04381 * wpi::numbers::pi * kG * rotations /
-            (1.0 + 0.014983 * wpi::numbers::pi * kG * rotations)};
-    }
-}
-
-units::meter_t Climber::GetRightPivotPosition() {
-    constexpr double kG = 1.0 / 12.0;  // Gear ratio
-
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        return units::meter_t{m_rightClimberSimLS.GetOutput(0)};
-    } else {
-        double rotations = -m_rightPivotArmEncoder.GetPosition();
-        return units::meter_t{
-            0.04381 * wpi::numbers::pi * kG * rotations /
-            (1.0 + 0.014983 * wpi::numbers::pi * kG * rotations)};
-    }
-}
-
-units::volt_t Climber::GetLeftPivotMotorOutput() const {
-    return units::volt_t{-m_leftPivotArmMotor.Get()};
-}
-
-units::volt_t Climber::GetRightPivotMotorOutput() const {
-    return units::volt_t{-m_rightPivotArmMotor.Get()};
+bool Climber::HasReachedFullUpperLimit() {
+    return m_extendedSensor.Get() && m_retractedSensor.Get();
 }
 
 void Climber::RobotPeriodic() {
     frc::SmartDashboard::PutData("Climber", &m_climberSim);
 
-    m_leftPivotArmEncoderEntry.SetDouble(m_leftPivotArmMotor.Get());
-    m_rightPivotArmEncoderEntry.SetDouble(m_rightPivotArmMotor.Get());
-
-    m_leftInfraredSensorLeftArmEntry.SetBoolean(
-        m_leftInfraredSensorArmLeft.Get());
-    m_rightInfraredSensorLeftArmEntry.SetBoolean(
-        m_rightInfaredSensorArmLeft.Get());
-
-    m_leftInfraredSensorRightArmEntry.SetBoolean(
-        m_leftInfraredSensorArmRight.Get());
-    m_rightInfraredSensorRightArmEntry.SetBoolean(
-        m_rightInfaredSensorArmRight.Get());
+    m_climberSolenoidEntry.SetBoolean(IsClimberDeployed());
+    m_upperSensorEntry.SetBoolean(HasReachedUpperLimit());
+    m_lowerSensorEntry.SetBoolean(HasReachedBottomLimit());
 }
 
 void Climber::TeleopPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    if (appendageStick2.GetRawButton(11)) {
-        SetElevators(appendageStick2.GetY());
-    } else {
-        SetElevators(0.0);
+    double y = appendageStick2.GetRawAxis(1) * 0.75;
+
+    /**
+     * Climber Teleop Logic
+     *
+     * If the climber is deployed, it is allowed to fully extend as it won't go
+     * passed any extention limits. If the climber is stowed then it has to stop
+     * extending when it the top IR Beam Break sensor reads true. When the lower
+     * sensor reads true, then the climber can no longer descend. When both the
+     * top and bottom sensors are allowed to read true, then the climber is
+     * fully extended and can't go much farther without damaging itself.
+     *
+     * Sensor Logic Table
+     *
+     * Lower sensor (Detects when the climber is all the way down)
+     * Upper Sensor (Detects when the climber is all the way up)
+     *
+     * Lower Sensor | true  |  false  |    true     |
+     *              =================================
+     * Upper Sensor | false |   true  |    true     |
+     *              =================================
+     *              climber | climber | climber up  |
+     *               down      up       && deployed
+     */
+
+    if (HasReachedUpperLimit() ||
+        (HasReachedFullUpperLimit() && IsClimberDeployed())) {
+        if (y < 0.0) {
+            SetClimber(y);
+        } else {
+            SetClimber(0.0);
+        }
+    } else if (HasReachedBottomLimit()) {
+        if (y > 0.0) {
+            SetClimber(y);
+        } else {
+            SetClimber(0.0);
+        }
     }
 
-    if (!IsClimberDeployed() && appendageStick2.GetRawButton(6)) {
+    if (appendageStick2.GetRawButtonPressed(11)) {
         DeployClimbers();
-    } else if (appendageStick2.GetRawButton(6)) {
+    }
+    if (appendageStick2.GetRawButtonPressed(12)) {
         StowClimbers();
     }
 }
 
-void Climber::TestPeriodic() {
-    static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
-
-    // Positive voltage should move climber in the positive X direction
-    double speed = -appendageStick2.GetY();
-
-    // Ignore soft limits so the user can manually reset the elevator before
-    // rebooting the robot
-    if (std::abs(speed) > 0.02) {
-        SetElevators(-speed);
-    } else {
-        SetElevators(0.0);
-    }
-}
+void Climber::TestPeriodic() {}
 
 void Climber::SimulationPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
@@ -161,16 +126,4 @@ void Climber::SimulationPeriodic() {
     m_extensionBase->SetLength(extension);
 }
 
-void Climber::SetElevators(double speed) {
-    if ((speed > 0.02 && !HasReachedUpperLimit()) ||
-        (speed < -0.02 && !HasReachedUpperLimit())) {
-        // Unlock climber if it's being commanded to move
-        DeployClimbers();
-        m_leftPivotArmMotor.Set(-speed);
-        m_rightPivotArmMotor.Set(-speed);
-    } else {
-        StowClimbers();
-        m_leftPivotArmMotor.Set(0.0);
-        m_rightPivotArmMotor.Set(0.0);
-    }
-}
+void Climber::SetClimber(double speed) { m_climber.Set(speed); }

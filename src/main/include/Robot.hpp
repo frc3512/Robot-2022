@@ -14,6 +14,7 @@
 #include "AutonomousChooser.hpp"
 #include "NetworkTableUtil.hpp"
 #include "subsystems/BackFlywheel.hpp"
+#include "subsystems/Climber.hpp"
 #include "subsystems/Drivetrain.hpp"
 #include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/Intake.hpp"
@@ -65,6 +66,9 @@ public:
 
     /// Intake subsystem.
     Intake intake;
+
+    /// Climber subsystem.
+    Climber climber;
 
     Robot();
 

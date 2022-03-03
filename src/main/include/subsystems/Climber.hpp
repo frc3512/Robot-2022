@@ -5,6 +5,7 @@
 #include <frc/DigitalInput.h>
 #include <frc/Solenoid.h>
 #include <frc/filter/Debouncer.h>
+#include <frc/motorcontrol/MotorControllerGroup.h>
 #include <frc/simulation/LinearSystemSim.h>
 #include <frc/smartdashboard/Mechanism2d.h>
 #include <frc/smartdashboard/MechanismLigament2d.h>
@@ -75,34 +76,15 @@ public:
     bool HasReachedUpperLimit();
 
     /**
+     * Returns whether or not the climber is fully extended when the
+     * climber is deployed.
+     */
+    bool HasReachedFullUpperLimit();
+
+    /**
      * Returns true if both climbers pass the bottom limit.
      */
     bool HasReachedBottomLimit();
-
-    /**
-     * Returns true when the system has determine the robot is ready to climb
-     */
-    bool IsReadyToClimb() const;
-
-    /**
-     * Returns the position of the left pivot arm.
-     */
-    units::meter_t GetLeftPivotPosition();
-
-    /**
-     * Returns the position of the right pivot arm.
-     */
-    units::meter_t GetRightPivotPosition();
-
-    /**
-     * Returns the voltage applied to the left pivot arm motor.
-     */
-    units::volt_t GetLeftPivotMotorOutput() const;
-
-    /**
-     * Returns the voltage applied to the right pivot arm motor.
-     */
-    units::volt_t GetRightPivotMotorOutput() const;
 
     void RobotPeriodic() override;
 
@@ -115,62 +97,28 @@ public:
 private:
     ClimberState state = ClimberState::kIdle;
 
-    frc::DigitalInput m_leftInfraredSensorArmLeft{
-        frc3512::HWConfig::Climber::kLeftArmLeftInfraredSensorChannel};
-    frc::DigitalInput m_rightInfaredSensorArmLeft{
-        frc3512::HWConfig::Climber::kLeftArmRightInfraredSensorChannel};
+    frc::DigitalInput m_extendedSensor{HWConfig::Climber::kTopSensorChannel};
+    frc::DigitalInput m_retractedSensor{
+        HWConfig::Climber::kBottomSensorChannel};
 
-    frc::DigitalInput m_leftInfraredSensorArmRight{
-        frc3512::HWConfig::Climber::kRightArmLeftInfraredSensorChannel};
-    frc::DigitalInput m_rightInfaredSensorArmRight{
-        frc3512::HWConfig::Climber::kRightArmRightInfraredSensorChannel};
+    rev::CANSparkMax m_leftArmMotor{HWConfig::Climber::kLeftClimberID,
+                                    rev::CANSparkMax::MotorType::kBrushless};
+    rev::CANSparkMax m_rightArmMotor{HWConfig::Climber::kRightClimberID,
+                                     rev::CANSparkMax::MotorType::kBrushless};
+    frc::MotorControllerGroup m_climber{m_leftArmMotor, m_rightArmMotor};
 
-    rev::CANSparkMax m_leftPivotArmMotor{
-        frc3512::HWConfig::Climber::kLeftPivotingArmID,
-        rev::CANSparkMax::MotorType::kBrushless};
-
-    rev::CANSparkMax m_rightPivotArmMotor{
-        frc3512::HWConfig::Climber::kRightPivotingArmID,
-        rev::CANSparkMax::MotorType::kBrushless};
-
-    rev::SparkMaxRelativeEncoder m_leftPivotArmEncoder =
-        m_leftPivotArmMotor.GetEncoder();
-    rev::SparkMaxRelativeEncoder m_rightPivotArmEncoder =
-        m_rightPivotArmMotor.GetEncoder();
-
-    frc::Solenoid m_leftPivotArmSolenoid{
-        frc::PneumaticsModuleType::CTREPCM,
-        frc3512::HWConfig::Climber::kLeftClimberLockChannel};
-    frc::Solenoid m_rightPivotArmSolenoid{
-        frc::PneumaticsModuleType::CTREPCM,
-        frc3512::HWConfig::Climber::kRightClimberLockChannel};
+    frc::Solenoid m_solenoid{frc::PneumaticsModuleType::CTREPCM,
+                             HWConfig::Climber::kClimberSolenoidChannel};
 
     frc::Debouncer m_debouncer{50_ms, frc::Debouncer::DebounceType::kBoth};
 
-    // Networktable entries
-    nt::NetworkTableEntry m_leftPivotArmEncoderEntry =
-        NetworkTableUtil::MakeDoubleEntry(
-            "/Diagnostics/Climber/Left Pivoting Arm Encoder");
-
-    nt::NetworkTableEntry m_rightPivotArmEncoderEntry =
-        NetworkTableUtil::MakeDoubleEntry(
-            "/Diagnostics/Climber/Right Pivoting Arm Encoder");
-
-    nt::NetworkTableEntry m_leftInfraredSensorLeftArmEntry =
+    nt::NetworkTableEntry m_climberSolenoidEntry =
         NetworkTableUtil::MakeBoolEntry(
-            "/Diagnostics/Climber/Left Arm Left Infrared Sensor");
-
-    nt::NetworkTableEntry m_rightInfraredSensorLeftArmEntry =
-        NetworkTableUtil::MakeBoolEntry(
-            "/Diagnostics/Climber/Left Arm Right Infrared Sensor");
-
-    nt::NetworkTableEntry m_leftInfraredSensorRightArmEntry =
-        NetworkTableUtil::MakeBoolEntry(
-            "/Diagnostics/Climber/Right Arm Left Infrared Sensor");
-
-    nt::NetworkTableEntry m_rightInfraredSensorRightArmEntry =
-        NetworkTableUtil::MakeBoolEntry(
-            "/Diagnostics/Climber/Right Arm Right Infrared Sensor");
+            "Diagnostics/Climber/Output/Climber Deployed");
+    nt::NetworkTableEntry m_upperSensorEntry = NetworkTableUtil::MakeBoolEntry(
+        "Diagnostics/Climber/Output/Climber Fully Extended");
+    nt::NetworkTableEntry m_lowerSensorEntry = NetworkTableUtil::MakeBoolEntry(
+        "Diagnostics/Climber/Output/Climber Fully Retracted");
 
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{
@@ -190,10 +138,11 @@ private:
         m_climberPartSim->Append<frc::MechanismLigament2d>(
             "Extended", -20, 0_deg, 5, frc::Color8Bit{frc::Color::kYellow});
 
-    /* Sets the elevator speed.
+    /**
+     *  Sets the speed of the climber motor controller group.
      *
-     * @param speed The speed of the elevator [-1..1].
+     * @param speed the speed of the flywheel.
      */
-    void SetElevators(double speed);
+    void SetClimber(double speed);
 };
 }  // namespace frc3512
