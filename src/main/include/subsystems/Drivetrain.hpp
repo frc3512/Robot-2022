@@ -275,8 +275,6 @@ private:
     static constexpr double kTurningI = 0.0;
     static constexpr double kTurningD = 0.0;
 
-    bool kHasNewHeading = false;
-
     static const Eigen::Matrix<double, 2, 2> kGlobalR;
 
     static const frc::LinearSystem<2, 2, 2> kPlant;
@@ -325,6 +323,7 @@ private:
     frc::ProfiledPIDController<units::radian> m_turningPID{
         kTurningP, kTurningI, kTurningD, m_turningConstraints,
         Constants::kControllerPeriod};
+    bool m_hasNewHeading = false;
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(

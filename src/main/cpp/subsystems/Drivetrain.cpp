@@ -126,13 +126,13 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
 
     m_observer.Reset();
     m_controller.Reset(initialPose);
-    m_turningPID.Reset(initialPose.Rotation().Radians());
     m_u = Eigen::Vector<double, 2>::Zero();
+    m_turningPID.Reset(initialPose.Rotation().Radians());
+    m_hasNewHeading = false;
     m_leftEncoder.Reset();
     m_rightEncoder.Reset();
     m_imu.Reset();
     m_headingOffset = initialPose.Rotation().Radians();
-    kHasNewHeading = false;
 
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
@@ -198,7 +198,7 @@ void Drivetrain::ControllerPeriodic() {
             m_rightGrbx.Set(m_turningPID.Calculate(units::radian_t{
                 controllerState(DrivetrainController::State::kHeading)}));
         } else {
-            kHasNewHeading = false;
+            m_hasNewHeading = false;
             m_leftGrbx.Set(0.0);
             m_rightGrbx.Set(0.0);
         }
@@ -293,16 +293,16 @@ void Drivetrain::AddTrajectory(const std::vector<frc::Pose2d>& waypoints,
 
 void Drivetrain::SetHeadingGoal(const units::radian_t heading) {
     m_turningPID.SetGoal(frc::AngleModulus(heading));
-    kHasNewHeading = true;
+    m_hasNewHeading = true;
 }
 
-bool Drivetrain::HasHeadingGoal() const { return kHasNewHeading; }
+bool Drivetrain::HasHeadingGoal() const { return m_hasNewHeading; }
 
 void Drivetrain::AbortTurnInPlace() {
     Eigen::Vector<double, 7> controllerState = GetStates();
     m_turningPID.SetGoal(units::radian_t{
         controllerState(DrivetrainController::State::kHeading)});
-    kHasNewHeading = false;
+    m_hasNewHeading = false;
 }
 
 frc::TrajectoryConfig Drivetrain::MakeTrajectoryConfig() {
