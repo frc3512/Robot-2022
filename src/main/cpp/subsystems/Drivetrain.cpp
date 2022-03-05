@@ -67,11 +67,11 @@ Drivetrain::Drivetrain()
     // Reset the pose estimate to the field's bottom-left corner with the turret
     // facing in the target's general direction. This is relatively close to the
     // robot's testing configuration, so the turret won't hit the soft limits.
-    Reset(frc::Pose2d{0_m, 0_m, units::radian_t{wpi::numbers::pi}});
+    Reset(frc::Pose2d{0_m, 0_m, 0_rad});
 
     m_turningPID.EnableContinuousInput(units::radian_t{-wpi::numbers::pi},
                                        units::radian_t{wpi::numbers::pi});
-    m_turningPID.SetTolerance(units::radian_t{0.52},
+    m_turningPID.SetTolerance(units::radian_t{0.05},
                               units::radians_per_second_t{2});
 
     frc::SmartDashboard::PutData(&m_field);
@@ -193,14 +193,18 @@ void Drivetrain::ControllerPeriodic() {
         static_cast<void>(m_controller.Calculate(m_observer.Xhat()));
 
         if (!AtHeading()) {
-            m_leftGrbx.Set(-m_turningPID.Calculate(units::radian_t{
-                controllerState(DrivetrainController::State::kHeading)}));
-            m_rightGrbx.Set(m_turningPID.Calculate(units::radian_t{
-                controllerState(DrivetrainController::State::kHeading)}));
+            auto turningOutput = m_turningPID.Calculate(units::radian_t{
+                controllerState(DrivetrainController::State::kHeading)});
+            m_leftGrbx.SetVoltage(units::volt_t{-turningOutput} +
+                                  m_turningFeedforward.Calculate(
+                                      m_turningPID.GetGoal().velocity));
+            m_rightGrbx.SetVoltage(units::volt_t{turningOutput} +
+                                   m_turningFeedforward.Calculate(
+                                       m_turningPID.GetGoal().velocity));
         } else {
             m_hasNewHeading = false;
-            m_leftGrbx.Set(0.0);
-            m_rightGrbx.Set(0.0);
+            m_leftGrbx.SetVoltage(0_V);
+            m_rightGrbx.SetVoltage(0_V);
         }
     } else {
         // Update previous u stored in the controller. We don't care what the
@@ -397,6 +401,11 @@ void Drivetrain::TeleopPeriodic() {
         y *= 0.5;
         x *= 0.5;
     }
+
+    if (driveStick2.GetRawButton(1)) {
+        SetHeadingGoal(units::radian_t{wpi::numbers::pi / 6});
+    }
+
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));
 
