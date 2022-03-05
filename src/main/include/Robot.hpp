@@ -191,12 +191,14 @@ public:
     void StopShooter();
 
     /**
-     * Returns whether the driver has hit the shoot button again and is ready to shoot
+     * Returns whether the driver has hit the shoot button again and is ready to
+     * shoot
      */
     bool ReadyToShoot() const;
 
     /**
-     * Sets whether the driver has clicked the shoot button again and is ready to shoot the ball, not just spin up.
+     * Sets whether the driver has clicked the shoot button again and is ready
+     * to shoot the ball, not just spin up.
      */
     void SetReadyToShoot(bool ready);
 
@@ -212,7 +214,9 @@ private:
 
     nt::NetworkTableEntry m_batteryVoltageEntry =
         NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Robot/batteryVoltage");
-    nt::NetworkTableEntry m_shootStateEntry = NetworkTableUtil::MakeStringEntry("/Diagnostics/Robot/Shooting State");
-    nt::NetworkTableEntry m_readyToShootEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Robot/Ready to Shoot");
+    nt::NetworkTableEntry m_shootStateEntry =
+        NetworkTableUtil::MakeStringEntry("/Diagnostics/Robot/Shooting State");
+    nt::NetworkTableEntry m_readyToShootEntry =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Robot/Ready to Shoot");
 };
 }  // namespace frc3512

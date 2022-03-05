@@ -169,32 +169,26 @@ void Robot::TeleopPeriodic() {
     static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
-    if (frontFlywheel.IsReady() && backFlywheel.IsReady())
-    {
-        if (driveStick1.GetRawButtonPressed(1) || driveStick2.GetRawButtonPressed(1))
-        {
+    if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
+        if (driveStick1.GetRawButtonPressed(1) ||
+            driveStick2.GetRawButtonPressed(1)) {
             SetReadyToShoot(true);
         }
     } else {
-        if (driveStick1.GetRawButtonPressed(1))
-        {
+        if (driveStick1.GetRawButtonPressed(1)) {
             Shoot(false);
         }
-        if (driveStick2.GetRawButtonPressed(1))
-        {
+        if (driveStick2.GetRawButtonPressed(1)) {
             Shoot(true);
         }
     }
 
     RunShooterSM();
-    if (m_state == ShootingState::kIdle)
-    {
+    if (m_state == ShootingState::kIdle) {
         m_shootStateEntry.SetString("Idle");
-    } else if (m_state == ShootingState::kSpinUp)
-    {
+    } else if (m_state == ShootingState::kSpinUp) {
         m_shootStateEntry.SetString("Spin Up");
-    } else if (m_state == ShootingState::kStartConveyor)
-    {
+    } else if (m_state == ShootingState::kStartConveyor) {
         m_shootStateEntry.SetString("Start Conveyor");
     } else if (m_state == ShootingState::kEndShoot) {
         m_shootStateEntry.SetString("End Shoot");
@@ -207,12 +201,10 @@ void Robot::TestPeriodic() {
     SubsystemBase::RunAllTestPeriodic();
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
-    if (appendageStick1.GetRawButtonPressed(1))
-    {
+    if (appendageStick1.GetRawButtonPressed(1)) {
         intake.SetTimeToShoot(true);
-    } 
-    if (appendageStick1.GetRawButtonPressed(2))
-    {
+    }
+    if (appendageStick1.GetRawButtonPressed(2)) {
         intake.SetTimeToShoot(false);
     }
 
@@ -267,7 +259,7 @@ void Robot::RunShooterSM() {
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
     switch (m_state) {
-        case ShootingState::kIdle: 
+        case ShootingState::kIdle:
             break;
         case ShootingState::kSpinUp:
             if (ReadyToShoot()) {
@@ -288,8 +280,7 @@ void Robot::RunShooterSM() {
             m_state = ShootingState::kEndShoot;
             break;
         case ShootingState::kEndShoot:
-            if (m_shootTimer.HasElapsed(2_s))
-            {
+            if (m_shootTimer.HasElapsed(2_s)) {
                 StopShooter();
                 m_state = ShootingState::kIdle;
             }
@@ -305,15 +296,9 @@ void Robot::StopShooter() {
     m_state = ShootingState::kIdle;
 }
 
-bool Robot::ReadyToShoot() const
-{
-    return m_readToShoot;
-}
+bool Robot::ReadyToShoot() const { return m_readToShoot; }
 
-void Robot::SetReadyToShoot(bool ready)
-{
-    m_readToShoot = ready;
-}
+void Robot::SetReadyToShoot(bool ready) { m_readToShoot = ready; }
 
 }  // namespace frc3512
 
