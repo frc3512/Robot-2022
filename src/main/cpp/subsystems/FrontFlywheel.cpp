@@ -12,6 +12,8 @@
 #include <units/math.h>
 #include <wpi/numbers>
 
+#include "CANSparkMaxUtil.hpp"
+
 using namespace frc3512;
 
 FrontFlywheel::FrontFlywheel()
@@ -30,6 +32,8 @@ FrontFlywheel::FrontFlywheel()
     m_encoderEntry.SetDouble(0.0);
     m_isReadyEntry.SetBoolean(false);
     m_manualRefEntry.SetDouble(0.0);
+
+    SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kPositionOnly);
 
     Reset();
     SetGoal(0_rad_per_s);
