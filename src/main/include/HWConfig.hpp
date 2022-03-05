@@ -35,7 +35,7 @@ constexpr int kLeftMotorFollowerID = 15;
 constexpr int kRightMotorLeaderID = 16;
 
 /// Right motor follower CAN ID
-constexpr int kRightMotorFollowerID = 1;
+constexpr int kRightMotorFollowerID = 10;
 
 // Encoder channels
 constexpr int kLeftEncoderA = 6;
@@ -52,10 +52,10 @@ constexpr int kRightUltrasonicChannel = 2;
 
 namespace Flywheel {
 /// Front motor CAN ID
-constexpr int kFrontMotorID = 10;
+constexpr int kFrontMotorID = 1;
 
 /// Back motor CAN ID
-constexpr int kBackMotorID = 5;
+constexpr int kBackMotorID = 2;
 
 /// Encoder channel A
 constexpr int kEncoderA = 6;
