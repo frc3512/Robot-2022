@@ -5,7 +5,6 @@
 #include <frc/DigitalInput.h>
 #include <frc/Solenoid.h>
 #include <frc/filter/Debouncer.h>
-#include <frc/motorcontrol/MotorControllerGroup.h>
 #include <frc/simulation/LinearSystemSim.h>
 #include <frc/smartdashboard/Mechanism2d.h>
 #include <frc/smartdashboard/MechanismLigament2d.h>
@@ -71,20 +70,34 @@ public:
     bool IsClimberDeployed();
 
     /**
-     * Returns true if both climbers pass the upper limit
+     * Returns the height of the left side elevator in meters
      */
-    bool HasReachedUpperLimit();
+    units::meter_t GetLeftHeight();
 
     /**
-     * Returns whether or not the climber is fully extended when the
-     * climber is deployed.
+     * Returns the height of the right side elevator in meters
      */
-    bool HasReachedFullUpperLimit();
+    units::meter_t GetRightHeight();
 
     /**
-     * Returns true if both climbers pass the bottom limit.
+     * Returns whether or not the right climber has passed the top limit
      */
-    bool HasReachedBottomLimit();
+    bool HasRightPassedTopLimit();
+
+    /**
+     * returns whether or not the right climber has passed the bottom limit.
+     */
+    bool HasRightPassedBottomLimit();
+
+    /**
+     * Returns whether or not the left climber has passed the top limit
+     */
+    bool HasLeftPassedTopLimit();
+
+    /**
+     * Returns whether or not the lefth climber has passed the bottom limit.
+     */
+    bool HasLeftPassedBottomLimit();
 
     void RobotPeriodic() override;
 
@@ -95,30 +108,18 @@ public:
     void SimulationPeriodic() override;
 
 private:
-    ClimberState state = ClimberState::kIdle;
+    rev::CANSparkMax m_leftGrbx{HWConfig::Climber::kLeftClimberID,
+                                rev::CANSparkMax::MotorType::kBrushless};
+    rev::CANSparkMax m_rightGrbx{HWConfig::Climber::kRightClimberID,
+                                 rev::CANSparkMax::MotorType::kBrushless};
 
-    frc::DigitalInput m_extendedSensor{HWConfig::Climber::kTopSensorChannel};
-    frc::DigitalInput m_retractedSensor{
-        HWConfig::Climber::kBottomSensorChannel};
-
-    rev::CANSparkMax m_leftArmMotor{HWConfig::Climber::kLeftClimberID,
-                                    rev::CANSparkMax::MotorType::kBrushless};
-    rev::CANSparkMax m_rightArmMotor{HWConfig::Climber::kRightClimberID,
-                                     rev::CANSparkMax::MotorType::kBrushless};
-    frc::MotorControllerGroup m_climber{m_leftArmMotor, m_rightArmMotor};
+    rev::SparkMaxRelativeEncoder m_leftEncoder{m_leftGrbx.GetEncoder()};
+    rev::SparkMaxRelativeEncoder m_rightEncoder{m_rightGrbx.GetEncoder()};
 
     frc::Solenoid m_solenoid{frc::PneumaticsModuleType::CTREPCM,
                              HWConfig::Climber::kClimberSolenoidChannel};
 
     frc::Debouncer m_debouncer{50_ms, frc::Debouncer::DebounceType::kBoth};
-
-    nt::NetworkTableEntry m_climberSolenoidEntry =
-        NetworkTableUtil::MakeBoolEntry(
-            "Diagnostics/Climber/Output/Climber Deployed");
-    nt::NetworkTableEntry m_upperSensorEntry = NetworkTableUtil::MakeBoolEntry(
-        "Diagnostics/Climber/Output/Climber Fully Extended");
-    nt::NetworkTableEntry m_lowerSensorEntry = NetworkTableUtil::MakeBoolEntry(
-        "Diagnostics/Climber/Output/Climber Fully Retracted");
 
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{
@@ -143,6 +144,6 @@ private:
      *
      * @param speed the speed of the flywheel.
      */
-    void SetClimber(double speed);
+    void SetClimber(double leftSpeed, double righSpeed);
 };
 }  // namespace frc3512

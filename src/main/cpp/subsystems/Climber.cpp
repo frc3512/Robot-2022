@@ -20,10 +20,10 @@ using namespace frc3512;
 using namespace frc3512::HWConfig::Climber;
 
 Climber::Climber() {
-    SetCANSparkMaxBusUsage(m_leftArmMotor, Usage::kPositionOnly);
-    m_leftArmMotor.SetSmartCurrentLimit(40);
-    SetCANSparkMaxBusUsage(m_rightArmMotor, Usage::kPositionOnly);
-    m_rightArmMotor.SetSmartCurrentLimit(40);
+    SetCANSparkMaxBusUsage(m_leftGrbx, Usage::kPositionOnly);
+    m_leftGrbx.SetSmartCurrentLimit(40);
+    SetCANSparkMaxBusUsage(m_rightGrbx, Usage::kPositionOnly);
+    m_rightGrbx.SetSmartCurrentLimit(40);
 }
 
 void Climber::DeployClimbers() { m_solenoid.Set(false); }
@@ -32,64 +32,69 @@ void Climber::StowClimbers() { m_solenoid.Set(true); }
 
 bool Climber::IsClimberDeployed() { return !m_solenoid.Get(); }
 
-bool Climber::HasReachedUpperLimit() { return m_extendedSensor.Get(); }
+units::meter_t Climber::GetLeftHeight() {
+    double kG = 1.0 / 12.0;  // gear ratio
 
-bool Climber::HasReachedBottomLimit() { return m_retractedSensor.Get(); }
-
-bool Climber::HasReachedFullUpperLimit() {
-    return m_extendedSensor.Get() && m_retractedSensor.Get();
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        return units::meter_t{m_leftClimberSimLS.GetOutput(0)};
+    } else {
+        double rotations = -m_leftEncoder.GetPosition();
+        return units::meter_t{
+            0.955 * wpi::numbers::pi * kG * rotations /
+            (1.0 + 0.20675 * wpi::numbers::pi * kG * rotations)};
+    }
 }
+
+units::meter_t Climber::GetRightHeight() {
+    double kG = 1.0 / 12.0;  // gear ratio
+
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        return units::meter_t{m_rightClimberSimLS.GetOutput(0)};
+    } else {
+        double rotations = -m_rightEncoder.GetPosition();
+        return units::meter_t{
+            0.955 * wpi::numbers::pi * kG * rotations /
+            (1.0 + 0.20675 * wpi::numbers::pi * kG * rotations)};
+    }
+}
+
+bool Climber::HasRightPassedTopLimit() {
+    if (IsClimberDeployed()) {
+        return GetRightHeight() > 0.711_m;
+    } else {
+        return GetRightHeight() > 0.66_m;
+    }
+}
+
+bool Climber::HasRightPassedBottomLimit() { return GetRightHeight() < 0_m; }
+
+bool Climber::HasLeftPassedTopLimit() {
+    if (IsClimberDeployed()) {
+        return GetLeftHeight() > 0.711_m;
+    } else {
+        return GetLeftHeight() > 0.66_m;
+    }
+}
+
+bool Climber::HasLeftPassedBottomLimit() { return GetLeftHeight() < 0_m; }
 
 void Climber::RobotPeriodic() {
     frc::SmartDashboard::PutData("Climber", &m_climberSim);
-
-    m_climberSolenoidEntry.SetBoolean(IsClimberDeployed());
-    m_upperSensorEntry.SetBoolean(HasReachedUpperLimit());
-    m_lowerSensorEntry.SetBoolean(HasReachedBottomLimit());
 }
 
 void Climber::TeleopPeriodic() {
+    // physically on to the left of the other controller, controls left climber
+    // elevator.
+    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+    // physically on the right of the other controller, controsl right climber
+    // elevator.
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    double y = appendageStick2.GetRawAxis(1) * 0.75;
+    double rightY = appendageStick1.GetRawAxis(1) * 0.75;
 
-    /**
-     * Climber Teleop Logic
-     *
-     * If the climber is deployed, it is allowed to fully extend as it won't go
-     * passed any extention limits. If the climber is stowed then it has to stop
-     * extending when it the top IR Beam Break sensor reads true. When the lower
-     * sensor reads true, then the climber can no longer descend. When both the
-     * top and bottom sensors are allowed to read true, then the climber is
-     * fully extended and can't go much farther without damaging itself.
-     *
-     * Sensor Logic Table
-     *
-     * Lower sensor (Detects when the climber is all the way down)
-     * Upper Sensor (Detects when the climber is all the way up)
-     *
-     * Lower Sensor | true  |  false  |    true     |
-     *              =================================
-     * Upper Sensor | false |   true  |    true     |
-     *              =================================
-     *              climber | climber | climber up  |
-     *               down      up       && deployed
-     */
+    double leftY = appendageStick2.GetRawAxis(1) * 0.75;
 
-    if (HasReachedUpperLimit() ||
-        (HasReachedFullUpperLimit() && IsClimberDeployed())) {
-        if (y < 0.0) {
-            SetClimber(y);
-        } else {
-            SetClimber(0.0);
-        }
-    } else if (HasReachedBottomLimit()) {
-        if (y > 0.0) {
-            SetClimber(y);
-        } else {
-            SetClimber(0.0);
-        }
-    }
+    SetClimber(leftY, rightY);
 
     if (appendageStick2.GetRawButtonPressed(11)) {
         DeployClimbers();
@@ -103,12 +108,6 @@ void Climber::TestPeriodic() {}
 
 void Climber::SimulationPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
-
-    if (!HasReachedBottomLimit()) {
-        m_climberPartSim->SetAngle(-180_deg);
-    } else {
-        m_climberPartSim->SetAngle(-90_deg);
-    }
 
     double extension = appendageStick2.GetY();
     double extensionLength = m_extensionBase->GetLength();
@@ -126,4 +125,18 @@ void Climber::SimulationPeriodic() {
     m_extensionBase->SetLength(extension);
 }
 
-void Climber::SetClimber(double speed) { m_climber.Set(speed); }
+void Climber::SetClimber(double leftSpeed, double rightSpeed) {
+    if ((leftSpeed > 0.0 && !HasLeftPassedTopLimit()) ||
+        (leftSpeed < 0.0 && !HasLeftPassedBottomLimit())) {
+        m_leftGrbx.Set(leftSpeed);
+    } else {
+        m_leftGrbx.Set(0.0);
+    }
+
+    if ((rightSpeed > 0.0 && !HasRightPassedTopLimit()) ||
+        (rightSpeed < 0.0 && !HasRightPassedBottomLimit())) {
+        m_rightGrbx.Set(rightSpeed);
+    } else {
+        m_rightGrbx.Set(rightSpeed);
+    }
+}
