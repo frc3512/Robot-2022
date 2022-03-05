@@ -47,6 +47,11 @@ namespace frc3512 {
  */
 class Robot : public frc::TimesliceRobot {
 public:
+    /**
+     * States used for the multi-subsystem shooting procedure
+     */
+    enum class ShootingState { kIdle, kSpinUp, kStartConveyor, kEndShoot };
+
     // The subsystem initialization order determines the controller run order.
 
     /// Drivetrain subsystem.
@@ -157,15 +162,48 @@ public:
     void ExpectAutonomousEndConds();
 
     /**
-     * Sets flywheel to constant speed. The flywheel will shoot either high or
-     * low depending on the position of the hooded shooter. When shooting, check
-     * if the hood is not set to a fixed position, if not, default to a high
-     * goal shot and then shoot.
+     * Returns whether or not the robot is shooting.
      */
-    void Shoot();
+    bool IsShooting() const;
+
+    /**
+     * Checks whether or not the driver wants to shoot high or low, then changes
+     * the state of the state machine to execute shooting sequence.
+     */
+    void Shoot(bool shootHigh);
+
+    /**
+     * Runs the shooter state machine.
+     * When idle, the state machine does nothing, when the flywheel is starting
+     * up, it checks to ensure that the flywheel gets up to speed. If so, then
+     * the conveyor starts. If the flywheel isn't up to speed after a few
+     * seconds, then the state machine idles. If successful the conveyor starts,
+     * after a few seoncds (enough time for the robot two shoot the max two
+     * balls we can carry), the conveyor and shooter turn off and the state
+     * machine returns to idle.
+     */
+    void RunShooterSM();
+
+    /**
+     * Sets the shooter to a goal of the flywheels to 0 radians per second, and
+     * sets the shooter state machine to idle.
+     */
+    void StopShooter();
+
+    /**
+     * Returns whether the driver has hit the shoot button again and is ready to shoot
+     */
+    bool ReadyToShoot() const;
+
+    /**
+     * Sets whether the driver has clicked the shoot button again and is ready to shoot the ball, not just spin up.
+     */
+    void SetReadyToShoot(bool ready);
 
 private:
-    frc::Timer m_timer;
+    frc::Timer m_shootTimer;
+    ShootingState m_state = ShootingState::kIdle;
+    bool m_readToShoot = false;
 
     AutonomousChooser m_autonChooser{"No-op", [=] { AutoNoOp(); }};
 
@@ -174,5 +212,7 @@ private:
 
     nt::NetworkTableEntry m_batteryVoltageEntry =
         NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Robot/batteryVoltage");
+    nt::NetworkTableEntry m_shootStateEntry = NetworkTableUtil::MakeStringEntry("/Diagnostics/Robot/Shooting State");
+    nt::NetworkTableEntry m_readyToShootEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Robot/Ready to Shoot");
 };
 }  // namespace frc3512

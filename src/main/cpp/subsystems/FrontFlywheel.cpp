@@ -33,7 +33,7 @@ FrontFlywheel::FrontFlywheel()
     m_isReadyEntry.SetBoolean(false);
     m_manualRefEntry.SetDouble(0.0);
 
-    SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kPositionOnly);
+    SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kAll);
 
     Reset();
     SetGoal(0_rad_per_s);

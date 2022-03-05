@@ -32,7 +32,7 @@ BackFlywheel::BackFlywheel()
     m_encoderEntry.SetDouble(0.0);
     m_isReadyEntry.SetBoolean(false);
 
-    SetCANSparkMaxBusUsage(m_backGrbx, Usage::kPositionOnly);
+    SetCANSparkMaxBusUsage(m_backGrbx, Usage::kAll);
 
     Reset();
     SetGoal(0_rad_per_s);
