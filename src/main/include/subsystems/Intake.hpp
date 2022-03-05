@@ -151,6 +151,8 @@ private:
         "/Diagnostics/Intake/Upper Sensor blocked");
     nt::NetworkTableEntry m_lowerSensorEntry = NetworkTableUtil::MakeBoolEntry(
         "/Diagnostics/Intake/Lower Sensor blocked");
+    nt::NetworkTableEntry m_timeToShootEntry =
+        NetworkTableUtil::MakeBoolEntry("Diagnostics/Intake/Is Time To Shoot");
 
     frc::CSVLogFile m_intakeLog{"Intake", "Deployed (bool)", "Speed (-1 .. 1)"};
 

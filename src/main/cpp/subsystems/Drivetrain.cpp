@@ -402,10 +402,6 @@ void Drivetrain::TeleopPeriodic() {
         x *= 0.5;
     }
 
-    if (driveStick2.GetRawButton(1)) {
-        SetHeadingGoal(units::radian_t{wpi::numbers::pi / 6});
-    }
-
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));
 
