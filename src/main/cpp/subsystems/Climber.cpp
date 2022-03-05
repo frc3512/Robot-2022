@@ -126,17 +126,6 @@ void Climber::SimulationPeriodic() {
 }
 
 void Climber::SetClimber(double leftSpeed, double rightSpeed) {
-    if ((leftSpeed > 0.0 && !HasLeftPassedTopLimit()) ||
-        (leftSpeed < 0.0 && !HasLeftPassedBottomLimit())) {
-        m_leftGrbx.Set(leftSpeed);
-    } else {
-        m_leftGrbx.Set(0.0);
-    }
-
-    if ((rightSpeed > 0.0 && !HasRightPassedTopLimit()) ||
-        (rightSpeed < 0.0 && !HasRightPassedBottomLimit())) {
-        m_rightGrbx.Set(rightSpeed);
-    } else {
-        m_rightGrbx.Set(rightSpeed);
-    }
+    m_leftGrbx.Set(leftSpeed);
+    m_rightGrbx.Set(rightSpeed);
 }
