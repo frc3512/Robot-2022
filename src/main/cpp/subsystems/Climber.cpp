@@ -24,6 +24,9 @@ Climber::Climber() {
     m_leftGrbx.SetSmartCurrentLimit(40);
     SetCANSparkMaxBusUsage(m_rightGrbx, Usage::kPositionOnly);
     m_rightGrbx.SetSmartCurrentLimit(40);
+
+    SetCANSparkMaxBusUsage(m_rightGrbx, Usage::kPositionOnly);
+    SetCANSparkMaxBusUsage(m_leftGrbx, Usage::kPositionOnly);
 }
 
 void Climber::DeployClimbers() { m_solenoid.Set(false); }
