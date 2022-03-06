@@ -57,11 +57,17 @@ constexpr int kFrontMotorID = 1;
 /// Back motor CAN ID
 constexpr int kBackMotorID = 2;
 
-/// Encoder channel A
-constexpr int kEncoderA = 6;
+/// Front encoder channel A
+constexpr int kFrontEncoderA = 4;
 
-/// Encoder channel B
-constexpr int kEncoderB = 7;
+/// Front encoder channel B
+constexpr int kFrontEncoderB = 5;
+
+/// Back encoder channel A
+constexpr int kBackEncoderA = 0;
+
+/// Back encoder channel B
+constexpr int kBackEncoderB = 1;
 }  // namespace Flywheel
 
 namespace Intake {

@@ -9,12 +9,10 @@
 #include <frc/filter/LinearFilter.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/simulation/EncoderSim.h>
-#include <frc/simulation/FlywheelSim.h>
 #include <frc/simulation/LinearSystemSim.h>
 #include <frc/system/LinearSystem.h>
 #include <frc/system/plant/LinearSystemId.h>
 #include <rev/CANSparkMax.h>
-#include <rev/SparkMaxRelativeEncoder.h>
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 #include <units/current.h>
@@ -22,6 +20,7 @@
 #include <units/voltage.h>
 
 #include "Constants.hpp"
+#include "FlywheelSim.hpp"
 #include "HWConfig.hpp"
 #include "NetworkTableUtil.hpp"
 #include "controllers/FlywheelController.hpp"
@@ -122,11 +121,21 @@ public:
 
     void ControllerPeriodic() override;
 
+    /**
+     * Sets the simulation model's angular velocity.
+     *
+     * This is useful for simulating balls exiting the shooter.
+     *
+     * @param velocity The simulation's angular velocity.
+     */
+    void SetSimAngularVelocity(units::radians_per_second_t velocity);
+
 private:
     rev::CANSparkMax m_backGrbx{HWConfig::Flywheel::kBackMotorID,
                                 rev::CANSparkMax::MotorType::kBrushless};
 
-    rev::SparkMaxRelativeEncoder m_backEncoder{m_backGrbx.GetEncoder()};
+    frc::Encoder m_backEncoder{HWConfig::Flywheel::kBackEncoderA,
+                               HWConfig::Flywheel::kBackEncoderB};
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetBackPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
@@ -155,8 +164,11 @@ private:
     // measuring flywheel lookup table values.
     double m_testThrottle = 0.0;
 
-    nt::NetworkTableEntry m_manualRefEntry = NetworkTableUtil::MakeDoubleEntry(
-        "Diagnostics/Back Flywheel/Manual Ref");
+    // Measurement noise isn't added because the simulated encoder stores the
+    // count as an integer, which already introduces quantization noise.
+    FlywheelSim m_flywheelSim{m_controller.GetBackPlant(), frc::DCMotor::NEO(2),
+                              1.0 / 2.0};
+    frc::sim::EncoderSim m_encoderSim{m_backEncoder};
 
     /**
      * Sets the voltage of the flywheel motor.

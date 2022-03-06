@@ -28,9 +28,10 @@ FrontFlywheel::FrontFlywheel()
 
     m_frontGrbx.SetInverted(false);
 
-    m_manualRefEntry.SetDouble(0.0);
+    m_frontEncoder.SetDistancePerPulse(FlywheelController::kDpP);
+    m_frontEncoder.SetSamplesToAverage(5);
 
-    SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kAll);
+    SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kMinimal);
 
     Reset();
     SetGoal(0_rad_per_s);
@@ -41,7 +42,7 @@ void FrontFlywheel::SetMoveAndShoot(bool moveAndShoot) {
 }
 
 units::radian_t FrontFlywheel::GetAngle() {
-    return units::radian_t{m_frontEncoder.GetPosition()};
+    return units::radian_t{m_frontEncoder.GetDistance()};
 }
 
 units::radians_per_second_t FrontFlywheel::GetAngularVelocity() const {
@@ -81,7 +82,6 @@ void FrontFlywheel::RobotPeriodic() {
         m_testThrottle = appendageStick2.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
         SetGoal(manualRef);
-        m_manualRefEntry.SetDouble(manualRef.value());
     }
 }
 
@@ -109,8 +109,32 @@ void FrontFlywheel::ControllerPeriodic() {
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        units::volt_t voltage{m_frontGrbx.Get() *
+                              frc::RobotController::GetInputVoltage()};
+        if (m_flywheelSim.GetAngularVelocity() > 0_rad_per_s) {
+            voltage -= FrontFlywheelConstants::kS;
+        } else if (m_flywheelSim.GetAngularVelocity() < 0_rad_per_s) {
+            voltage += FrontFlywheelConstants::kS;
+        }
+
+        m_flywheelSim.SetInput(Eigen::Vector<double, 1>{voltage.value()});
+        m_flywheelSim.Update(GetDt());
+        m_encoderSim.SetDistance(m_flywheelSim.GetAngle().value());
+    }
+
     m_lastAngle = m_angle;
     m_lastTime = m_time;
+}
+
+units::ampere_t FrontFlywheel::GetCurrentDraw() const {
+    return m_flywheelSim.GetCurrentDraw();
+}
+
+void FrontFlywheel::SetSimAngularVelocity(
+    units::radians_per_second_t velocity) {
+    m_flywheelSim.SetState(Eigen::Vector<double, 2>{
+        m_flywheelSim.GetAngle().value(), velocity.value()});
 }
 
 void FrontFlywheel::SetVoltage(units::volt_t voltage) {

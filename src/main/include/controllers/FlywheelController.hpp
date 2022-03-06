@@ -27,7 +27,7 @@ namespace frc3512 {
 class FlywheelController : public ControllerBase<1, 1, 1> {
 public:
     /// Gear ratio from encoder to both flywheels.
-    static constexpr double kGearRatio = 12.0 / 18.0;
+    static constexpr double kGearRatio = 1.0 / 1.0;
 
     /// Angle per encoder pulse.
     static constexpr double kDpP = (wpi::numbers::pi * 2.0) * kGearRatio / 42;
