@@ -72,7 +72,12 @@ void FrontFlywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void FrontFlywheel::TeleopPeriodic() {}
+void FrontFlywheel::TeleopPeriodic() {
+    //m_getGoalEntry.SetDouble(GetGoal().value());
+    //m_encoderEntry.SetDouble(m_frontEncoder.GetPosition());
+    //m_isReadyEntry.SetBoolean(IsReady());
+    //m_atGoalEntry.SetBoolean(AtGoal());
+}
 
 void FrontFlywheel::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};

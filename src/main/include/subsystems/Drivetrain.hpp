@@ -258,6 +258,8 @@ public:
 
     void TestPeriodic() override;
 
+    void DisabledPeriodic() override;
+
     void ControllerPeriodic() override;
 
 private:

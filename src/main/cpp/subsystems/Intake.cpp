@@ -56,6 +56,13 @@ void Intake::SetTimeToShoot(bool timeToShoot) { m_timeToShoot = timeToShoot; }
 
 bool Intake::IsTimeToShoot() const { return m_timeToShoot; }
 
+void Intake::TeleopPeriodic() {
+
+    //m_upperSensorEntry.SetBoolean(IsUpperSensorBlocked());
+    //m_lowerSensorEntry.SetBoolean(IsLowerSensorBlocked());
+    //m_timeToShootEntry.SetBoolean(IsTimeToShoot());
+}
+
 void Intake::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
@@ -91,6 +98,10 @@ void Intake::SimulationPeriodic() {
     } else {
         m_fourbarSim->SetAngle(90_deg);
     }
+
+    frc::SmartDashboard::PutData("Intake", &m_intakeSim);
+
+    m_intakeLog.Log(m_fourbar.Get(), m_intakeMotor.Get());
 }
 
 void Intake::SetFourbar(FourbarDirection direction) {

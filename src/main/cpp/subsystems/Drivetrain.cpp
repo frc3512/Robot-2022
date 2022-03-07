@@ -233,6 +233,9 @@ void Drivetrain::ControllerPeriodic() {
             (2.0 * DrivetrainController::kWidth));
 
         m_field.SetRobotPose(m_drivetrainSim.GetPose());
+
+        //m_headingGoalEntry.SetBoolean(AtHeading());
+        //m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
     }
 }
 
@@ -360,9 +363,9 @@ void Drivetrain::TeleopPeriodic(){
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
     double y =
-        frc::ApplyDeadband(driveStick1.GetY(), Constants::kJoystickDeadband);
+        frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
-        frc::ApplyDeadband(-driveStick2.GetX(), Constants::kJoystickDeadband);
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
 
     if (driveStick1.GetRawButton(1)) {
         y *= 0.5;
@@ -390,9 +393,9 @@ void Drivetrain::TestPeriodic() {
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
     double y =
-        frc::ApplyDeadband(driveStick1.GetY(), Constants::kJoystickDeadband);
+        frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
-        frc::ApplyDeadband(-driveStick2.GetX(), Constants::kJoystickDeadband);
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
 
     if (driveStick1.GetRawButton(1)) {
         y *= 0.5;
@@ -410,6 +413,11 @@ void Drivetrain::TestPeriodic() {
 
     m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
     m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
+}
+
+void Drivetrain::DisabledPeriodic() {
+    //m_headingGoalEntry.SetBoolean(AtHeading());
+    //m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
 }
 
 void Drivetrain::SetBrakeMode() {

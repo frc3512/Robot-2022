@@ -153,6 +153,13 @@ void Robot::RobotPeriodic() {
         !frc::DriverStation::IsFMSAttached()) {
         m_batteryVoltageEntry.SetDouble(batteryVoltage);
     }
+<<<<<<< HEAD
+||||||| constructed merge base
+
+    m_readyToShootEntry.SetBoolean(ReadyToShoot());
+=======
+
+>>>>>>> Remove NT Logging to try and fix Watchdog
 }
 
 void Robot::SimulationPeriodic() { SubsystemBase::RunAllSimulationPeriodic(); }

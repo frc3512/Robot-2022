@@ -87,7 +87,7 @@ constexpr int kArmChannel = 4;
 
 namespace Climber {
 /// Right Climber CAN ID
-constexpr int kRightClimbMotorID = 2;
+constexpr int kRightClimbMotorID = 3;
 
 constexpr int kLeftClimbMotorID = 13;
 }  // namespace Climber
