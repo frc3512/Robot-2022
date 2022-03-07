@@ -69,18 +69,22 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     // dashboard plots
     SetNetworkTablesFlushEnabled(true);
 
-    m_autonChooser.AddAutonomous("Auto Shoot One", [=] { AutoShootOne(); });
+    // AUTONOMOUS MODES
+    m_autonChooser.AddAutonomous("Drive Backwards", [=] { AutoBackwards(); });
+    m_autonChooser.AddAutonomous("Shoot One", [=] { AutoShootOne(); });
+    m_autonChooser.AddAutonomous("Shoot Two", [=] { AutoShootTwo(); });
+    m_autonChooser.AddAutonomous("Shoot Three", [=] { AutoShootThree(); });
 
     // TIMESLICE ALLOCATION TABLE
     //
-    // |  Subsystem | Duration (ms) | Allocation (ms) |
-    // |------------|---------------|-----------------|
-    // | **Total**  | 5.0           | 5.0             |
-    // | TimedRobot | ?             | 2.0             |
-    // | Drivetrain | 1.32          | 1.5             |
-    // | Flywheel   | 0.6           | 0.7             |
-    // | Turret     | 0.6           | 0.8             |
-    // | **Free**   | 0.0           | N/A             |
+    // |  Subsystem     | Duration (ms) | Allocation (ms) |
+    // |----------------|---------------|-----------------|
+    // | **Total**      | 5.0           | 5.0             |
+    // | TimedRobot     | ?             | 2.0             |
+    // | Drivetrain     | 1.35          | 1.5             |
+    // | FrontFlywheel  | 0.6           | 0.7             |
+    // | BackFlywheel   | 0.6           | 0.7             |
+    // | **Free**       | None          | N/A             |
     Schedule(
         [=] {
             if (IsEnabled()) {

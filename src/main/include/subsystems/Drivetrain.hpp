@@ -54,7 +54,7 @@ namespace frc3512 {
 class Drivetrain : public ControlledSubsystemBase<7, 2, 5> {
 public:
     /// The drivetrain length.
-    static constexpr units::meter_t kLength = 0.9398_m;
+    static constexpr units::meter_t kLength = 0.5851068_m;
 
     /**
      * Distance from middle of robot to intake.
