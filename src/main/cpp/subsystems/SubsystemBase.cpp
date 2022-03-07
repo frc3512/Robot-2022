@@ -6,8 +6,6 @@
 
 using namespace frc3512;
 
-// TODO: Change this number to reflect the true amount of subsystems in the 2022
-// robot
 wpi::SmallVector<SubsystemBase*, 8> SubsystemBase::m_subsystems;
 
 SubsystemBase::SubsystemBase() { m_subsystems.emplace_back(this); }

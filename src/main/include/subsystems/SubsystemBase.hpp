@@ -156,8 +156,6 @@ public:
     static void RunAllTestPeriodic();
 
 private:
-    // TODO: Change this number to reflect the true amount of subsystems in the
-    // 2022 robot
     static wpi::SmallVector<SubsystemBase*, 8> m_subsystems;
 
     /**
