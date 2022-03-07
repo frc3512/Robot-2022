@@ -233,9 +233,6 @@ void Drivetrain::ControllerPeriodic() {
             (2.0 * DrivetrainController::kWidth));
 
         m_field.SetRobotPose(m_drivetrainSim.GetPose());
-
-        //m_headingGoalEntry.SetBoolean(AtHeading());
-        //m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
     }
 }
 
@@ -416,8 +413,6 @@ void Drivetrain::TestPeriodic() {
 }
 
 void Drivetrain::DisabledPeriodic() {
-    //m_headingGoalEntry.SetBoolean(AtHeading());
-    //m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
 }
 
 void Drivetrain::SetBrakeMode() {

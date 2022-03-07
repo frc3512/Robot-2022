@@ -71,10 +71,7 @@ void BackFlywheel::Reset() {
 }
 
 void BackFlywheel::TeleopPeriodic() {
-    //m_getGoalEntry.SetDouble(GetGoal().value());
-    //m_encoderEntry.SetDouble(m_backEncoder.GetPosition());
-    //m_isReadyEntry.SetBoolean(IsReady());
-    //m_atGoalEntry.SetBoolean(AtGoal());
+
 }
 
 void BackFlywheel::RobotPeriodic() {

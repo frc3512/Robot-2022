@@ -156,7 +156,7 @@ private:
     double m_testThrottle = 0.0;
 
     nt::NetworkTableEntry m_manualRefEntry = NetworkTableUtil::MakeDoubleEntry(
-        "Diagnostics/Back Flywheel/Manual Ref");
+        "Diagnostics/Back Flywheel/Output/Manual Ref");
 
     /**
      * Sets the voltage of the flywheel motor.
