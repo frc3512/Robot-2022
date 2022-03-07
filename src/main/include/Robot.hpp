@@ -142,6 +142,14 @@ public:
      */
     void AutoNoOp();
 
+    void AutoDriveForward();
+
+    //void AutoTurnInPlace();
+
+    //void AutoDriveAndTurnInPlace();
+
+    //void AutoDriveSpline();
+
     /**
      * Sets the selected autonomous mode for testing purposes.
      *

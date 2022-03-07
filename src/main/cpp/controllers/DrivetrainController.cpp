@@ -139,7 +139,7 @@ frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig() {
 frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig(
     units::meters_per_second_t startVelocity,
     units::meters_per_second_t endVelocity) {
-    frc::TrajectoryConfig config{kMaxV, 2.2_mps_sq};
+    frc::TrajectoryConfig config{kMaxV / 2, 2.2_mps_sq};
 
     config.AddConstraint(frc::DifferentialDriveVelocitySystemConstraint{
         kPlant, frc::DifferentialDriveKinematics{kWidth}, 8_V});

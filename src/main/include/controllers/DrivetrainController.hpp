@@ -51,7 +51,7 @@ public:
     static constexpr units::meter_t kWheelRadius = 3_in;
 
     /// The drivetrain gear ratio from the encoder to the wheel.
-    static constexpr double kDriveGearRatio = 5.818181 / 1.6;
+    static constexpr double kDriveGearRatio = 1.0 / 1.0;
 
     /// Drivetrain distance per encoder pulse.
     static constexpr double kDpP =
@@ -62,16 +62,16 @@ public:
     static constexpr units::meter_t kWidth = 1.083869_m;
 
     /// Linear velocity system ID gain.
-    static constexpr auto kLinearV = 0.46116_V / 1_mps;
+    static constexpr auto kLinearV = 2.4696_V / 1_mps;
 
     /// Linear acceleration system ID gain.
-    static constexpr auto kLinearA = 0.076414_V / 1_mps_sq;
+    static constexpr auto kLinearA = 0.29789_V / 1_mps_sq;
 
     /// Angular velocity system ID gain.
-    static constexpr auto kAngularV = 0.4756_V / 1_mps;
+    static constexpr auto kAngularV = 2.6447_V / 1_mps;
 
     /// Angular acceleration system ID gain.
-    static constexpr auto kAngularA = 0.064544_V / 1_mps_sq;
+    static constexpr auto kAngularA = 0.36732_V / 1_mps_sq;
 
     /// Maximum linear velocity.
     static constexpr auto kMaxV = 12_V / kLinearV;

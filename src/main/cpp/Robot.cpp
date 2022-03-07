@@ -69,6 +69,8 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     // dashboard plots
     SetNetworkTablesFlushEnabled(true);
 
+    m_autonChooser.AddAutonomous("Auto Drive Forward", [=] { AutoDriveForward(); });
+
     // TIMESLICE ALLOCATION TABLE
     //
     // |  Subsystem | Duration (ms) | Allocation (ms) |
