@@ -69,7 +69,8 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     // dashboard plots
     SetNetworkTablesFlushEnabled(true);
 
-    m_autonChooser.AddAutonomous("Auto Drive Forward", [=] { AutoDriveForward(); });
+    m_autonChooser.AddAutonomous("Auto Drive Forward",
+                                 [=] { AutoDriveForward(); });
 
     // TIMESLICE ALLOCATION TABLE
     //
@@ -154,12 +155,17 @@ void Robot::RobotPeriodic() {
         m_batteryVoltageEntry.SetDouble(batteryVoltage);
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 ||||||| constructed merge base
 
     m_readyToShootEntry.SetBoolean(ReadyToShoot());
 =======
 
 >>>>>>> Remove NT Logging to try and fix Watchdog
+||||||| constructed merge base
+
+=======
+>>>>>>> Set flywheel CAN usage to minimal
 }
 
 void Robot::SimulationPeriodic() { SubsystemBase::RunAllSimulationPeriodic(); }

@@ -72,8 +72,7 @@ void FrontFlywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void FrontFlywheel::TeleopPeriodic() {
-}
+void FrontFlywheel::TeleopPeriodic() {}
 
 void FrontFlywheel::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};

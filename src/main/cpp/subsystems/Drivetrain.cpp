@@ -85,9 +85,7 @@ frc::Pose2d Drivetrain::GetReferencePose() const {
         units::radian_t{x(DrivetrainController::State::kHeading)}};
 }
 
-frc::Pose2d Drivetrain::GetPose() const {
-    return m_observer.GetPose();
-}
+frc::Pose2d Drivetrain::GetPose() const { return m_observer.GetPose(); }
 
 units::radian_t Drivetrain::GetAngle() const {
     return units::degree_t{m_imu.GetAngle()};
@@ -128,7 +126,7 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_leftEncoder.Reset();
     m_rightEncoder.Reset();
     m_imu.Reset();
-    
+
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
     xHat(State::kY) = initialPose.Y().value();
@@ -146,10 +144,13 @@ void Drivetrain::ControllerPeriodic() {
 
     UpdateDt();
 
-    Eigen::Vector<double, 5> y{frc::AngleModulus(GetAngle()).value(), GetLeftPosition().value(), GetRightPosition().value(),
-    GetAccelerationX().value(), GetAccelerationY().value()};
+    Eigen::Vector<double, 5> y{
+        frc::AngleModulus(GetAngle()).value(), GetLeftPosition().value(),
+        GetRightPosition().value(), GetAccelerationX().value(),
+        GetAccelerationY().value()};
 
-    m_observer.Update(frc::Rotation2d(frc::AngleModulus(GetAngle())), GetLeftPosition(), GetRightPosition());
+    m_observer.Update(frc::Rotation2d(frc::AngleModulus(GetAngle())),
+                      GetLeftPosition(), GetRightPosition());
 
     Eigen::Vector<double, 7> controllerState = GetStates();
 
@@ -213,8 +214,8 @@ void Drivetrain::ControllerPeriodic() {
         m_leftEncoderSim.SetDistance(m_drivetrainSim.GetLeftPosition().value());
         m_rightEncoderSim.SetDistance(
             m_drivetrainSim.GetRightPosition().value());
-        m_imuSim.SetGyroAngleZ(units::degree_t{
-            m_drivetrainSim.GetHeading().Radians()});
+        m_imuSim.SetGyroAngleZ(
+            units::degree_t{m_drivetrainSim.GetHeading().Radians()});
 
         const auto& plant = DrivetrainController::GetPlant();
         Eigen::Vector<double, 2> x{m_drivetrainSim.GetLeftVelocity().value(),
@@ -296,8 +297,13 @@ units::radian_t Drivetrain::GetHeading() {
 }
 
 const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
-    m_xHat = Eigen::Vector<double, 7>{GetPose().X().value(), GetPose().Y().value(), frc::AngleModulus(GetAngle()).value(),
-    GetLeftVelocity().value(), GetRightVelocity().value(), GetLeftPosition().value(), GetRightPosition().value()};
+    m_xHat = Eigen::Vector<double, 7>{GetPose().X().value(),
+                                      GetPose().Y().value(),
+                                      frc::AngleModulus(GetAngle()).value(),
+                                      GetLeftVelocity().value(),
+                                      GetRightVelocity().value(),
+                                      GetLeftPosition().value(),
+                                      GetRightPosition().value()};
     return m_xHat;
 }
 
@@ -353,7 +359,7 @@ void Drivetrain::TestInit() {
     Enable();
 }
 
-void Drivetrain::TeleopPeriodic(){
+void Drivetrain::TeleopPeriodic() {
     using Input = DrivetrainController::Input;
 
     static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
@@ -412,8 +418,7 @@ void Drivetrain::TestPeriodic() {
     m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
 }
 
-void Drivetrain::DisabledPeriodic() {
-}
+void Drivetrain::DisabledPeriodic() {}
 
 void Drivetrain::SetBrakeMode() {
     m_leftLeader.SetIdleMode(rev::CANSparkMax::IdleMode::kBrake);

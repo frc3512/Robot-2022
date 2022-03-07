@@ -144,11 +144,11 @@ public:
 
     void AutoDriveForward();
 
-    //void AutoTurnInPlace();
+    // void AutoTurnInPlace();
 
-    //void AutoDriveAndTurnInPlace();
+    // void AutoDriveAndTurnInPlace();
 
-    //void AutoDriveSpline();
+    // void AutoDriveSpline();
 
     /**
      * Sets the selected autonomous mode for testing purposes.

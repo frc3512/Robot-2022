@@ -28,7 +28,7 @@ BackFlywheel::BackFlywheel()
 
     m_backGrbx.SetInverted(false);
 
-    SetCANSparkMaxBusUsage(m_backGrbx, Usage::kAll);
+    SetCANSparkMaxBusUsage(m_backGrbx, Usage::kMinimal);
 
     Reset();
     SetGoal(0_rad_per_s);
@@ -70,9 +70,7 @@ void BackFlywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void BackFlywheel::TeleopPeriodic() {
-
-}
+void BackFlywheel::TeleopPeriodic() {}
 
 void BackFlywheel::RobotPeriodic() {
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};

@@ -12,10 +12,10 @@
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/controller/SimpleMotorFeedforward.h>
 #include <frc/estimator/AngleStatistics.h>
-#include <frc/kinematics/DifferentialDriveOdometry.h>
 #include <frc/filter/LinearFilter.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Translation2d.h>
+#include <frc/kinematics/DifferentialDriveOdometry.h>
 #include <frc/motorcontrol/MotorControllerGroup.h>
 #include <frc/simulation/ADIS16470_IMUSim.h>
 #include <frc/simulation/AnalogInputSim.h>
@@ -309,10 +309,8 @@ private:
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
-            DrivetrainController::kLinearV,
-            DrivetrainController::kLinearA,
-            DrivetrainController::kAngularV,
-            DrivetrainController::kAngularA);
+            DrivetrainController::kLinearV, DrivetrainController::kLinearA,
+            DrivetrainController::kAngularV, DrivetrainController::kAngularA);
     frc::ImplicitModelFollower<2, 2> m_imf{kPlant, m_imfRef, 20_ms};
 
     // Simulation variables
