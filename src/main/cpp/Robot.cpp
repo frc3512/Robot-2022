@@ -296,9 +296,9 @@ void Robot::StopShooter() {
     m_state = ShootingState::kIdle;
 }
 
-bool Robot::ReadyToShoot() const { return m_readToShoot; }
+bool Robot::ReadyToShoot() const { return m_readyToShoot; }
 
-void Robot::SetReadyToShoot(bool ready) { m_readToShoot = ready; }
+void Robot::SetReadyToShoot(bool ready) { m_readyToShoot = ready; }
 
 }  // namespace frc3512
 
