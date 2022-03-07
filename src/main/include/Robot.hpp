@@ -205,7 +205,7 @@ public:
 private:
     frc::Timer m_shootTimer;
     ShootingState m_state = ShootingState::kIdle;
-    bool m_readToShoot = false;
+    bool m_readyToShoot = false;
 
     AutonomousChooser m_autonChooser{"No-op", [=] { AutoNoOp(); }};
 
