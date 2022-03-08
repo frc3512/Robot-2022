@@ -28,7 +28,10 @@ BackFlywheel::BackFlywheel()
 
     m_backGrbx.SetInverted(false);
 
-    SetCANSparkMaxBusUsage(m_backGrbx, Usage::kAll);
+    m_backEncoder.SetDistancePerPulse(FlywheelController::kDpP);
+    m_backEncoder.SetSamplesToAverage(5);
+
+    SetCANSparkMaxBusUsage(m_backGrbx, Usage::kMinimal);
 
     Reset();
     SetGoal(0_rad_per_s);
@@ -39,7 +42,7 @@ void BackFlywheel::SetMoveAndShoot(bool moveAndShoot) {
 }
 
 units::radian_t BackFlywheel::GetAngle() {
-    return units::radian_t{m_backEncoder.GetPosition()};
+    return units::radian_t{m_backEncoder.GetDistance()};
 }
 
 units::radians_per_second_t BackFlywheel::GetAngularVelocity() const {
@@ -79,7 +82,6 @@ void BackFlywheel::RobotPeriodic() {
         m_testThrottle = appendageStick1.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
         SetGoal(manualRef);
-        m_manualRefEntry.SetDouble(manualRef.value());
     }
 }
 
@@ -107,8 +109,31 @@ void BackFlywheel::ControllerPeriodic() {
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        units::volt_t voltage{m_backGrbx.Get() *
+                              frc::RobotController::GetInputVoltage()};
+        if (m_flywheelSim.GetAngularVelocity() > 0_rad_per_s) {
+            voltage -= BackFlywheelConstants::kS;
+        } else if (m_flywheelSim.GetAngularVelocity() < 0_rad_per_s) {
+            voltage += BackFlywheelConstants::kS;
+        }
+
+        m_flywheelSim.SetInput(Eigen::Vector<double, 1>{voltage.value()});
+        m_flywheelSim.Update(GetDt());
+        m_encoderSim.SetDistance(m_flywheelSim.GetAngle().value());
+    }
+
     m_lastAngle = m_angle;
     m_lastTime = m_time;
+}
+
+units::ampere_t BackFlywheel::GetCurrentDraw() const {
+    return m_flywheelSim.GetCurrentDraw();
+}
+
+void BackFlywheel::SetSimAngularVelocity(units::radians_per_second_t velocity) {
+    m_flywheelSim.SetState(Eigen::Vector<double, 2>{
+        m_flywheelSim.GetAngle().value(), velocity.value()});
 }
 
 void BackFlywheel::SetVoltage(units::volt_t voltage) {

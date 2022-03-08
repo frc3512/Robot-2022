@@ -169,8 +169,12 @@ public:
     /**
      * Checks whether or not the driver wants to shoot high or low, then changes
      * the state of the state machine to execute shooting sequence.
+     *
+     * @param frontSpeed    Speed for the front flywheel
+     * @param backSpeed     Speed for the back flywheel
      */
-    void Shoot(bool shootHigh);
+    void Shoot(units::radians_per_second_t frontSpeed,
+               units::radians_per_second_t backSpeed);
 
     /**
      * Runs the shooter state machine.

@@ -173,15 +173,22 @@ void Robot::TeleopPeriodic() {
 
     if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
         if (driveStick1.GetRawButtonPressed(1) ||
-            driveStick2.GetRawButtonPressed(1)) {
+            driveStick2.GetRawButtonPressed(1) ||
+            driveStick2.GetRawButtonPressed(11)) {
             SetReadyToShoot(true);
         }
     } else {
         if (driveStick1.GetRawButtonPressed(1)) {
-            Shoot(false);
+            Shoot(FrontFlywheelConstants::kShootLow,
+                  BackFlywheelConstants::kShootLow);
         }
         if (driveStick2.GetRawButtonPressed(1)) {
-            Shoot(true);
+            Shoot(FrontFlywheelConstants::kShootHighFender,
+                  BackFlywheelConstants::kShootHighFender);
+        }
+        if (driveStick2.GetRawButtonPressed(11)) {
+            Shoot(FrontFlywheelConstants::kShootHighTarmac,
+                  BackFlywheelConstants::kShootHighTarmac);
         }
     }
 
@@ -224,20 +231,19 @@ void Robot::ExpectAutonomousEndConds() {
         EXPECT_NEAR(
             drivetrain.GetStates()(DrivetrainController::State::kRightVelocity),
             0.0, 0.01);
+
+        EXPECT_EQ(frontFlywheel.GetGoal(), 0_rad_per_s);
+        EXPECT_EQ(backFlywheel.GetGoal(), 0_rad_per_s);
     }
 }
 
 bool Robot::IsShooting() const { return m_state != ShootingState::kIdle; }
 
-void Robot::Shoot(bool shootHigh) {
+void Robot::Shoot(units::radians_per_second_t frontSpeed,
+                  units::radians_per_second_t backSpeed) {
     if (m_state == ShootingState::kIdle) {
-        if (shootHigh) {
-            frontFlywheel.SetGoal(FrontFlywheelConstants::kShootHighFender);
-            backFlywheel.SetGoal(BackFlywheelConstants::kShootHighFender);
-        } else {
-            frontFlywheel.SetGoal(FrontFlywheelConstants::kShootLow);
-            backFlywheel.SetGoal(BackFlywheelConstants::kShootLow);
-        }
+        frontFlywheel.SetGoal(frontSpeed);
+        backFlywheel.SetGoal(backSpeed);
 
         m_shootTimer.Reset();
         m_shootTimer.Start();
