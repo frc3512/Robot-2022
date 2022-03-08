@@ -155,14 +155,6 @@ private:
     // measuring flywheel lookup table values.
     double m_testThrottle = 0.0;
 
-    nt::NetworkTableEntry m_getGoalEntry = NetworkTableUtil::MakeDoubleEntry(
-        "Diagnostics/Front Flywheel/Get Goal");
-    nt::NetworkTableEntry m_encoderEntry =
-        NetworkTableUtil::MakeDoubleEntry("Diagnostics/Front Flywheel/Encoder");
-    nt::NetworkTableEntry m_isReadyEntry =
-        NetworkTableUtil::MakeBoolEntry("Diagnostics/Front Flywheel/Is Ready");
-    nt::NetworkTableEntry m_atGoalEntry =
-        NetworkTableUtil::MakeBoolEntry("Diagnostics/Front Flywheel/At Goal");
     nt::NetworkTableEntry m_manualRefEntry = NetworkTableUtil::MakeDoubleEntry(
         "Diagnostics/Front Flywheel/ Manual Ref");
 

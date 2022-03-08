@@ -149,15 +149,6 @@ private:
         m_intakeBase->Append<frc::MechanismLigament2d>(
             "Intake", 15, -90_deg, 5, frc::Color8Bit{frc::Color::kBlue});
 
-    nt::NetworkTableEntry m_upperSensorEntry = NetworkTableUtil::MakeBoolEntry(
-        "/Diagnostics/Intake/Upper Sensor blocked");
-    nt::NetworkTableEntry m_lowerSensorEntry = NetworkTableUtil::MakeBoolEntry(
-        "/Diagnostics/Intake/Lower Sensor blocked");
-    nt::NetworkTableEntry m_timeToShootEntry =
-        NetworkTableUtil::MakeBoolEntry("Diagnostics/Intake/Is Time To Shoot");
-
-    frc::CSVLogFile m_intakeLog{"Intake", "Deployed (bool)", "Speed (-1 .. 1)"};
-
     /*
      *  Sets the fourbar to deployed or stowed
      */

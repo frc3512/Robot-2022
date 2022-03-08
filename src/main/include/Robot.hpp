@@ -214,9 +214,5 @@ private:
 
     nt::NetworkTableEntry m_batteryVoltageEntry =
         NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Robot/batteryVoltage");
-    nt::NetworkTableEntry m_shootStateEntry =
-        NetworkTableUtil::MakeStringEntry("/Diagnostics/Robot/Shooting State");
-    nt::NetworkTableEntry m_readyToShootEntry =
-        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Robot/Ready to Shoot");
 };
 }  // namespace frc3512
