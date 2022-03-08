@@ -62,13 +62,13 @@ public:
     static constexpr units::meter_t kWidth = 1.083869_m;
 
     /// Linear velocity system ID gain.
-    static constexpr auto kLinearV = 0.24696_V / 1_mps;
+    static constexpr auto kLinearV = 2.4696_V / 1_mps;
 
     /// Linear acceleration system ID gain.
     static constexpr auto kLinearA = 0.29789_V / 1_mps_sq;
 
     /// Angular velocity system ID gain.
-    static constexpr auto kAngularV = 0.26447_V / 1_mps;
+    static constexpr auto kAngularV = 2.6447_V / 1_mps;
 
     /// Angular acceleration system ID gain.
     static constexpr auto kAngularA = 0.36732_V / 1_mps_sq;
@@ -285,9 +285,9 @@ public:
         const Eigen::Vector<double, 7>& x, const Eigen::Vector<double, 2>& u);
 
 private:
-    static constexpr auto kPositionTolerance = 0.5_m;
+    static constexpr auto kPositionTolerance = 0.25_m;
     static constexpr auto kVelocityTolerance = 2_mps;
-    static constexpr auto kAngleTolerance = 0.52_rad;
+    static constexpr auto kAngleTolerance = 0.15_rad;
 
     static const frc::LinearSystem<2, 2, 2> kPlant;
 

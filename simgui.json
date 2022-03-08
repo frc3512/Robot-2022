@@ -1,27 +1,3 @@
-<<<<<<< HEAD
-{
-  "NTProvider": {
-    "types": {
-      "/FMSInfo": "FMSInfo",
-      "/SmartDashboard/Autonomous modes": "String Chooser",
-      "/SmartDashboard/Field": "Field2d",
-      "/SmartDashboard/Intake": "Mechanism2d"
-    }
-  },
-  "NetworkTables": {
-    "Diagnostics": {
-      "Drivetrain": {
-        "States": {
-          "open": true
-        },
-        "open": true
-      },
-      "open": true
-    }
-  }
-}
-||||||| constructed merge base
-=======
 {
   "NTProvider": {
     "types": {
@@ -45,7 +21,19 @@
   },
   "NetworkTables": {
     "Diagnostics": {
+      "Back Flywheel": {
+        "Output": {
+          "open": true
+        },
+        "open": true
+      },
       "Drivetrain": {
+        "Inputs": {
+          "open": true
+        },
+        "References": {
+          "open": true
+        },
         "States": {
           "open": true
         },
@@ -55,4 +43,3 @@
     }
   }
 }
->>>>>>> Use Diff Drive Odometry instead of UKF

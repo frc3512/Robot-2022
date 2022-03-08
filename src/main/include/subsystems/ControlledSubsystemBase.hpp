@@ -227,7 +227,6 @@ private:
                 m_lastTime = m_nowBegin;
             }
         }
-        #endif 
     }
 };
 

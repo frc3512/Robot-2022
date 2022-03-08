@@ -166,18 +166,6 @@ void Robot::RobotPeriodic() {
         !frc::DriverStation::IsFMSAttached()) {
         m_batteryVoltageEntry.SetDouble(batteryVoltage);
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
-||||||| constructed merge base
-
-    m_readyToShootEntry.SetBoolean(ReadyToShoot());
-=======
-
->>>>>>> Remove NT Logging to try and fix Watchdog
-||||||| constructed merge base
-
-=======
->>>>>>> Set flywheel CAN usage to minimal
 }
 
 void Robot::SimulationPeriodic() { SubsystemBase::RunAllSimulationPeriodic(); }
