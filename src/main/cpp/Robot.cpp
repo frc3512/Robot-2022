@@ -74,7 +74,7 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     m_autonChooser.AddAutonomous("Auto Turn In Place",
                                  [=] { AutoTurnInPlace(); });
     m_autonChooser.AddAutonomous("Auto Curve Drive", [=] { AutoCurveDrive(); });
-    m_autonChooser.AddAutonomous("Auto Shoot One", [=] { AutoShootOne(); });
+    m_autonChooser.AddAutonomous("Auto Drive & Turn", [=] { AutoDriveAndTurn(); });
 
     // TIMESLICE ALLOCATION TABLE
     //

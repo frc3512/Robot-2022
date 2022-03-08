@@ -213,8 +213,10 @@ void Drivetrain::ControllerPeriodic() {
         m_drivetrainSim.Update(GetDt());
 
         m_leftEncoderSim.SetDistance(m_drivetrainSim.GetLeftPosition().value());
+        m_leftEncoderSim.SetRate(m_drivetrainSim.GetLeftVelocity().value());
         m_rightEncoderSim.SetDistance(
             m_drivetrainSim.GetRightPosition().value());
+        m_rightEncoderSim.SetRate(m_drivetrainSim.GetRightVelocity().value());
         m_imuSim.SetGyroAngleZ(
             units::degree_t{m_drivetrainSim.GetHeading().Radians()});
 
@@ -300,7 +302,7 @@ units::radian_t Drivetrain::GetHeading() {
 const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
     m_xHat = Eigen::Vector<double, 7>{GetPose().X().value(),
                                       GetPose().Y().value(),
-                                      frc::AngleModulus(GetAngle()).value(),
+                                      GetAngle().value(),
                                       GetLeftVelocity().value(),
                                       GetRightVelocity().value(),
                                       GetLeftPosition().value(),

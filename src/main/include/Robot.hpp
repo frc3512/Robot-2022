@@ -158,14 +158,9 @@ public:
     void AutoCurveDrive();
 
     /**
-     * Shoots one ball and drives back
-     */
-    void AutoShootOne();
-
-    /**
      * Simple Drive and turn in place.
      */
-    // void AutoDriveAndTurn();
+    void AutoDriveAndTurn();
 
     /**
      * Returns a pose with the same x and y coordinates, but an updated heading.
