@@ -140,6 +140,8 @@ private:
 
     bool m_timeToShoot = false;
 
+    IntakeDirection m_state = IntakeDirection::kIdle;
+
     frc::Mechanism2d m_intakeSim{60, 60};
     frc::MechanismRoot2d* m_intakeBase =
         m_intakeSim.GetRoot("IntakeBase", 10, 00);
