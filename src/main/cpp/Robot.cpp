@@ -71,6 +71,13 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
 
     m_autonChooser.AddAutonomous("Auto Drive Forward",
                                  [=] { AutoDriveForward(); });
+    
+    m_autonChooser.AddAutonomous("Auto Drive Spline", 
+                                [=] { AutoDriveSpline(); });
+
+    m_autonChooser.AddAutonomous("Auto Turn In Place", [=] { AutoTurnInPlace(); });
+
+    m_autonChooser.AddAutonomous("Auto Drive & Turn In Place", [=] { AutoDriveAndTurnInPlace(); });
 
     // TIMESLICE ALLOCATION TABLE
     //
@@ -110,6 +117,11 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
 }
 
 Robot::~Robot() {}
+
+frc::Pose2d Robot::UpdatePoseRotation(const frc::Pose2d& pose, units::radian_t newHeading)
+{
+    return frc::Pose2d{pose.X(), pose.Y(), newHeading};
+}
 
 units::second_t Robot::SelectedAutonomousDuration() const {
     return m_autonChooser.SelectedAutonomousDuration();

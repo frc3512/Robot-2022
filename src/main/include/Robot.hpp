@@ -142,13 +142,18 @@ public:
      */
     void AutoNoOp();
 
+    /**
+     * Simple Auton that drives forward 2 meters
+     */
     void AutoDriveForward();
 
-    // void AutoTurnInPlace();
+    void AutoTurnInPlace();
 
-    // void AutoDriveAndTurnInPlace();
+    void AutoDriveAndTurnInPlace();
 
-    // void AutoDriveSpline();
+    void AutoDriveSpline();
+
+    frc::Pose2d UpdatePoseRotation(const frc::Pose2d& pose, units::radian_t newHeading);
 
     /**
      * Sets the selected autonomous mode for testing purposes.

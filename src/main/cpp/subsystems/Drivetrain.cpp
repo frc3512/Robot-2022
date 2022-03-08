@@ -118,7 +118,6 @@ units::meters_per_second_squared_t Drivetrain::GetAccelerationY() const {
 void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     using State = frc::sim::DifferentialDrivetrainSim::State;
 
-    m_observer.ResetPosition(initialPose, frc::Rotation2d(GetAngle()));
     m_controller.Reset(initialPose);
     m_u = Eigen::Vector<double, 2>::Zero();
     m_turningPID.Reset(initialPose.Rotation().Radians());
@@ -132,6 +131,7 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     xHat(State::kY) = initialPose.Y().value();
     xHat(State::kHeading) = initialPose.Rotation().Radians().value();
     xHat.block<4, 1>(3, 0).setZero();
+    m_observer.ResetPosition(initialPose, frc::Rotation2d(GetAngle()));
 
     if constexpr (frc::RobotBase::IsSimulation()) {
         m_drivetrainSim.SetState(xHat);
@@ -318,6 +318,8 @@ units::ampere_t Drivetrain::GetCurrentDraw() const {
 frc::Pose2d Drivetrain::GetSimPose() const { return m_drivetrainSim.GetPose(); }
 
 void Drivetrain::DisabledInit() {
+    m_controller.AbortTrajectories();
+    AbortTurnInPlace();
     SetBrakeMode();
     Disable();
 }
