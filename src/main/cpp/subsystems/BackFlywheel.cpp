@@ -28,10 +28,6 @@ BackFlywheel::BackFlywheel()
 
     m_backGrbx.SetInverted(false);
 
-    m_getGoalEntry.SetDouble(0.0);
-    m_encoderEntry.SetDouble(0.0);
-    m_isReadyEntry.SetBoolean(false);
-
     SetCANSparkMaxBusUsage(m_backGrbx, Usage::kAll);
 
     Reset();
@@ -85,11 +81,6 @@ void BackFlywheel::RobotPeriodic() {
         SetGoal(manualRef);
         m_manualRefEntry.SetDouble(manualRef.value());
     }
-
-    m_getGoalEntry.SetDouble(GetGoal().value());
-    m_encoderEntry.SetDouble(m_backEncoder.GetPosition());
-    m_isReadyEntry.SetBoolean(IsReady());
-    m_atGoalEntry.SetBoolean(AtGoal());
 }
 
 void BackFlywheel::ControllerPeriodic() {

@@ -147,8 +147,6 @@ void Robot::RobotPeriodic() {
         !frc::DriverStation::IsFMSAttached()) {
         m_batteryVoltageEntry.SetDouble(batteryVoltage);
     }
-
-    m_readyToShootEntry.SetBoolean(ReadyToShoot());
 }
 
 void Robot::SimulationPeriodic() { SubsystemBase::RunAllSimulationPeriodic(); }
@@ -184,17 +182,6 @@ void Robot::TeleopPeriodic() {
     }
 
     RunShooterSM();
-    if (m_state == ShootingState::kIdle) {
-        m_shootStateEntry.SetString("Idle");
-    } else if (m_state == ShootingState::kSpinUp) {
-        m_shootStateEntry.SetString("Spin Up");
-    } else if (m_state == ShootingState::kStartConveyor) {
-        m_shootStateEntry.SetString("Start Conveyor");
-    } else if (m_state == ShootingState::kEndShoot) {
-        m_shootStateEntry.SetString("End Shoot");
-    } else {
-        m_shootStateEntry.SetString("Unknown State");
-    }
 }
 
 void Robot::TestPeriodic() {

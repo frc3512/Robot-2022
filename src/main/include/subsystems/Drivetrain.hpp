@@ -346,13 +346,6 @@ private:
     frc::sim::ADIS16470_IMUSim m_imuSim{m_imu};
     frc::Field2d m_field;
 
-    nt::NetworkTableEntry m_headingGoalEntry = NetworkTableUtil::MakeBoolEntry(
-        "/Diagnostics/Drivetrain/Outputs/Goal Heading Achieved");
-
-    nt::NetworkTableEntry m_hasHeadingGoalEntry =
-        NetworkTableUtil::MakeBoolEntry(
-            "/Diagnostics/Drivetrain/Outputs/Has New Goal Heading");
-
     /**
      * Set drivetrain motors to brake mode, which the feedback controllers
      * expect.

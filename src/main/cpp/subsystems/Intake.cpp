@@ -18,8 +18,6 @@ Intake::Intake() {
     SetCANSparkMaxBusUsage(m_intakeMotor, Usage::kMinimal);
     m_intakeMotor.SetSmartCurrentLimit(80);
 
-    m_timeToShootEntry.SetDefaultBoolean(false);
-
     // m_fourbar.Set(false);
 }
 
@@ -82,15 +80,6 @@ void Intake::RobotPeriodic() {
     } else {
         SetConveyor(0.0);
     }
-
-    m_timeToShootEntry.SetBoolean(IsTimeToShoot());
-
-    frc::SmartDashboard::PutData("Intake", &m_intakeSim);
-
-    m_upperSensorEntry.SetBoolean(IsUpperSensorBlocked());
-    m_lowerSensorEntry.SetBoolean(IsLowerSensorBlocked());
-
-    m_intakeLog.Log(m_fourbar.Get(), m_intakeMotor.Get());
 }
 
 void Intake::SimulationPeriodic() {

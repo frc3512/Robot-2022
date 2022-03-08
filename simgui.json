@@ -1,0 +1,21 @@
+{
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Autonomous modes": "String Chooser",
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/Intake": "Mechanism2d"
+    }
+  },
+  "NetworkTables": {
+    "Diagnostics": {
+      "Drivetrain": {
+        "States": {
+          "open": true
+        },
+        "open": true
+      },
+      "open": true
+    }
+  }
+}

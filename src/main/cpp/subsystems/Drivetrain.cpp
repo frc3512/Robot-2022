@@ -260,18 +260,7 @@ void Drivetrain::ControllerPeriodic() {
     }
 }
 
-void Drivetrain::RobotPeriodic() {
-    if (frc::DriverStation::IsDisabled() ||
-        !frc::DriverStation::IsFMSAttached()) {
-        m_headingGoalEntry.SetBoolean(AtHeading());
-        m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
-    }
-
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        m_headingGoalEntry.SetBoolean(AtHeading());
-        m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
-    }
-}
+void Drivetrain::RobotPeriodic() {}
 
 void Drivetrain::AddTrajectory(const frc::Pose2d& start,
                                const std::vector<frc::Translation2d>& interior,
