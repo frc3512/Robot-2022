@@ -33,10 +33,11 @@ void Intake::Start(IntakeDirection direction) {
     if (direction == IntakeDirection::kIntake) {
         m_intakeMotor.Set(0.8);
         m_miniArmMotor.Set(-0.8);
+        m_state = IntakeDirection::kIntake;
     } else if (direction == IntakeDirection::kOuttake) {
         m_intakeMotor.Set(-0.8);
-        SetConveyor(0.8);
         m_miniArmMotor.Set(0.8);
+        m_state = IntakeDirection::kOuttake;
     } else {
         m_intakeMotor.Set(0.0);
         m_miniArmMotor.Set(0.0);
@@ -74,7 +75,9 @@ void Intake::RobotPeriodic() {
         Stow();
     }
 
-    if (IsTimeToShoot()) {
+    if (m_state == IntakeDirection::kOuttake) {
+        SetConveyor(0.8);
+    } else if (IsTimeToShoot()) {
         SetConveyor(-0.65);
     } else if (!IsTimeToShoot() && !IsUpperSensorBlocked() &&
                IsLowerSensorBlocked()) {
