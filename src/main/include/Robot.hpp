@@ -143,6 +143,42 @@ public:
     void AutoNoOp();
 
     /**
+     * Simple Drive forward autonomous
+     */
+    void AutoDriveForward();
+
+    /**
+     * Simple turn in place autonomous
+     */
+    void AutoTurnInPlace();
+
+    /**
+     * Simple Curve Autonomous
+     */
+    void AutoCurveDrive();
+
+    /**
+     * Shoots one ball and drives back
+     */
+    void AutoShootOne();
+
+    /**
+     * Simple Drive and turn in place.
+     */
+    // void AutoDriveAndTurn();
+
+    /**
+     * Returns a pose with the same x and y coordinates, but an updated heading.
+     * A utility function for autonomous positions used when the robot turns in
+     * place
+     *
+     * @param pose the position object being updated.
+     * @param newHeading The new heading of the position.
+     */
+    frc::Pose2d UpdateAutoPoseRotation(const frc::Pose2d& pose,
+                                       units::radian_t newHeading);
+
+    /**
      * Sets the selected autonomous mode for testing purposes.
      *
      * @param name The autonomous mode's name passed to

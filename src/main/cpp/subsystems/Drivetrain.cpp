@@ -39,7 +39,7 @@ Drivetrain::Drivetrain()
            ControllerLabel{"Left position", "m"},
            ControllerLabel{"Right position", "m"},
            ControllerLabel{"Longitudinal Acceleration", "m/s^2"},
-           ControllerLabel{"Lateral Acceleration", "m/s^2"}}) {
+           ControllerLabel{"Lateral Acceleration", "m/s^2"}}, true) {
     SetCANSparkMaxBusUsage(m_leftLeader, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_leftFollower, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_rightLeader, Usage::kMinimal);
@@ -85,16 +85,10 @@ frc::Pose2d Drivetrain::GetReferencePose() const {
         units::radian_t{x(DrivetrainController::State::kHeading)}};
 }
 
-frc::Pose2d Drivetrain::GetPose() const {
-    const auto& x = m_observer.Xhat();
-    return frc::Pose2d{
-        units::meter_t{x(DrivetrainController::State::kX)},
-        units::meter_t{x(DrivetrainController::State::kY)},
-        units::radian_t{x(DrivetrainController::State::kHeading)}};
-}
+frc::Pose2d Drivetrain::GetPose() const { return m_observer.GetPose(); }
 
 units::radian_t Drivetrain::GetAngle() const {
-    return units::degree_t{m_imu.GetAngle()} + m_headingOffset;
+    return units::degree_t{m_imu.GetAngle()};
 }
 
 units::meter_t Drivetrain::GetLeftPosition() const {
@@ -124,7 +118,6 @@ units::meters_per_second_squared_t Drivetrain::GetAccelerationY() const {
 void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     using State = frc::sim::DifferentialDrivetrainSim::State;
 
-    m_observer.Reset();
     m_controller.Reset(initialPose);
     m_u = Eigen::Vector<double, 2>::Zero();
     m_turningPID.Reset(initialPose.Rotation().Radians());
@@ -132,14 +125,15 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_leftEncoder.Reset();
     m_rightEncoder.Reset();
     m_imu.Reset();
-    m_headingOffset = initialPose.Rotation().Radians();
 
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
     xHat(State::kY) = initialPose.Y().value();
     xHat(State::kHeading) = initialPose.Rotation().Radians().value();
     xHat.block<4, 1>(3, 0).setZero();
-    m_observer.SetXhat(xHat);
+    m_xHat = xHat;
+    m_observer.ResetPosition(initialPose,
+                             frc::Rotation2d(frc::AngleModulus(GetAngle())));
 
     if constexpr (frc::RobotBase::IsSimulation()) {
         m_drivetrainSim.SetState(xHat);
@@ -147,38 +141,22 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     }
 }
 
-void Drivetrain::CorrectWithGlobalOutputs(units::meter_t x, units::meter_t y,
-                                          units::second_t timestamp) {
-    Eigen::Vector<double, 2> globalY{x.value(), y.value()};
-    m_latencyComp.ApplyPastGlobalMeasurement<2>(
-        &m_observer, Constants::kControllerPeriod, globalY,
-        [&](const Eigen::Vector<double, 2>& u,
-            const Eigen::Vector<double, 2>& y) {
-            m_observer.Correct<2>(
-                u, y, &DrivetrainController::GlobalMeasurementModel, kGlobalR);
-        },
-        timestamp);
-}
-
 void Drivetrain::ControllerPeriodic() {
     using Input = DrivetrainController::Input;
 
     UpdateDt();
 
-    m_observer.Predict(m_u, GetDt());
-
     Eigen::Vector<double, 5> y{
         frc::AngleModulus(GetAngle()).value(), GetLeftPosition().value(),
         GetRightPosition().value(), GetAccelerationX().value(),
         GetAccelerationY().value()};
-    m_latencyComp.AddObserverState(m_observer, m_controller.GetInputs(), y,
-                                   frc::Timer::GetFPGATimestamp());
-    m_observer.Correct(m_controller.GetInputs(), y);
+    m_observer.Update(frc::Rotation2d(frc::AngleModulus(GetAngle())),
+                      GetLeftPosition(), GetRightPosition());
 
     Eigen::Vector<double, 7> controllerState = GetStates();
 
     if (m_controller.HaveTrajectory()) {
-        m_u = m_controller.Calculate(m_observer.Xhat());
+        m_u = m_controller.Calculate(GetStates());
 
         if (!AtGoal()) {
             m_leftGrbx.SetVoltage(units::volt_t{m_u(Input::kLeftVoltage)});
@@ -190,7 +168,7 @@ void Drivetrain::ControllerPeriodic() {
     } else if (HasHeadingGoal()) {
         // Update previous u stored in the controller. We don't care what the
         // return value is.
-        static_cast<void>(m_controller.Calculate(m_observer.Xhat()));
+        static_cast<void>(m_controller.Calculate(GetStates()));
 
         if (!AtHeading()) {
             auto turningOutput = m_turningPID.Calculate(units::radian_t{
@@ -209,7 +187,7 @@ void Drivetrain::ControllerPeriodic() {
     } else {
         // Update previous u stored in the controller. We don't care what the
         // return value is.
-        static_cast<void>(m_controller.Calculate(m_observer.Xhat()));
+        static_cast<void>(m_controller.Calculate(GetStates()));
 
         // Run observer predict with inputs from teleop
         m_u = Eigen::Vector<double, 2>{
@@ -222,7 +200,7 @@ void Drivetrain::ControllerPeriodic() {
             controllerState(DrivetrainController::State::kHeading)});
     }
 
-    Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
+    Log(m_controller.GetReferences(), GetStates(), m_u, y);
 
     if constexpr (frc::RobotBase::IsSimulation()) {
         auto batteryVoltage = frc::RobotController::GetInputVoltage();
@@ -237,8 +215,8 @@ void Drivetrain::ControllerPeriodic() {
         m_leftEncoderSim.SetDistance(m_drivetrainSim.GetLeftPosition().value());
         m_rightEncoderSim.SetDistance(
             m_drivetrainSim.GetRightPosition().value());
-        m_imuSim.SetGyroAngleZ(units::degree_t{
-            m_drivetrainSim.GetHeading().Radians() - m_headingOffset});
+        m_imuSim.SetGyroAngleZ(
+            units::degree_t{m_drivetrainSim.GetHeading().Radians()});
 
         const auto& plant = DrivetrainController::GetPlant();
         Eigen::Vector<double, 2> x{m_drivetrainSim.GetLeftVelocity().value(),
@@ -319,8 +297,15 @@ units::radian_t Drivetrain::GetHeading() {
         controllerState(DrivetrainController::State::kHeading)};
 }
 
-const Eigen::Vector<double, 7>& Drivetrain::GetStates() const {
-    return m_observer.Xhat();
+const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
+    m_xHat = Eigen::Vector<double, 7>{GetPose().X().value(),
+                                      GetPose().Y().value(),
+                                      frc::AngleModulus(GetAngle()).value(),
+                                      GetLeftVelocity().value(),
+                                      GetRightVelocity().value(),
+                                      GetLeftPosition().value(),
+                                      GetRightVelocity().value()};
+    return m_xHat;
 }
 
 const Eigen::Vector<double, 2>& Drivetrain::GetInputs() const {

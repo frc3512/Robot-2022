@@ -12,11 +12,10 @@
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/controller/SimpleMotorFeedforward.h>
 #include <frc/estimator/AngleStatistics.h>
-#include <frc/estimator/KalmanFilterLatencyCompensator.h>
-#include <frc/estimator/UnscentedKalmanFilter.h>
 #include <frc/filter/LinearFilter.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Translation2d.h>
+#include <frc/kinematics/DifferentialDriveOdometry.h>
 #include <frc/motorcontrol/MotorControllerGroup.h>
 #include <frc/simulation/ADIS16470_IMUSim.h>
 #include <frc/simulation/AnalogInputSim.h>
@@ -113,16 +112,6 @@ public:
      * Resets all sensors and controller.
      */
     void Reset(const frc::Pose2d& initialPose = frc::Pose2d());
-
-    /**
-     * Set global measurements.
-     *
-     * @param x         X position of the robot in meters.
-     * @param y         Y position of the robot in meters.
-     * @param timestamp Absolute time the translation data comes from.
-     */
-    void CorrectWithGlobalOutputs(units::meter_t x, units::meter_t y,
-                                  units::second_t timestamp);
 
     /**
      * Adds a trajectory with the given waypoints.
@@ -238,7 +227,7 @@ public:
     /**
      * Returns the drivetrain state estimate.
      */
-    const Eigen::Vector<double, 7>& GetStates() const;
+    const Eigen::Vector<double, 7>& GetStates();
 
     /**
      * Returns the drivetrain inputs.
@@ -300,22 +289,10 @@ private:
                                 HWConfig::Drivetrain::kRightEncoderB};
 
     frc::ADIS16470_IMU m_imu;
-    units::radian_t m_headingOffset = 0_rad;
 
-    frc::UnscentedKalmanFilter<7, 2, 5> m_observer{
-        DrivetrainController::Dynamics,
-        DrivetrainController::LocalMeasurementModel,
-        {0.002, 0.002, 0.0001, 1.5, 1.5, 0.5, 0.5},
-        {0.0001, 0.005, 0.005, 7.0, 7.0},
-        frc::AngleMean<7, 7>(2),
-        frc::AngleMean<5, 7>(0),
-        frc::AngleResidual<7>(2),
-        frc::AngleResidual<5>(0),
-        frc::AngleAdd<7>(2),
-        Constants::kControllerPeriod};
-    frc::KalmanFilterLatencyCompensator<7, 2, 5,
-                                        frc::UnscentedKalmanFilter<7, 2, 5>>
-        m_latencyComp;
+    frc::DifferentialDriveOdometry m_observer{frc::Rotation2d(), frc::Pose2d()};
+    Eigen::Vector<double, 7> m_xHat = Eigen::Vector<double, 7>::Zero();
+
     DrivetrainController m_controller;
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
 
@@ -330,10 +307,8 @@ private:
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
-            DrivetrainController::kLinearV,
-            DrivetrainController::kLinearA * 5.0,
-            DrivetrainController::kAngularV,
-            DrivetrainController::kAngularA * 2.0);
+            DrivetrainController::kLinearV, DrivetrainController::kLinearA,
+            DrivetrainController::kAngularV, DrivetrainController::kAngularA);
     frc::ImplicitModelFollower<2, 2> m_imf{kPlant, m_imfRef, 20_ms};
 
     // Simulation variables
