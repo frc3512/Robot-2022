@@ -261,9 +261,9 @@ public:
     void ControllerPeriodic() override;
 
 private:
-    static constexpr double kTurningP = 38.303;
+    static constexpr double kTurningP = 1.7435;
     static constexpr double kTurningI = 0.0;
-    static constexpr double kTurningD = 1.9676;
+    static constexpr double kTurningD = 0.0;
 
     static const Eigen::Matrix<double, 2, 2> kGlobalR;
 
@@ -297,7 +297,7 @@ private:
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
 
     frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
-        1.25_rad_per_s, 0.75_rad_per_s_sq};
+        5_rad_per_s, 2.2_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
         kTurningP, kTurningI, kTurningD, m_turningConstraints,
         Constants::kControllerPeriod};

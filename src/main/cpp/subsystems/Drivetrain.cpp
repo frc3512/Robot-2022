@@ -39,7 +39,7 @@ Drivetrain::Drivetrain()
            ControllerLabel{"Left position", "m"},
            ControllerLabel{"Right position", "m"},
            ControllerLabel{"Longitudinal Acceleration", "m/s^2"},
-           ControllerLabel{"Lateral Acceleration", "m/s^2"}}, true) {
+           ControllerLabel{"Lateral Acceleration", "m/s^2"}}) {
     SetCANSparkMaxBusUsage(m_leftLeader, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_leftFollower, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_rightLeader, Usage::kMinimal);
@@ -300,13 +300,11 @@ units::radian_t Drivetrain::GetHeading() {
 }
 
 const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
-    m_xHat = Eigen::Vector<double, 7>{GetPose().X().value(),
-                                      GetPose().Y().value(),
-                                      GetAngle().value(),
-                                      GetLeftVelocity().value(),
-                                      GetRightVelocity().value(),
-                                      GetLeftPosition().value(),
-                                      GetRightVelocity().value()};
+    m_xHat = Eigen::Vector<double, 7>{
+        GetPose().X().value(),      GetPose().Y().value(),
+        GetAngle().value(),         GetLeftVelocity().value(),
+        GetRightVelocity().value(), GetLeftPosition().value(),
+        GetRightVelocity().value()};
     return m_xHat;
 }
 

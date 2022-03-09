@@ -27,7 +27,7 @@ static constexpr auto kA = 0.00035088_V / 1_rad_per_s_sq;
 static constexpr auto kMaxAngularVelocity = 12_V / kV;
 
 /// High goal speed for front shooter when doing fender shot.
-static constexpr units::radians_per_second_t kShootHighFender = 576_rad_per_s;
+static constexpr units::radians_per_second_t kShootHighFender = 606_rad_per_s;
 
 /// High goal speed for front shooter when farther from target.
 static constexpr units::radians_per_second_t kShootHighTarmac = 762_rad_per_s;
@@ -50,7 +50,7 @@ static constexpr auto kA = 0.00031079_V / 1_rad_per_s_sq;
 static constexpr auto kMaxAngularVelocity = 12_V / kV;
 
 /// High goal speed for back shooter when doing fender shot.
-static constexpr units::radians_per_second_t kShootHighFender = 625_rad_per_s;
+static constexpr units::radians_per_second_t kShootHighFender = 670_rad_per_s;
 
 /// High goal speed for back shooter when farther from target.
 static constexpr units::radians_per_second_t kShootHighTarmac = 538_rad_per_s;

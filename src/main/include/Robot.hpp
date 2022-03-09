@@ -143,24 +143,9 @@ public:
     void AutoNoOp();
 
     /**
-     * Simple Drive forward autonomous
+     * Robot shoots one ball from the agianst the hub and drives off the tarmac.
      */
-    void AutoDriveForward();
-
-    /**
-     * Simple turn in place autonomous
-     */
-    void AutoTurnInPlace();
-
-    /**
-     * Simple Curve Autonomous
-     */
-    void AutoCurveDrive();
-
-    /**
-     * Simple Drive and turn in place.
-     */
-    void AutoDriveAndTurn();
+    void AutoShootOne();
 
     /**
      * Returns a pose with the same x and y coordinates, but an updated heading.
@@ -249,5 +234,10 @@ private:
 
     nt::NetworkTableEntry m_batteryVoltageEntry =
         NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Robot/batteryVoltage");
+
+    nt::NetworkTableEntry m_backFlywheelAtGoal =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Back Flywheel/At Goal");
+    nt::NetworkTableEntry m_frontFlywheelAtGoal =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Front Flywheel/At Goal");
 };
 }  // namespace frc3512

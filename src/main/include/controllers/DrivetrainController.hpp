@@ -47,6 +47,7 @@ namespace frc3512 {
  */
 class DrivetrainController : public ControllerBase<7, 2, 4> {
 public:
+    /// the wheel radius.
     static constexpr units::meter_t kWheelRadius = 3_in;
 
     /// The drivetrain gear ratio from the encoder to the wheel.
@@ -61,16 +62,16 @@ public:
     static constexpr units::meter_t kWidth = 1.083869_m;
 
     /// Linear velocity system ID gain.
-    static constexpr auto kLinearV = 2.4696_V / 1_mps;
+    static constexpr auto kLinearV = 1.1839_V / 1_mps;
 
     /// Linear acceleration system ID gain.
-    static constexpr auto kLinearA = 0.29789_V / 1_mps_sq;
+    static constexpr auto kLinearA = 0.3164_V / 1_mps_sq;
 
     /// Angular velocity system ID gain.
-    static constexpr auto kAngularV = 2.6447_V / 1_mps;
+    static constexpr auto kAngularV = 1.2228_V / 1_mps;
 
     /// Angular acceleration system ID gain.
-    static constexpr auto kAngularA = 0.36732_V / 1_mps_sq;
+    static constexpr auto kAngularA = 0.70731_V / 1_mps_sq;
 
     /// Maximum linear velocity.
     static constexpr auto kMaxV = 12_V / kLinearV;
