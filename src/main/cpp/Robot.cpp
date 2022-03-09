@@ -69,6 +69,8 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     // dashboard plots
     SetNetworkTablesFlushEnabled(true);
 
+    m_autonChooser.AddAutonomous("Auto Shoot One", [=] { AutoShootOne(); });
+
     // TIMESLICE ALLOCATION TABLE
     //
     // |  Subsystem | Duration (ms) | Allocation (ms) |
@@ -151,6 +153,9 @@ void Robot::RobotPeriodic() {
         !frc::DriverStation::IsFMSAttached()) {
         m_batteryVoltageEntry.SetDouble(batteryVoltage);
     }
+
+    m_backFlywheelAtGoal.SetBoolean(backFlywheel.IsReady());
+    m_frontFlywheelAtGoal.SetBoolean(frontFlywheel.IsReady());
 }
 
 void Robot::SimulationPeriodic() { SubsystemBase::RunAllSimulationPeriodic(); }
@@ -209,6 +214,11 @@ void Robot::TestPeriodic() {
     // RunShooterSM();
 }
 
+frc::Pose2d Robot::UpdateAutoPoseRotation(const frc::Pose2d& pose,
+                                          units::radian_t newHeading) {
+    return frc::Pose2d(pose.X(), pose.Y(), newHeading);
+}
+
 void Robot::SelectAutonomous(std::string_view name) {
     m_autonChooser.SelectAutonomous(name);
 }
@@ -260,7 +270,12 @@ void Robot::RunShooterSM() {
             break;
         case ShootingState::kSpinUp:
             if (ReadyToShoot()) {
-                m_state = ShootingState::kStartConveyor;
+                if (frc::RobotBase::IsAutonomousEnabled() &&
+                    frontFlywheel.IsReady() && backFlywheel.IsReady()) {
+                    m_state = ShootingState::kStartConveyor;
+                } else if (frc::RobotBase::IsTeleopEnabled()) {
+                    m_state = ShootingState::kStartConveyor;
+                }
             } else if (!frontFlywheel.IsReady() && !backFlywheel.IsReady() &&
                        m_shootTimer.HasElapsed(3_s)) {
                 fmt::print(stderr, "Flywheels didn't get up to speed!");

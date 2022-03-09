@@ -143,6 +143,22 @@ public:
     void AutoNoOp();
 
     /**
+     * Robot shoots one ball from the agianst the hub and drives off the tarmac.
+     */
+    void AutoShootOne();
+
+    /**
+     * Returns a pose with the same x and y coordinates, but an updated heading.
+     * A utility function for autonomous positions used when the robot turns in
+     * place
+     *
+     * @param pose the position object being updated.
+     * @param newHeading The new heading of the position.
+     */
+    frc::Pose2d UpdateAutoPoseRotation(const frc::Pose2d& pose,
+                                       units::radian_t newHeading);
+
+    /**
      * Sets the selected autonomous mode for testing purposes.
      *
      * @param name The autonomous mode's name passed to
@@ -218,5 +234,10 @@ private:
 
     nt::NetworkTableEntry m_batteryVoltageEntry =
         NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Robot/batteryVoltage");
+
+    nt::NetworkTableEntry m_backFlywheelAtGoal =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Back Flywheel/At Goal");
+    nt::NetworkTableEntry m_frontFlywheelAtGoal =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Front Flywheel/At Goal");
 };
 }  // namespace frc3512

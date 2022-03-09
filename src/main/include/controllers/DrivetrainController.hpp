@@ -47,11 +47,11 @@ namespace frc3512 {
  */
 class DrivetrainController : public ControllerBase<7, 2, 4> {
 public:
-    /// The wheel radius.
+    /// the wheel radius.
     static constexpr units::meter_t kWheelRadius = 3_in;
 
     /// The drivetrain gear ratio from the encoder to the wheel.
-    static constexpr double kDriveGearRatio = 5.818181 / 1.6;
+    static constexpr double kDriveGearRatio = 1.0 / 1.0;
 
     /// Drivetrain distance per encoder pulse.
     static constexpr double kDpP =
@@ -62,16 +62,16 @@ public:
     static constexpr units::meter_t kWidth = 1.083869_m;
 
     /// Linear velocity system ID gain.
-    static constexpr auto kLinearV = 0.46116_V / 1_mps;
+    static constexpr auto kLinearV = 1.1839_V / 1_mps;
 
     /// Linear acceleration system ID gain.
-    static constexpr auto kLinearA = 0.076414_V / 1_mps_sq;
+    static constexpr auto kLinearA = 0.3164_V / 1_mps_sq;
 
     /// Angular velocity system ID gain.
-    static constexpr auto kAngularV = 0.4756_V / 1_mps;
+    static constexpr auto kAngularV = 1.2228_V / 1_mps;
 
     /// Angular acceleration system ID gain.
-    static constexpr auto kAngularA = 0.064544_V / 1_mps_sq;
+    static constexpr auto kAngularA = 0.70731_V / 1_mps_sq;
 
     /// Maximum linear velocity.
     static constexpr auto kMaxV = 12_V / kLinearV;
@@ -285,9 +285,9 @@ public:
         const Eigen::Vector<double, 7>& x, const Eigen::Vector<double, 2>& u);
 
 private:
-    static constexpr auto kPositionTolerance = 0.5_m;
+    static constexpr auto kPositionTolerance = 0.25_m;
     static constexpr auto kVelocityTolerance = 2_mps;
-    static constexpr auto kAngleTolerance = 0.52_rad;
+    static constexpr auto kAngleTolerance = 0.15_rad;
 
     static const frc::LinearSystem<2, 2, 2> kPlant;
 
