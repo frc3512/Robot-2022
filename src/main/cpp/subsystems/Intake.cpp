@@ -39,6 +39,7 @@ void Intake::Start(IntakeDirection direction) {
     } else {
         m_intakeMotor.Set(0.0);
         m_miniArmMotor.Set(0.0);
+        m_state = IntakeDirection::kIdle;
     }
 }
 
