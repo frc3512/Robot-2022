@@ -307,8 +307,10 @@ private:
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
-            DrivetrainController::kLinearV, DrivetrainController::kLinearA,
-            DrivetrainController::kAngularV, DrivetrainController::kAngularA);
+            DrivetrainController::kLinearV * 0.1,
+            DrivetrainController::kLinearA * 0.1,
+            DrivetrainController::kAngularV * 0.1,
+            DrivetrainController::kAngularA * 0.1);
     frc::ImplicitModelFollower<2, 2> m_imf{kPlant, m_imfRef, 20_ms};
 
     // Simulation variables
