@@ -121,6 +121,13 @@ private:
 
     frc::Debouncer m_debouncer{50_ms, frc::Debouncer::DebounceType::kBoth};
 
+    nt::NetworkTableEntry m_leftBottomLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Left Bottom Limit");
+    nt::NetworkTableEntry m_rightBottomLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Right Bottom Limit");
+    nt::NetworkTableEntry m_leftTopLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Left Top Limit");
+    nt::NetworkTableEntry m_rightTopLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Right Top Limit");
+    nt::NetworkTableEntry m_leftHeightEntry = NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Climber/Left Height");
+    nt::NetworkTableEntry m_rightHeightEntry = NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Climber/Right Height");
+
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{
         frc::LinearSystemId::ElevatorSystem(frc::DCMotor::NEO(), 4.5_kg,
@@ -140,10 +147,12 @@ private:
             "Extended", -20, 0_deg, 5, frc::Color8Bit{frc::Color::kYellow});
 
     /**
-     *  Sets the speed of the climber motor controller group.
+     *  Sets the speed of the individual climber motors.
      *
-     * @param speed the speed of the flywheel.
+     * @param leftSpeed left side climber speed.
+     * @param rightSpeed right side climber speed.
+     * @param ignoreLimits whether or not to ignore soft limits on climber.
      */
-    void SetClimber(double leftSpeed, double righSpeed);
+    void SetClimber(double leftSpeed, double righSpeed, bool ignoreLimits = false);
 };
 }  // namespace frc3512

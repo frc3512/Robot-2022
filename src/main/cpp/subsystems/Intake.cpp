@@ -68,10 +68,14 @@ void Intake::RobotPeriodic() {
         Stop();
     }
 
-    if (!IsDeployed() && appendageStick2.GetRawButton(5)) {
-        Deploy();
-    } else if (appendageStick2.GetRawButton(5)) {
-        Stow();
+    if (appendageStick2.GetRawButtonPressed(4))
+    {
+        if (IsDeployed())
+        {
+            Stow();
+        } else {
+            Deploy();
+        }
     }
 
     if (m_state == IntakeDirection::kOuttake) {
