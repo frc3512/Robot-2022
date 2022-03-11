@@ -6,13 +6,13 @@
 
 #include <frc/DriverStation.h>
 #include <frc/Joystick.h>
+#include <frc/MathUtil.h>
 #include <frc/RobotBase.h>
 #include <frc/RobotController.h>
 #include <frc/StateSpaceUtil.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <wpi/MathExtras.h>
 #include <wpi/numbers>
-#include <frc/MathUtil.h>
 
 #include "CANSparkMaxUtil.hpp"
 #include "HWConfig.hpp"
@@ -30,57 +30,35 @@ Climber::Climber() {
     SetCANSparkMaxBusUsage(m_leftGrbx, Usage::kPositionOnly);
 }
 
-void Climber::DeployClimbers() { m_solenoid.Set(false); }
+void Climber::DeployClimbers() { m_solenoid.Set(true); }
 
-void Climber::StowClimbers() { m_solenoid.Set(true); }
+void Climber::StowClimbers() { m_solenoid.Set(false); }
 
-bool Climber::IsClimberDeployed() { return !m_solenoid.Get(); }
+bool Climber::IsClimberDeployed() { return m_solenoid.Get(); }
 
-units::meter_t Climber::GetLeftHeight() {
-    double kG = 1.0 / 12.0;  // gear ratio
+double Climber::GetLeftHeight() { return m_leftEncoder.GetPosition(); }
 
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        return units::meter_t{m_leftClimberSimLS.GetOutput(0)};
-    } else {
-        double rotations = -m_leftEncoder.GetPosition();
-        return units::meter_t{
-            0.955 * wpi::numbers::pi * kG * rotations /
-            (1.0 + 0.20675 * wpi::numbers::pi * kG * rotations)};
-    }
-}
-
-units::meter_t Climber::GetRightHeight() {
-    double kG = 1.0 / 12.0;  // gear ratio
-
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        return units::meter_t{m_rightClimberSimLS.GetOutput(0)};
-    } else {
-        double rotations = -m_rightEncoder.GetPosition();
-        return units::meter_t{
-            0.955 * wpi::numbers::pi * kG * rotations /
-            (1.0 + 0.20675 * wpi::numbers::pi * kG * rotations)};
-    }
-}
+double Climber::GetRightHeight() { return m_rightEncoder.GetPosition(); }
 
 bool Climber::HasRightPassedTopLimit() {
     if (IsClimberDeployed()) {
-        return GetRightHeight() > 0.711_m;
+        return GetRightHeight() < -152;
     } else {
-        return GetRightHeight() > 0.66_m;
+        return GetRightHeight() < -135;
     }
 }
 
-bool Climber::HasRightPassedBottomLimit() { return GetRightHeight() < 0_m; }
+bool Climber::HasRightPassedBottomLimit() { return GetRightHeight() > 0.0; }
 
 bool Climber::HasLeftPassedTopLimit() {
     if (IsClimberDeployed()) {
-        return GetLeftHeight() > 0.711_m;
+        return GetLeftHeight() < -152;
     } else {
-        return GetLeftHeight() > 0.66_m;
+        return GetLeftHeight() < -135;
     }
 }
 
-bool Climber::HasLeftPassedBottomLimit() { return GetLeftHeight() < 0_m; }
+bool Climber::HasLeftPassedBottomLimit() { return GetLeftHeight() > 0.0; }
 
 void Climber::RobotPeriodic() {
     frc::SmartDashboard::PutData("Climber", &m_climberSim);
@@ -98,27 +76,24 @@ void Climber::TeleopPeriodic() {
 
     double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1);
 
-    SetClimber(leftY, rightY);
+    // Disable soft limits for comps. Couldn't debug before matches, no one has
+    // had any problems with them, so they're unnecessary for now.
+    SetClimber(leftY, rightY, true);
 
     if (appendageStick1.GetRawButtonPressed(6)) {
-        if (IsClimberDeployed())
-        {
+        if (IsClimberDeployed()) {
             StowClimbers();
         } else {
             DeployClimbers();
         }
     }
 
-    m_leftBottomLimitEntry.SetBoolean(HasLeftPassedBottomLimit());
     m_leftTopLimitEntry.SetBoolean(HasLeftPassedTopLimit());
-    m_rightBottomLimitEntry.SetBoolean(HasRightPassedBottomLimit());
     m_rightTopLimitEntry.SetBoolean(HasRightPassedTopLimit());
-    m_rightHeightEntry.SetDouble(GetRightHeight().value());
-    m_leftHeightEntry.SetDouble(GetLeftHeight().value());
 }
 
 void Climber::TestPeriodic() {
-     // physically on to the left of the other controller, controls left climber
+    // physically on to the left of the other controller, controls left climber
     // elevator.
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
     // physically on the right of the other controller, controsl right climber
@@ -132,20 +107,15 @@ void Climber::TestPeriodic() {
     SetClimber(leftY, rightY, true);
 
     if (appendageStick1.GetRawButtonPressed(6)) {
-        if (IsClimberDeployed())
-        {
+        if (IsClimberDeployed()) {
             StowClimbers();
         } else {
             DeployClimbers();
         }
     }
 
-    m_leftBottomLimitEntry.SetBoolean(HasLeftPassedBottomLimit());
     m_leftTopLimitEntry.SetBoolean(HasLeftPassedTopLimit());
-    m_rightBottomLimitEntry.SetBoolean(HasRightPassedBottomLimit());
     m_rightTopLimitEntry.SetBoolean(HasRightPassedTopLimit());
-    m_rightHeightEntry.SetDouble(GetRightHeight().value());
-    m_leftHeightEntry.SetDouble(GetLeftHeight().value());
 }
 
 void Climber::SimulationPeriodic() {
@@ -167,25 +137,24 @@ void Climber::SimulationPeriodic() {
     m_extensionBase->SetLength(extension);
 }
 
-void Climber::SetClimber(double leftSpeed, double rightSpeed, bool ignoreLimits) {
-    if (ignoreLimits)
-    {
+void Climber::SetClimber(double leftSpeed, double rightSpeed,
+                         bool ignoreLimits) {
+    if (ignoreLimits) {
         m_leftGrbx.Set(leftSpeed);
         m_rightGrbx.Set(rightSpeed);
-    } else 
-    {
-       if ((leftSpeed > 0.0 && !HasLeftPassedTopLimit()) || (leftSpeed < 0.0 && !HasLeftPassedBottomLimit()))
-       {
-           m_leftGrbx.Set(leftSpeed);
-       } else {
-           m_leftGrbx.Set(0.0);
-       }
+    } else {
+        if ((leftSpeed < 0.0 && !HasLeftPassedTopLimit()) ||
+            (leftSpeed > 0.0 && !HasLeftPassedBottomLimit())) {
+            m_leftGrbx.Set(leftSpeed);
+        } else {
+            m_leftGrbx.Set(0.0);
+        }
 
-       if ((rightSpeed > 0.0 && !HasRightPassedTopLimit()) || (rightSpeed < 0.0 && !HasRightPassedBottomLimit()))
-       {
-           m_rightGrbx.Set(rightSpeed);
-       } else {
-           m_rightGrbx.Set(0.0);
-       }
+        if ((rightSpeed < 0.0 && !HasRightPassedTopLimit()) ||
+            (rightSpeed > 0.0 && !HasRightPassedBottomLimit())) {
+            m_rightGrbx.Set(rightSpeed);
+        } else {
+            m_rightGrbx.Set(0.0);
+        }
     }
 }

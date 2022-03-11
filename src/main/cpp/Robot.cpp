@@ -197,6 +197,9 @@ void Robot::TeleopPeriodic() {
             Shoot(FrontFlywheelConstants::kShootHighTarmac,
                   BackFlywheelConstants::kShootHighTarmac);
         }
+        if (driveStick1.GetRawButtonPressed(2)) {
+            StopShooter();
+        }
     }
 
     RunShooterSM();
@@ -291,10 +294,24 @@ void Robot::RunShooterSM() {
             intake.SetTimeToShoot(true);
             m_shootTimer.Reset();
             m_shootTimer.Start();
-            m_state = ShootingState::kEndShoot;
+            m_state = ShootingState::kFirstBall;
+            break;
+        case ShootingState::kFirstBall:
+            if (m_shootTimer.HasElapsed(0.5_s)) {
+                intake.SetTimeToShoot(false);
+                m_shootTimer.Reset();
+                m_state = ShootingState::kSecondBall;
+            }
+            break;
+        case ShootingState::kSecondBall:
+            if (m_shootTimer.HasElapsed(2_s)) {
+                intake.SetTimeToShoot(true);
+                m_shootTimer.Reset();
+                m_state = ShootingState::kEndShoot;
+            }
             break;
         case ShootingState::kEndShoot:
-            if (m_shootTimer.HasElapsed(2_s)) {
+            if (m_shootTimer.HasElapsed(1_s)) {
                 StopShooter();
                 m_state = ShootingState::kIdle;
             }

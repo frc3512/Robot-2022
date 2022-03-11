@@ -51,7 +51,14 @@ public:
     /**
      * States used for the multi-subsystem shooting procedure
      */
-    enum class ShootingState { kIdle, kSpinUp, kStartConveyor, kEndShoot };
+    enum class ShootingState {
+        kIdle,
+        kSpinUp,
+        kStartConveyor,
+        kFirstBall,
+        kSecondBall,
+        kEndShoot
+    };
 
     // The subsystem initialization order determines the controller run order.
 

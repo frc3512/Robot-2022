@@ -72,12 +72,12 @@ public:
     /**
      * Returns the height of the left side elevator in meters
      */
-    units::meter_t GetLeftHeight();
+    double GetLeftHeight();
 
     /**
      * Returns the height of the right side elevator in meters
      */
-    units::meter_t GetRightHeight();
+    double GetRightHeight();
 
     /**
      * Returns whether or not the right climber has passed the top limit
@@ -121,12 +121,10 @@ private:
 
     frc::Debouncer m_debouncer{50_ms, frc::Debouncer::DebounceType::kBoth};
 
-    nt::NetworkTableEntry m_leftBottomLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Left Bottom Limit");
-    nt::NetworkTableEntry m_rightBottomLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Right Bottom Limit");
-    nt::NetworkTableEntry m_leftTopLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Left Top Limit");
-    nt::NetworkTableEntry m_rightTopLimitEntry = NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Right Top Limit");
-    nt::NetworkTableEntry m_leftHeightEntry = NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Climber/Left Height");
-    nt::NetworkTableEntry m_rightHeightEntry = NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Climber/Right Height");
+    nt::NetworkTableEntry m_leftTopLimitEntry =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Left Top Limit");
+    nt::NetworkTableEntry m_rightTopLimitEntry =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Right Top Limit");
 
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{
@@ -153,6 +151,7 @@ private:
      * @param rightSpeed right side climber speed.
      * @param ignoreLimits whether or not to ignore soft limits on climber.
      */
-    void SetClimber(double leftSpeed, double righSpeed, bool ignoreLimits = false);
+    void SetClimber(double leftSpeed, double righSpeed,
+                    bool ignoreLimits = false);
 };
 }  // namespace frc3512
