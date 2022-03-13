@@ -70,6 +70,7 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     SetNetworkTablesFlushEnabled(true);
 
     m_autonChooser.AddAutonomous("Auto Shoot One", [=] { AutoShootOne(); });
+    m_autonChooser.AddAutonomous("Auto Shoot Two", [=] { AutoShootTwo(); });
 
     // TIMESLICE ALLOCATION TABLE
     //
@@ -297,14 +298,14 @@ void Robot::RunShooterSM() {
             m_state = ShootingState::kFirstBall;
             break;
         case ShootingState::kFirstBall:
-            if (m_shootTimer.HasElapsed(0.5_s)) {
+            if (m_shootTimer.HasElapsed(0.3_s)) {
                 intake.SetTimeToShoot(false);
                 m_shootTimer.Reset();
                 m_state = ShootingState::kSecondBall;
             }
             break;
         case ShootingState::kSecondBall:
-            if (m_shootTimer.HasElapsed(2_s)) {
+            if (m_shootTimer.HasElapsed(1_s)) {
                 intake.SetTimeToShoot(true);
                 m_shootTimer.Reset();
                 m_state = ShootingState::kEndShoot;

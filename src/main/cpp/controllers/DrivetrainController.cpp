@@ -54,6 +54,18 @@ void DrivetrainController::AddTrajectory(
     }
 }
 
+void DrivetrainController::AddTrajectory(const frc::Trajectory trajectory,
+                                         const frc::TrajectoryConfig& config) {
+    bool hadTrajectory = HaveTrajectory();
+
+    m_trajectory = m_trajectory + trajectory;
+    m_goal = m_trajectory.States().back().pose;
+
+    if (!hadTrajectory) {
+        m_trajectoryTimeElapsed.Reset();
+    }
+}
+
 bool DrivetrainController::HaveTrajectory() const {
     return m_trajectory.States().size() > 0;
 }

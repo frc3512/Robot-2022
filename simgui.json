@@ -3,6 +3,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Autonomous modes": "String Chooser",
+      "/SmartDashboard/Climber": "Mechanism2d",
       "/SmartDashboard/Field": "Field2d",
       "/SmartDashboard/Intake": "Mechanism2d"
     },
@@ -13,6 +14,7 @@
         }
       },
       "/SmartDashboard/Field": {
+        "image": "/home/matthew/Downloads/2022-field.png",
         "window": {
           "visible": true
         }

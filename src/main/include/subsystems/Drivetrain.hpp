@@ -22,6 +22,7 @@
 #include <frc/simulation/DifferentialDrivetrainSim.h>
 #include <frc/simulation/EncoderSim.h>
 #include <frc/smartdashboard/Field2d.h>
+#include <frc/smartdashboard/FieldObject2d.h>
 #include <frc/system/plant/LinearSystemId.h>
 #include <frc/trajectory/TrajectoryConfig.h>
 #include <frc/trajectory/TrapezoidProfile.h>
@@ -172,6 +173,10 @@ public:
      */
     void AddTrajectory(const std::vector<frc::Pose2d>& waypoints,
                        const frc::TrajectoryConfig& config);
+
+    void AddTrajectory(
+        const frc::Trajectory trajectory,
+        const frc::TrajectoryConfig& config = MakeTrajectoryConfig());
 
     /**
      * Sets a new heading goal for the drivetrain to achieve.

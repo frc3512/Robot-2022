@@ -203,6 +203,10 @@ public:
         const std::vector<frc::Pose2d>& waypoints,
         const frc::TrajectoryConfig& config = MakeTrajectoryConfig());
 
+    void AddTrajectory(
+        const frc::Trajectory trajectory,
+        const frc::TrajectoryConfig& config = MakeTrajectoryConfig());
+
     /**
      * Returns true if drivetrain controller has a trajectory to follow.
      */

@@ -264,6 +264,11 @@ void Drivetrain::AddTrajectory(const std::vector<frc::Pose2d>& waypoints,
     m_controller.AddTrajectory(waypoints, config);
 }
 
+void Drivetrain::AddTrajectory(const frc::Trajectory trajectory,
+                               const frc::TrajectoryConfig& config) {
+    m_controller.AddTrajectory(trajectory, config);
+}
+
 void Drivetrain::SetHeadingGoal(const units::radian_t heading) {
     m_turningPID.SetGoal(frc::AngleModulus(heading));
     m_hasNewHeading = true;
