@@ -105,7 +105,9 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
         },
         0.7_ms);
 
-    frc::CameraServer::StartAutomaticCapture();
+    if constexpr (!IsSimulation()) {
+        frc::CameraServer::StartAutomaticCapture();
+    }
 }
 
 Robot::~Robot() {}
