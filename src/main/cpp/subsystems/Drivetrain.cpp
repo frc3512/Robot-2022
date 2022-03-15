@@ -88,7 +88,7 @@ frc::Pose2d Drivetrain::GetReferencePose() const {
 frc::Pose2d Drivetrain::GetPose() const { return m_observer.GetPose(); }
 
 units::radian_t Drivetrain::GetAngle() const {
-    return units::degree_t{m_imu.GetAngle()} + +m_headingOffset;
+    return units::degree_t{m_imu.GetAngle()} + m_headingOffset;
 }
 
 units::meter_t Drivetrain::GetLeftPosition() const {
@@ -125,8 +125,13 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_leftEncoder.Reset();
     m_rightEncoder.Reset();
     m_imu.Reset();
+<<<<<<< HEAD
     m_headingOffset = initialPose.Rotation().Radians();
     m_visionTimer.Reset();
+||||||| constructed merge base
+=======
+    m_headingOffset = initialPose.Rotation().Radians();
+>>>>>>> Fix gyro heading
 
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
@@ -134,8 +139,7 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     xHat(State::kHeading) = initialPose.Rotation().Radians().value();
     xHat.block<4, 1>(3, 0).setZero();
     m_xHat = xHat;
-    m_observer.ResetPosition(initialPose,
-                             frc::Rotation2d(frc::AngleModulus(GetAngle())));
+    m_observer.ResetPosition(initialPose, GetAngle());
 
     if constexpr (frc::RobotBase::IsSimulation()) {
         m_drivetrainSim.SetState(xHat);
@@ -148,12 +152,11 @@ void Drivetrain::ControllerPeriodic() {
 
     UpdateDt();
 
-    Eigen::Vector<double, 5> y{
-        frc::AngleModulus(GetAngle()).value(), GetLeftPosition().value(),
-        GetRightPosition().value(), GetAccelerationX().value(),
-        GetAccelerationY().value()};
-    m_observer.Update(frc::Rotation2d(frc::AngleModulus(GetAngle())),
-                      GetLeftPosition(), GetRightPosition());
+    Eigen::Vector<double, 5> y{GetAngle().value(), GetLeftPosition().value(),
+                               GetRightPosition().value(),
+                               GetAccelerationX().value(),
+                               GetAccelerationY().value()};
+    m_observer.Update(GetAngle(), GetLeftPosition(), GetRightPosition());
 
     Eigen::Vector<double, 7> controllerState = GetStates();
 
