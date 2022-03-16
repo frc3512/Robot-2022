@@ -70,7 +70,6 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     SetNetworkTablesFlushEnabled(true);
 
     m_autonChooser.AddAutonomous("Auto Shoot One", [=] { AutoShootOne(); });
-    m_autonChooser.AddAutonomous("Auto Shoot Two", [=] { AutoShootTwo(); });
 
     // TIMESLICE ALLOCATION TABLE
     //
