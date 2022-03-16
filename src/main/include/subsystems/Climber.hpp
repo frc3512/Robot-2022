@@ -72,12 +72,12 @@ public:
     /**
      * Returns the height of the left side elevator in meters
      */
-    double GetLeftHeight();
+    units::meter_t GetLeftHeight();
 
     /**
      * Returns the height of the right side elevator in meters
      */
-    double GetRightHeight();
+    units::meter_t GetRightHeight();
 
     /**
      * Returns whether or not the right climber has passed the top limit
@@ -85,19 +85,19 @@ public:
     bool HasRightPassedTopLimit();
 
     /**
-     * returns whether or not the right climber has passed the bottom limit.
-     */
-    bool HasRightPassedBottomLimit();
-
-    /**
      * Returns whether or not the left climber has passed the top limit
      */
     bool HasLeftPassedTopLimit();
 
     /**
-     * Returns whether or not the lefth climber has passed the bottom limit.
+     * Returns the voltage applied to left elevator motor.
      */
-    bool HasLeftPassedBottomLimit();
+    units::volt_t GetLeftElevatorMotorOutput() const;
+
+    /**
+     * Returns the voltage applied to right elevator motor.
+     */
+    units::volt_t GetRightElevatorMotorOutput() const;
 
     void RobotPeriodic() override;
 
@@ -121,6 +121,15 @@ private:
 
     frc::Debouncer m_debouncer{50_ms, frc::Debouncer::DebounceType::kBoth};
 
+    // Networktable entries
+    nt::NetworkTableEntry m_leftElevatorEncoderEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Climber/Left Elevator Encoder");
+
+    nt::NetworkTableEntry m_rightElevatorEncoderEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Climber/Right Elevator Encoder");
+
     nt::NetworkTableEntry m_leftTopLimitEntry =
         NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Left Top Limit");
     nt::NetworkTableEntry m_rightTopLimitEntry =
@@ -128,11 +137,11 @@ private:
 
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{
-        frc::LinearSystemId::ElevatorSystem(frc::DCMotor::NEO(), 4.5_kg,
-                                            0.86_in, 20.0)};
+        frc::LinearSystemId::ElevatorSystem(frc::DCMotor::NEO(), 0.5_kg,
+                                            0.125_in, 12.0)};
     frc::sim::LinearSystemSim<2, 1, 1> m_rightClimberSimLS{
-        frc::LinearSystemId::ElevatorSystem(frc::DCMotor::NEO(), 4.5_kg,
-                                            0.86_in, 20.0)};
+        frc::LinearSystemId::ElevatorSystem(frc::DCMotor::NEO(), 0.5_kg,
+                                            0.125_in, 12.0)};
 
     frc::Mechanism2d m_climberSim{60, 60};
     frc::MechanismRoot2d* m_climberBase =
