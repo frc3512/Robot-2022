@@ -125,13 +125,8 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_leftEncoder.Reset();
     m_rightEncoder.Reset();
     m_imu.Reset();
-<<<<<<< HEAD
     m_headingOffset = initialPose.Rotation().Radians();
     m_visionTimer.Reset();
-||||||| constructed merge base
-=======
-    m_headingOffset = initialPose.Rotation().Radians();
->>>>>>> Fix gyro heading
 
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
@@ -263,6 +258,7 @@ void Drivetrain::ControllerPeriodic() {
             (2.0 * DrivetrainController::kWidth));
 
         m_field.SetRobotPose(m_drivetrainSim.GetPose());
+        m_headingGoalEntry.SetBoolean(AtHeading());
     }
 }
 

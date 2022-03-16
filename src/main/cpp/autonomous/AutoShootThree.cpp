@@ -5,49 +5,32 @@
 namespace frc3512 {
 
 void Robot::AutoShootThree() {
-    // Initial Pose - Right up against the Hub
-    const frc::Pose2d kInitialPose{8.757_m, 5.319_m,
-                                   units::radian_t{83 * wpi::numbers::pi / 60}};
-
-    // Intake Pose - right in front of the ball to turn to.
-    frc::Pose2d kIntakePose{8.95_m, 7.2_m,
-                            units::radian_t{3 * wpi::numbers::pi / 2}};
-
-    // Intake Pose 2 - intake the ball in front.
-    frc::Pose2d kIntake2Pose{8.95_m, 7.5_m,
+    // Initial Pose - Right in front of alliance colored ball.
+    frc::Pose2d kInitialPose{8.598_m, 6.081_m,
                              units::radian_t{wpi::numbers::pi / 2}};
 
-    // Intake Pose 3 - intake the ball in front.
-    frc::Pose2d kIntake3Pose{11.47_m, 6.30_m,
-                             units::radian_t{2 * wpi::numbers::pi / 15}};
+    // Intake Pose - Just in front of initial position. Right on top of colored
+    // ball.
+    frc::Pose2d kFirstIntakePose{8.598_m, 7.247_m,
+                                 units::radian_t{wpi::numbers::pi / 2}};
 
-    // End Pose - Within the Tarmac
-    const frc::Pose2d kEndPose{9.12_m, 5.54_m,
-                               units::radian_t{wpi::numbers::pi / 4}};
+    // Shoot Pose - Right up to the fender of the hub.
+    const frc::Pose2d kShootPose{8.459_m, 5.321_m, units::radian_t{-1.917244}};
+
+    // Back Up Pose - Behind and to the left of the shoot pose, redirects the
+    // robot.
+    const frc::Pose2d kBackUpPose{7.948_m, 6.493_m, units::radian_t{0}};
+
+    // Second Intake Pose - To the right of the starting position. Right on top
+    // of second colored ball.
+    frc::Pose2d kSecondIntakePose{10.711_m, 6.071_m, units::radian_t{0}};
 
     drivetrain.Reset(kInitialPose);
-
-    auto config = DrivetrainController::MakeTrajectoryConfig();
-    config.SetReversed(true);
-
-    drivetrain.AddTrajectory(kInitialPose, {}, kIntakePose, config);
-
-    if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
-        return;
-    }
-
-    drivetrain.SetHeadingGoal(units::radian_t{wpi::numbers::pi / 2});
-
-    if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
-        return;
-    }
-
-    kIntakePose = {8.95_m, 7.2_m, units::radian_t{wpi::numbers::pi / 2}};
 
     intake.Deploy();
     intake.Start(Intake::IntakeDirection::kIntake);
 
-    drivetrain.AddTrajectory(kIntakePose, {}, kIntake2Pose);
+    drivetrain.AddTrajectory(kInitialPose, {}, kFirstIntakePose);
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
         return;
@@ -56,38 +39,43 @@ void Robot::AutoShootThree() {
     intake.Stop();
     intake.Stow();
 
-    drivetrain.AddTrajectory(kIntake2Pose, {}, kEndPose, config);
-
-    if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
-        return;
-    }
-
-    drivetrain.SetHeadingGoal(units::radian_t{83 * wpi::numbers::pi / 60});
+    drivetrain.SetHeadingGoal(units::radian_t{(3 * wpi::numbers::pi) / 2});
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
         return;
     }
 
-    /*
-    Shoot(true);
+    kFirstIntakePose = UpdateAutoPoseRotation(
+        kFirstIntakePose, units::radian_t{(3 * wpi::numbers::pi) / 2});
+
+    drivetrain.AddTrajectory(kFirstIntakePose, {}, kShootPose);
+
+    if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
+        return;
+    }
+
+    Shoot(FrontFlywheelConstants::kShootHighFender,
+          BackFlywheelConstants::kShootHighFender);
+    SetReadyToShoot(true);
 
     if (!m_autonChooser.Suspend([=] { return !IsShooting(); })) {
         return;
     }
 
-    SetReadyToShoot(true);
-    */
+    {
+        auto config = DrivetrainController::MakeTrajectoryConfig();
+        config.SetReversed(true);
+        drivetrain.AddTrajectory(kShootPose, {}, kBackUpPose, config);
 
-    drivetrain.SetHeadingGoal(units::radian_t{2 * wpi::numbers::pi / 15});
-
-    if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
-        return;
+        if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
+            return;
+        }
     }
 
     intake.Deploy();
     intake.Start(Intake::IntakeDirection::kIntake);
 
-    drivetrain.AddTrajectory(kEndPose, {}, kIntake3Pose);
+    drivetrain.AddTrajectory(kBackUpPose, {}, kSecondIntakePose);
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
         return;
@@ -96,15 +84,26 @@ void Robot::AutoShootThree() {
     intake.Stop();
     intake.Stow();
 
-    drivetrain.AddTrajectory(kIntake3Pose, {}, kEndPose, config);
+    drivetrain.SetHeadingGoal(units::radian_t{wpi::numbers::pi});
+
+    if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
+        return;
+    }
+
+    kSecondIntakePose = UpdateAutoPoseRotation(
+        kSecondIntakePose, units::radian_t{wpi::numbers::pi});
+
+    drivetrain.AddTrajectory(kSecondIntakePose, {}, kShootPose);
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
         return;
     }
 
-    drivetrain.SetHeadingGoal(units::radian_t{83 * wpi::numbers::pi / 60});
+    Shoot(FrontFlywheelConstants::kShootHighFender,
+          BackFlywheelConstants::kShootHighFender);
+    SetReadyToShoot(true);
 
-    if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
+    if (!m_autonChooser.Suspend([=] { return !IsShooting(); })) {
         return;
     }
 }
