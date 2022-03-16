@@ -21,7 +21,7 @@ TEST_F(ModeTest, AutonToTeleop) {
     drivetrain.Reset(kInitialPose);
     drivetrain.AddTrajectory(kInitialPose, {}, frc::Pose2d{15_m, 0_m, 0_rad});
 
-    frc::sim::StepTiming(3_s);
+    frc::sim::StepTiming(1.5_s);
 
     EXPECT_GT(drivetrain.GetInputs()(0), 0.0);
     EXPECT_GT(drivetrain.GetInputs()(1), 0.0);
