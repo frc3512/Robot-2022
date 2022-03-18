@@ -74,6 +74,7 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     m_autonChooser.AddAutonomous("Shoot One", [=] { AutoShootOne(); });
     m_autonChooser.AddAutonomous("Shoot Two", [=] { AutoShootTwo(); });
     m_autonChooser.AddAutonomous("Shoot Three", [=] { AutoShootThree(); });
+    m_autonChooser.AddAutonomous("Shoot Four", [=] { AutoShootFour(); });
 
     // TIMESLICE ALLOCATION TABLE
     //

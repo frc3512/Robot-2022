@@ -78,8 +78,6 @@ void Intake::TeleopPeriodic() {
 }
 
 void Intake::RobotPeriodic() {
-    static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
-
     if (m_state == IntakeDirection::kOuttake) {
         SetConveyor(0.8);
     } else if (IsTimeToShoot()) {

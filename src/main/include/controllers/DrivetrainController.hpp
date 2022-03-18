@@ -357,7 +357,7 @@ public:
 private:
     static constexpr auto kPositionTolerance = 0.25_m;
     static constexpr auto kVelocityTolerance = 2_mps;
-    static constexpr auto kAngleTolerance = 0.15_rad;
+    static constexpr auto kAngleTolerance = 0.52_rad;
 
     static const frc::LinearSystem<2, 2, 2> kPlant;
 

@@ -39,7 +39,8 @@ Drivetrain::Drivetrain()
            ControllerLabel{"Left position", "m"},
            ControllerLabel{"Right position", "m"},
            ControllerLabel{"Longitudinal Acceleration", "m/s^2"},
-           ControllerLabel{"Lateral Acceleration", "m/s^2"}}) {
+           ControllerLabel{"Lateral Acceleration", "m/s^2"}},
+          true) {
     SetCANSparkMaxBusUsage(m_leftLeader, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_leftFollower, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_rightLeader, Usage::kMinimal);
@@ -259,6 +260,7 @@ void Drivetrain::ControllerPeriodic() {
 
         m_field.SetRobotPose(m_drivetrainSim.GetPose());
         m_headingGoalEntry.SetBoolean(AtHeading());
+        m_atGoalEntry.SetBoolean(AtGoal());
     }
 }
 

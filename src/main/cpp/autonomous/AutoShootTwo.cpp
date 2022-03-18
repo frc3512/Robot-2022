@@ -5,7 +5,8 @@
 namespace frc3512 {
 
 void Robot::AutoShootTwo() {
-    // Initial Pose - Right in front of alliance colored ball
+    // Initial Pose - Right in front of alliance colored ball. The robot starts
+    // pre-loaded with one ball.
     const frc::Pose2d kInitialPose{8.598_m, 6.081_m,
                                    units::radian_t{wpi::numbers::pi / 2}};
 

@@ -4,7 +4,7 @@
 
 namespace frc3512 {
 
-void Robot::AutoShootThree() {
+void Robot::AutoShootFour() {
     // Initial Pose - Right in front of alliance colored ball. The robot starts
     // with one pre-loaded ball.
     frc::Pose2d kInitialPose{8.598_m, 6.081_m,
@@ -24,12 +24,16 @@ void Robot::AutoShootThree() {
 
     // Second Intake Pose - To the right of the starting position. Right on top
     // of second colored ball.
-    frc::Pose2d kSecondIntakePose{12.211_m, 6.071_m, units::radian_t{0}};
+    frc::Pose2d kSecondIntakePose{10.711_m, 6.071_m, units::radian_t{0}};
+
+    // Third Intake Pose - Right in front of the human player station, picks up
+    // single ball.
+    frc::Pose2d kThirdIntakePose{14.040_m, 6.568_m, units::radian_t{0.406644}};
 
     drivetrain.Reset(kInitialPose);
 
-    intake.Start(Intake::IntakeDirection::kIntake);
     intake.Deploy();
+    intake.Start(Intake::IntakeDirection::kIntake);
 
     drivetrain.AddTrajectory(kInitialPose, {}, kFirstIntakePose);
 
@@ -37,8 +41,8 @@ void Robot::AutoShootThree() {
         return;
     }
 
-    intake.Stow();
     intake.Stop();
+    intake.Stow();
 
     drivetrain.SetHeadingGoal(units::radian_t{(3 * wpi::numbers::pi) / 2});
 
@@ -73,17 +77,18 @@ void Robot::AutoShootThree() {
         }
     }
 
-    intake.Start(Intake::IntakeDirection::kIntake);
     intake.Deploy();
+    intake.Start(Intake::IntakeDirection::kIntake);
 
-    drivetrain.AddTrajectory(kBackUpPose, {}, kSecondIntakePose);
+    drivetrain.AddTrajectory(
+        {kBackUpPose, kSecondIntakePose, kThirdIntakePose});
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
         return;
     }
 
-    intake.Stow();
     intake.Stop();
+    intake.Stow();
 
     drivetrain.SetHeadingGoal(units::radian_t{wpi::numbers::pi});
 
@@ -91,10 +96,12 @@ void Robot::AutoShootThree() {
         return;
     }
 
+    kThirdIntakePose = UpdateAutoPoseRotation(
+        kThirdIntakePose, units::radian_t{wpi::numbers::pi});
     kSecondIntakePose = UpdateAutoPoseRotation(
         kSecondIntakePose, units::radian_t{wpi::numbers::pi});
 
-    drivetrain.AddTrajectory(kSecondIntakePose, {}, kShootPose);
+    drivetrain.AddTrajectory({kThirdIntakePose, kSecondIntakePose, kShootPose});
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
         return;

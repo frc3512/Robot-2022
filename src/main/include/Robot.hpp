@@ -180,6 +180,11 @@ public:
     void AutoShootThree();
 
     /**
+     * Shoot four autonomous.
+     */
+    void AutoShootFour();
+
+    /**
      * Returns a pose with the same x and y coordinates, but an updated heading.
      * A utility function for autonomous positions used when the robot turns in
      * place
