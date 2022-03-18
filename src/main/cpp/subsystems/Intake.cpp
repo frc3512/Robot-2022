@@ -68,16 +68,18 @@ void Intake::RobotPeriodic() {
         Stop();
     }
 
-    if (appendageStick2.GetRawButton(5)) {
-        Deploy();
-    } else if (appendageStick2.GetRawButton(6)) {
-        Stow();
+    if (appendageStick2.GetRawButtonPressed(5)) {
+        if (IsDeployed()) {
+            Stow();
+        } else {
+            Deploy();
+        }
     }
 
     if (m_state == IntakeDirection::kOuttake) {
         SetConveyor(0.8);
     } else if (IsTimeToShoot()) {
-        SetConveyor(-0.65);
+        SetConveyor(-0.45);
     } else if (!IsTimeToShoot() && !IsUpperSensorBlocked() &&
                IsLowerSensorBlocked()) {
         SetConveyor(-0.8);

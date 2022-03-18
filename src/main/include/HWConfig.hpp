@@ -92,10 +92,13 @@ constexpr int kArmChannel = 4;
 }  // namespace Intake
 
 namespace Climber {
-/// Right Climber CAN ID
-constexpr int kRightClimbMotorID = 2;
+constexpr int kLeftClimberID = 12;
+constexpr int kRightClimberID = 3;
 
-constexpr int kLeftClimbMotorID = 13;
+constexpr int kBottomSensorChannel = 0;
+constexpr int kTopSensorChannel = 1;
+
+constexpr int kClimberSolenoidChannel = 5;
 }  // namespace Climber
 
 }  // namespace frc3512::HWConfig

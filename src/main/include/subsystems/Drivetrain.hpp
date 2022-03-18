@@ -22,6 +22,7 @@
 #include <frc/simulation/DifferentialDrivetrainSim.h>
 #include <frc/simulation/EncoderSim.h>
 #include <frc/smartdashboard/Field2d.h>
+#include <frc/smartdashboard/FieldObject2d.h>
 #include <frc/system/plant/LinearSystemId.h>
 #include <frc/trajectory/TrajectoryConfig.h>
 #include <frc/trajectory/TrapezoidProfile.h>
@@ -172,6 +173,23 @@ public:
      */
     void AddTrajectory(const std::vector<frc::Pose2d>& waypoints,
                        const frc::TrajectoryConfig& config);
+
+    /**
+     * Adds a trajectory with a pre-determined trajectory.
+     *
+     * This can be called more than once to create a queue of trajectories.
+     * Closed-loop control will be enabled to track the first trajectory.
+     *
+     * @param trajectory Trajectory.
+     * @param config    TrajectoryConfig for this trajectory. This can include
+     *                  constraints on the trajectory dynamics. If adding custom
+     *                  constraints, it is recommended to start with the config
+     *                  returned by MakeTrajectoryConfig() so differential drive
+     *                  dynamics constraints are included automatically.
+     */
+    void AddTrajectory(
+        const frc::Trajectory trajectory,
+        const frc::TrajectoryConfig& config = MakeTrajectoryConfig());
 
     /**
      * Sets a new heading goal for the drivetrain to achieve.

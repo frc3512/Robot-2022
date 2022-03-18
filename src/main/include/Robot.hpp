@@ -14,6 +14,7 @@
 #include "AutonomousChooser.hpp"
 #include "NetworkTableUtil.hpp"
 #include "subsystems/BackFlywheel.hpp"
+#include "subsystems/Climber.hpp"
 #include "subsystems/Drivetrain.hpp"
 #include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/Intake.hpp"
@@ -50,7 +51,14 @@ public:
     /**
      * States used for the multi-subsystem shooting procedure
      */
-    enum class ShootingState { kIdle, kSpinUp, kStartConveyor, kEndShoot };
+    enum class ShootingState {
+        kIdle,
+        kSpinUp,
+        kStartConveyor,
+        kFirstBall,
+        kSecondBall,
+        kEndShoot
+    };
 
     // The subsystem initialization order determines the controller run order.
 
@@ -65,6 +73,9 @@ public:
 
     /// Intake subsystem.
     Intake intake;
+
+    /// Climber subsystem.
+    Climber climber;
 
     Robot();
 

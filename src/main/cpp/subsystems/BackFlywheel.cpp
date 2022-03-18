@@ -145,7 +145,7 @@ units::radians_per_second_t BackFlywheel::ThrottleToReference(double throttle) {
     auto remap = (1.0 - throttle) / 2.0;
     // 2. Rescale that to [400.0...800.0]
     constexpr auto kLow = 100_rad_per_s;
-    constexpr auto kHigh = 800_rad_per_s;
+    constexpr auto kHigh = 1500_rad_per_s;
     auto rescale = kLow + (kHigh - kLow) * remap;
     // 3. Round to the nearest radian per second
     return units::math::round(rescale);
