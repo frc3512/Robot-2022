@@ -29,12 +29,12 @@ bool Intake::IsDeployed() const { return m_fourbar.Get(); }
 
 void Intake::Start(IntakeDirection direction) {
     if (direction == IntakeDirection::kIntake) {
-        m_intakeMotor.Set(0.8);
-        m_miniArmMotor.Set(-0.8);
+        m_intakeMotor.Set(0.95);
+        m_miniArmMotor.Set(-0.95);
         m_state = IntakeDirection::kIntake;
     } else if (direction == IntakeDirection::kOuttake) {
-        m_intakeMotor.Set(-0.8);
-        m_miniArmMotor.Set(0.8);
+        m_intakeMotor.Set(-0.95);
+        m_miniArmMotor.Set(0.95);
         m_state = IntakeDirection::kOuttake;
     } else {
         m_intakeMotor.Set(0.0);
