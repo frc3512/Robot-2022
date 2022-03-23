@@ -4,6 +4,7 @@
 
 #include <frc/DigitalInput.h>
 #include <frc/Encoder.h>
+#include <frc/Solenoid.h>
 #include <frc/Timer.h>
 #include <frc/estimator/KalmanFilter.h>
 #include <frc/filter/LinearFilter.h>
@@ -42,6 +43,16 @@ public:
 
     FrontFlywheel(const FrontFlywheel&) = delete;
     FrontFlywheel& operator=(const FrontFlywheel&) = delete;
+
+    /**
+     * Deploys the solenoid for the shooter.
+     */
+    void DeployShooterSolenoid();
+
+    /**
+     * Stows the solenoid for the shooter.
+     */
+    void StowShooterSolenoid();
 
     /**
      * Sets whether the robot will adjust the front flywheel's
@@ -136,6 +147,9 @@ private:
 
     frc::Encoder m_frontEncoder{HWConfig::Flywheel::kFrontEncoderA,
                                 HWConfig::Flywheel::kFrontEncoderB};
+
+    frc::Solenoid m_solenoid{frc::PneumaticsModuleType::CTREPCM,
+                             HWConfig::Flywheel::kShooterSolenoidChannel};
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetFrontPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{

@@ -68,6 +68,10 @@ constexpr int kBackEncoderA = 0;
 
 /// Back encoder channel B
 constexpr int kBackEncoderB = 1;
+
+/// Angle solenoid channel
+constexpr int kShooterSolenoidChannel = 7;  // Get the correct value
+
 }  // namespace Flywheel
 
 namespace Intake {
