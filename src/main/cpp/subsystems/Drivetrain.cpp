@@ -158,7 +158,7 @@ void Drivetrain::ControllerPeriodic() {
     while (visionQueue.size() > 0) {
         auto measurement = visionQueue.pop_front();
 
-        m_controller.SetVisionMeasurements(measurement.yaw);
+        m_controller.SetVisionYaw(measurement.yaw);
         m_yawControllerEntry.SetDouble(measurement.yaw.value());
     }
 
@@ -329,6 +329,10 @@ units::ampere_t Drivetrain::GetCurrentDraw() const {
 }
 
 frc::Pose2d Drivetrain::GetSimPose() const { return m_drivetrainSim.GetPose(); }
+
+units::radian_t Drivetrain::GetVisionYaw() {
+    return m_controller.GetVisionYaw();
+}
 
 void Drivetrain::DisabledInit() {
     SetBrakeMode();

@@ -27,6 +27,7 @@
 #include <frc/trajectory/TrajectoryConfig.h>
 #include <frc/trajectory/TrapezoidProfile.h>
 #include <networktables/NetworkTableEntry.h>
+#include <photonlib/PhotonCamera.h>
 #include <rev/CANSparkMax.h>
 #include <units/acceleration.h>
 #include <units/angle.h>
@@ -269,6 +270,11 @@ public:
      */
     frc::Pose2d GetSimPose() const;
 
+    /**
+     * Returns the yaw from vision
+     */
+    units::radian_t GetVisionYaw();
+
     void DisabledInit() override;
 
     void AutonomousInit() override;
@@ -320,6 +326,10 @@ private:
 
     DrivetrainController m_controller;
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
+
+    photonlib::PhotonCamera m_camera{"mmal_service_16.1"};
+
+    frc2::PIDController aimPID{.1, 0, 0};
 
     frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
         5_rad_per_s, 2.2_rad_per_s_sq};

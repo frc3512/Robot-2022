@@ -24,9 +24,23 @@ DrivetrainController::DrivetrainController() {
     m_trajectoryTimeElapsed.Start();
 }
 
-void DrivetrainController::SetVisionMeasurements(units::radian_t yaw) {
+void DrivetrainController::SetVisionYaw(units::radian_t yaw) {
     m_visionYaw = yaw;
 }
+
+void DrivetrainController::SetVisionPitch(units::radian_t pitch) {
+    m_visionPitch = pitch;
+}
+
+void DrivetrainController::SetVisionRange(units::meter_t range) {
+    m_visionRange = range;
+}
+
+units::radian_t DrivetrainController::GetVisionYaw() { return m_visionYaw; }
+
+units::radian_t DrivetrainController::GetVisionPitch() { return m_visionPitch; }
+
+units::meter_t DrivetrainController::GetVisionRange() { return m_visionRange; }
 
 units::radian_t DrivetrainController::CalculateHeading(
     frc::Translation2d targetInGlobal, frc::Translation2d drivetrainInGlobal) {

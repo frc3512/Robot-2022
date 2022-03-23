@@ -293,6 +293,10 @@ void Robot::RunShooterSM() {
             }
             break;
         case ShootingState::kStartConveyor:
+            if (vision.HaveTargets()) {
+                drivetrain.SetHeadingGoal(-drivetrain.GetVisionYaw() +
+                                          drivetrain.GetHeading());
+            }
             intake.SetTimeToShoot(true);
             m_shootTimer.Reset();
             m_shootTimer.Start();

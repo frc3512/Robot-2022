@@ -172,7 +172,36 @@ public:
      *
      * @param yaw yaw measurement in radians from the vision subsystem.
      */
-    void SetVisionMeasurements(units::radian_t yaw);
+    void SetVisionYaw(units::radian_t yaw);
+
+    /**
+     * Set pitch of the vision measurment.
+     *
+     * @param pitch pitch measurement in radians from the vision subsystem.
+     */
+    void SetVisionPitch(units::radian_t pitch);
+
+    /**
+     * Set range of the vision measurment.
+     *
+     * @param range range measurement in radians from the vision subsystem.
+     */
+    void SetVisionRange(units::meter_t range);
+
+    /**
+     * Return yaw from what vision measured.
+     */
+    units::radian_t GetVisionYaw();
+
+    /**
+     * Return pitch from what vision measured.
+     */
+    units::radian_t GetVisionPitch();
+
+    /**
+     * Return range from what vision measured.
+     */
+    units::meter_t GetVisionRange();
 
     /**
      * Returns the angle the robot must rotate to in the global frame to point
@@ -345,6 +374,8 @@ private:
     frc::Timer m_trajectoryTimeElapsed;
 
     units::radian_t m_visionYaw = 0_rad;
+    units::radian_t m_visionPitch = 0_rad;
+    units::meter_t m_visionRange = 0_m;
     units::second_t m_timestamp = 0_s;
 
     frc::Pose2d m_drivetrainNextPoseInGlobal;
