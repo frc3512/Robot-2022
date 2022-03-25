@@ -71,7 +71,7 @@ Drivetrain::Drivetrain()
 
     m_turningPID.EnableContinuousInput(units::radian_t{-wpi::numbers::pi},
                                        units::radian_t{wpi::numbers::pi});
-    m_turningPID.SetTolerance(units::radian_t{0.05},
+    m_turningPID.SetTolerance(units::radian_t{0.25},
                               units::radians_per_second_t{2});
 
     frc::SmartDashboard::PutData(&m_field);
@@ -88,7 +88,7 @@ frc::Pose2d Drivetrain::GetReferencePose() const {
 frc::Pose2d Drivetrain::GetPose() const { return m_observer.GetPose(); }
 
 units::radian_t Drivetrain::GetAngle() const {
-    return units::degree_t{m_imu.GetAngle()};
+    return units::degree_t{m_imu.GetAngle() + m_headingOffset};
 }
 
 units::meter_t Drivetrain::GetLeftPosition() const {
@@ -125,6 +125,7 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_leftEncoder.Reset();
     m_rightEncoder.Reset();
     m_imu.Reset();
+    m_headingOffset = initialPose.Rotation().Radians();
 
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
@@ -207,6 +208,9 @@ void Drivetrain::ControllerPeriodic() {
             controllerState(DrivetrainController::State::kHeading)});
     }
 
+    m_currHeadingEntry.SetDouble(m_turningPID.GetGoal().position.value());
+    m_headingGoalValueEntry.SetDouble(m_turningPID.GetGoal().position.value());
+
     Log(m_controller.GetReferences(), GetStates(), m_u, y);
 
     if constexpr (frc::RobotBase::IsSimulation()) {
@@ -225,7 +229,8 @@ void Drivetrain::ControllerPeriodic() {
             m_drivetrainSim.GetRightPosition().value());
         m_rightEncoderSim.SetRate(m_drivetrainSim.GetRightVelocity().value());
         m_imuSim.SetGyroAngleZ(
-            units::degree_t{m_drivetrainSim.GetHeading().Radians()});
+            units::degree_t{m_drivetrainSim.GetHeading().Radians()} -
+            m_headingOffset);
 
         const auto& plant = DrivetrainController::GetPlant();
         Eigen::Vector<double, 2> x{m_drivetrainSim.GetLeftVelocity().value(),
@@ -247,7 +252,10 @@ void Drivetrain::ControllerPeriodic() {
     }
 }
 
-void Drivetrain::RobotPeriodic() {}
+void Drivetrain::RobotPeriodic() {
+    m_headingGoalEntry.SetBoolean(AtHeading());
+    m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
+}
 
 void Drivetrain::AddTrajectory(const frc::Pose2d& start,
                                const std::vector<frc::Translation2d>& interior,
@@ -303,7 +311,7 @@ frc::TrajectoryConfig Drivetrain::MakeTrajectoryConfig(
 
 bool Drivetrain::AtGoal() const { return m_controller.AtGoal(); }
 
-bool Drivetrain::AtHeading() const { return m_turningPID.AtGoal(); }
+bool Drivetrain::AtHeading() { return m_turningPID.AtGoal(); }
 
 units::radian_t Drivetrain::GetHeading() {
     Eigen::Vector<double, 7> controllerState = GetStates();
@@ -404,6 +412,10 @@ void Drivetrain::TeleopPeriodic() {
 
     m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
     m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
+
+    if (driveStick2.GetRawButtonPressed(4)) {
+        SetHeadingGoal(GetHeading() - units::radian_t{0.5});
+    }
 }
 
 void Drivetrain::TestPeriodic() {

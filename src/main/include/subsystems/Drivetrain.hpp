@@ -242,7 +242,7 @@ public:
     /**
      * Returns whether the drivetrain is at the goal heading.
      */
-    bool AtHeading() const;
+    bool AtHeading();
 
     /**
      * Returns the current heading state. Used for setting points after
@@ -320,6 +320,7 @@ private:
                                 HWConfig::Drivetrain::kRightEncoderB};
 
     frc::ADIS16470_IMU m_imu;
+    units::radian_t m_headingOffset = 0_rad;
 
     frc::DifferentialDriveOdometry m_observer{frc::Rotation2d(), frc::Pose2d()};
     Eigen::Vector<double, 7> m_xHat = Eigen::Vector<double, 7>::Zero();
@@ -329,10 +330,8 @@ private:
 
     photonlib::PhotonCamera m_camera{"mmal_service_16.1"};
 
-    frc2::PIDController aimPID{.1, 0, 0};
-
     frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
-        5_rad_per_s, 2.2_rad_per_s_sq};
+        10_rad_per_s, 4.4_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
         kTurningP, kTurningI, kTurningD, m_turningConstraints,
         Constants::kControllerPeriod};
@@ -366,6 +365,14 @@ private:
     nt::NetworkTableEntry m_hasHeadingGoalEntry =
         NetworkTableUtil::MakeBoolEntry(
             "/Diagnostics/Drivetrain/Outputs/Has New Goal Heading");
+
+    nt::NetworkTableEntry m_currHeadingEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Current Heading");
+
+    nt::NetworkTableEntry m_headingGoalValueEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Heading Goal");
 
     /**
      * Set drivetrain motors to brake mode, which the feedback controllers

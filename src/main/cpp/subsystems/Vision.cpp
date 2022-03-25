@@ -65,25 +65,10 @@ void Vision::RobotPeriodic() {
     photonlib::PhotonTrackedTarget target = result.GetBestTarget();
 
     if (frc::DriverStation::IsTeleop()) {
-        if (appendageStick1.GetRawButtonPressed(2)) {
-            SwitchDriverMode(true);
-        } else if (appendageStick1.GetRawButtonPressed(3)) {
-            SwitchDriverMode(false);
-        }
-        if (appendageStick1.GetRawButtonPressed(7)) {
-            SetPipeline(kTargetPipeline);
-        }
-
         if (appendageStick1.GetRawButtonPressed(4)) {
             TurnLEDOn();
         } else if (appendageStick1.GetRawButtonPressed(6)) {
             TurnLEDOff();
-        }
-
-        if (m_allianceColor.compare("Blue") == 0) {
-            SetPipeline(kBlueBallPipeline);
-        } else {
-            SetPipeline(kRedBallPipeline);
         }
     }
 

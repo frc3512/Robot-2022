@@ -180,6 +180,13 @@ void Robot::TeleopPeriodic() {
     static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
+    if (driveStick2.GetRawButtonPressed(5)) {
+        if (vision.HaveTargets()) {
+            drivetrain.SetHeadingGoal(-drivetrain.GetVisionYaw() +
+                                      drivetrain.GetHeading());
+        }
+    }
+
     if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
         if (driveStick1.GetRawButtonPressed(1) ||
             driveStick2.GetRawButtonPressed(1) ||
@@ -293,10 +300,6 @@ void Robot::RunShooterSM() {
             }
             break;
         case ShootingState::kStartConveyor:
-            if (vision.HaveTargets()) {
-                drivetrain.SetHeadingGoal(-drivetrain.GetVisionYaw() +
-                                          drivetrain.GetHeading());
-            }
             intake.SetTimeToShoot(true);
             m_shootTimer.Reset();
             m_shootTimer.Start();
