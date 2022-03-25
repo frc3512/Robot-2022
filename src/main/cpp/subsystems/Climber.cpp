@@ -77,7 +77,7 @@ void Climber::TeleopPeriodic() {
 
     // Disable soft limits for comps. Couldn't debug before matches, no one has
     // had any problems with them, so they're unnecessary for now.
-    SetClimber(leftY, rightY, false);
+    SetClimber(leftY, rightY, true);
 
     if (appendageStick1.GetRawButtonPressed(1)) {
         if (IsClimberDeployed()) {

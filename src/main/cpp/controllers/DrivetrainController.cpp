@@ -197,7 +197,7 @@ frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig() {
 frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig(
     units::meters_per_second_t startVelocity,
     units::meters_per_second_t endVelocity) {
-    frc::TrajectoryConfig config{kMaxV * 0.25, 2.2_mps_sq};
+    frc::TrajectoryConfig config{kMaxV * 0.5, 6.6_mps_sq};
 
     config.AddConstraint(frc::DifferentialDriveVelocitySystemConstraint{
         kPlant, frc::DifferentialDriveKinematics{kWidth}, 8_V});
@@ -227,6 +227,23 @@ Eigen::Vector<double, 7> DrivetrainController::Dynamics(
         ((x(State::kRightVelocity) - x(State::kLeftVelocity)) / kWidth).value();
     xdot.block<4, 1>(3, 0) = A * x.block<4, 1>(3, 0) + B * u;
     return xdot;
+}
+
+frc::LinearSystem<4, 2, 2> DrivetrainController::VelocityPositionDynamics() {
+    Eigen::Matrix<double, 4, 4> A;
+    A.block<2, 2>(0, 0) = kPlant.A();
+    A.block<2, 2>(0, 2).setZero();
+    A.block<2, 2>(2, 0).setIdentity();
+    A.block<2, 2>(2, 2).setZero();
+    Eigen::Matrix<double, 4, 2> B;
+    B.block<2, 2>(0, 0) = kPlant.B();
+    B.block<2, 2>(2, 0).setZero();
+    Eigen::Matrix<double, 2, 4> C;
+    C.block<2, 2>(0, 0).setZero();
+    C.block<2, 2>(0, 2).setIdentity();
+    Eigen::Matrix<double, 2, 2> D = Eigen::Matrix<double, 2, 2>::Zero();
+
+    return frc::LinearSystem<4, 2, 2>(A, B, C, D);
 }
 
 Eigen::Vector<double, 5> DrivetrainController::LocalMeasurementModel(

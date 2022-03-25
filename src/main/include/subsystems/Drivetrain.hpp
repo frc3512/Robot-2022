@@ -12,6 +12,8 @@
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/controller/SimpleMotorFeedforward.h>
 #include <frc/estimator/AngleStatistics.h>
+#include <frc/estimator/KalmanFilter.h>
+#include <frc/estimator/KalmanFilterLatencyCompensator.h>
 #include <frc/filter/LinearFilter.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Translation2d.h>
@@ -49,7 +51,8 @@ namespace frc3512 {
 /**
  * The drivetrain subsystem.
  *
- * The drivetrain uses an unscented Kalman filter for state estimation.
+ * The drivetrain uses a Kalman Filter for encoder position and velocity
+ * estimation and the DifferentialDriveOdometry class for pose estimation.
  */
 class Drivetrain : public ControlledSubsystemBase<7, 2, 5> {
 public:
@@ -304,6 +307,7 @@ private:
     static const Eigen::Matrix<double, 2, 2> kGlobalR;
 
     static const frc::LinearSystem<2, 2, 2> kPlant;
+    static frc::LinearSystem<2, 2, 2> kVelPosDynamics;
 
     rev::CANSparkMax m_leftLeader{HWConfig::Drivetrain::kLeftMotorLeaderID,
                                   rev::CANSparkMax::MotorType::kBrushless};
@@ -326,6 +330,24 @@ private:
 
     frc::ADIS16470_IMU m_imu;
     units::radian_t m_headingOffset = 0_rad;
+
+    units::meter_t m_leftPos;
+    units::meter_t m_lastLeftPos;
+    units::meter_t m_rightPos;
+    units::meter_t m_lastRightPos;
+    units::second_t m_time = frc::Timer::GetFPGATimestamp();
+    units::second_t m_lastTime = m_time - Constants::kControllerPeriod;
+
+    units::meters_per_second_t m_leftVelocity;
+    units::meters_per_second_t m_rightVelocity;
+    frc::LinearFilter<units::meters_per_second_t> m_velocityFilter =
+        frc::LinearFilter<units::meters_per_second_t>::MovingAverage(4);
+
+    frc::KalmanFilter<2, 2, 2> m_velPosObserver{kVelPosDynamics,
+                                                {0.25, 0.25},
+                                                {DrivetrainController::kDpP / Constants::kControllerPeriod.value(), 
+                                                DrivetrainController::kDpP / Constants::kControllerPeriod.value()},
+                                                Constants::kControllerPeriod};
 
     frc::DifferentialDriveOdometry m_observer{frc::Rotation2d(), frc::Pose2d()};
     Eigen::Vector<double, 7> m_xHat = Eigen::Vector<double, 7>::Zero();

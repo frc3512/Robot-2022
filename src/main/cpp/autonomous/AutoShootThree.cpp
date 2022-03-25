@@ -24,7 +24,7 @@ void Robot::AutoShootThree() {
 
     // Second Intake Pose - To the right of the starting position. Right on top
     // of second colored ball.
-    frc::Pose2d kSecondIntakePose{12.211_m, 6.071_m, units::radian_t{0}};
+    frc::Pose2d kSecondIntakePose{10.711_m, 6.071_m, units::radian_t{0}};
 
     drivetrain.Reset(kInitialPose);
 

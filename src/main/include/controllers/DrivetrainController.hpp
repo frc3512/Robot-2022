@@ -57,7 +57,7 @@ public:
     /// Drivetrain distance per encoder pulse.
     static constexpr double kDpP =
         (2.0 * wpi::numbers::pi * kWheelRadius.value()) * kDriveGearRatio /
-        2048.0;
+        512.0;
 
     /// Drivetrain chassis width.
     static constexpr units::meter_t kWidth = 0.65664_m;
@@ -333,6 +333,8 @@ public:
      */
     static Eigen::Vector<double, 7> Dynamics(const Eigen::Vector<double, 7>& x,
                                              const Eigen::Vector<double, 2>& u);
+
+    static frc::LinearSystem<4, 2, 2> VelocityPositionDynamics();
 
     /**
      * Returns the local measurements that correspond to the given state and
