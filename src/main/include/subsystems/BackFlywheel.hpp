@@ -4,6 +4,7 @@
 
 #include <frc/DigitalInput.h>
 #include <frc/Encoder.h>
+#include <frc/Solenoid.h>
 #include <frc/Timer.h>
 #include <frc/estimator/KalmanFilter.h>
 #include <frc/filter/LinearFilter.h>
@@ -50,6 +51,21 @@ public:
      * @param moveAndShoot Whether or not to move and shoot.
      */
     void SetMoveAndShoot(bool moveAndShoot);
+
+    /**
+     * Deploys the hood out.
+     */
+    void DeployHood();
+
+    /**
+     * Stows the hood in.
+     */
+    void StowHood();
+
+    /**
+     * Returns whether or not the hood is deployed.
+     */
+    bool IsHoodDeployed();
 
     /**
      * Returns angular displacement of the rear flywheel
@@ -136,6 +152,8 @@ private:
 
     frc::Encoder m_backEncoder{HWConfig::Flywheel::kBackEncoderA,
                                HWConfig::Flywheel::kBackEncoderB};
+    frc::Solenoid m_solenoid{frc::PneumaticsModuleType::CTREPCM,
+                             HWConfig::Flywheel::kShooterSolenoidChannel};
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetBackPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{

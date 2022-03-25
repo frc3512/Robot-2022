@@ -148,9 +148,6 @@ private:
     frc::Encoder m_frontEncoder{HWConfig::Flywheel::kFrontEncoderA,
                                 HWConfig::Flywheel::kFrontEncoderB};
 
-    frc::Solenoid m_solenoid{frc::PneumaticsModuleType::CTREPCM,
-                             HWConfig::Flywheel::kShooterSolenoidChannel};
-
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetFrontPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
         m_plant,

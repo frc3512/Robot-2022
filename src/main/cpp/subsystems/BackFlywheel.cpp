@@ -37,6 +37,12 @@ BackFlywheel::BackFlywheel()
     SetGoal(0_rad_per_s);
 }
 
+void BackFlywheel::DeployHood() { m_solenoid.Set(false); }
+
+void BackFlywheel::StowHood() { m_solenoid.Set(true); }
+
+bool BackFlywheel::IsHoodDeployed() { return !m_solenoid.Get(); }
+
 void BackFlywheel::SetMoveAndShoot(bool moveAndShoot) {
     m_moveAndShoot = moveAndShoot;
 }
@@ -73,7 +79,17 @@ void BackFlywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void BackFlywheel::TeleopPeriodic() {}
+void BackFlywheel::TeleopPeriodic() {
+    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
+
+    if (driveStick2.GetRawButtonPressed(4)) {
+        if (IsHoodDeployed()) {
+            StowHood();
+        } else {
+            DeployHood();
+        }
+    }
+}
 
 void BackFlywheel::RobotPeriodic() {
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
