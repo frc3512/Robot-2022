@@ -136,7 +136,7 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_xHat = xHat;
     m_observer.ResetPosition(initialPose, GetAngle());
     Eigen::Vector<double, 2> filterXHat = Eigen::Vector<double, 2>::Zero();
-    m_velObserver.SetXhat(filterXHat);
+    m_velocityObserver.SetXhat(filterXHat);
 
     if constexpr (frc::RobotBase::IsSimulation()) {
         m_drivetrainSim.SetState(xHat);
@@ -149,7 +149,7 @@ void Drivetrain::ControllerPeriodic() {
 
     UpdateDt();
 
-    m_velObserver.Predict(m_u, GetDt());
+    m_velocityObserver.Predict(m_u, GetDt());
 
     m_leftPos = GetLeftPosition();
     m_rightPos = GetRightPosition();
@@ -163,8 +163,8 @@ void Drivetrain::ControllerPeriodic() {
     auto rawRightVelocity =
         (m_rightPos - m_lastRightPos) / (m_time - m_lastTime);
 
-    m_leftVelocity = m_velocityFilter.Calculate(rawLeftVelocity);
-    m_rightVelocity = m_velocityFilter.Calculate(rawRightVelocity);
+    m_leftVelocity = m_leftVelocityFilter.Calculate(rawLeftVelocity);
+    m_rightVelocity = m_rightVelocityFilter.Calculate(rawRightVelocity);
 
     Eigen::Vector<double, 2> velPosY{GetLeftVelocity().value(),
                                      GetRightVelocity().value()};
@@ -175,7 +175,7 @@ void Drivetrain::ControllerPeriodic() {
                                GetAccelerationY().value()};
     m_observer.Update(GetAngle(), GetLeftPosition(), GetRightPosition());
 
-    m_velObserver.Correct(m_controller.GetInputs(), velPosY);
+    m_velocityObserver.Correct(m_controller.GetInputs(), velPosY);
 
     Eigen::Vector<double, 7> controllerState = GetStates();
 
@@ -361,8 +361,8 @@ const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
         GetPose().X().value(),
         GetPose().Y().value(),
         GetAngle().value(),
-        m_velObserver.Xhat(VelocityState::kLeftVelocity),
-        m_velObserver.Xhat(VelocityState::kRightVelocity),
+        m_velocityObserver.Xhat(VelocityState::kLeftVelocity),
+        m_velocityObserver.Xhat(VelocityState::kRightVelocity),
         GetLeftPosition().value(),
         GetRightPosition().value()};
     return m_xHat;

@@ -340,10 +340,12 @@ private:
     units::meters_per_second_t m_leftVelocity;
     units::meters_per_second_t m_rightVelocity;
     // Filters out encoder quantization noise
-    frc::LinearFilter<units::meters_per_second_t> m_velocityFilter =
+    frc::LinearFilter<units::meters_per_second_t> m_leftVelocityFilter =
+        frc::LinearFilter<units::meters_per_second_t>::MovingAverage(4);
+    frc::LinearFilter<units::meters_per_second_t> m_rightVelocityFilter =
         frc::LinearFilter<units::meters_per_second_t>::MovingAverage(4);
 
-    frc::KalmanFilter<2, 2, 2> m_velObserver{
+    frc::KalmanFilter<2, 2, 2> m_velocityObserver{
         kPlant,
         {0.25, 0.25},
         {DrivetrainController::kDpP / Constants::kControllerPeriod.value(),
