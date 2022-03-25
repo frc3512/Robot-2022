@@ -80,6 +80,9 @@ public:
     /// Maximum linear acceleration.
     static constexpr auto kMaxA = 12_V / kLinearA;
 
+    /**
+     * States of the drivetrain wheel velocity filter.
+     */
     class VelocityFilterState {
     public:
         /// Left encoder velocity.
