@@ -15,7 +15,7 @@
 
 using namespace frc3512;
 
-const frc::LinearSystem<2, 2, 2> DrivetrainController::kPlant{GetPlant()};
+frc::LinearSystem<2, 2, 2> DrivetrainController::kPlant{GetPlant()};
 
 DrivetrainController::DrivetrainController() {
     m_fb.SetTolerance(
@@ -227,23 +227,6 @@ Eigen::Vector<double, 7> DrivetrainController::Dynamics(
         ((x(State::kRightVelocity) - x(State::kLeftVelocity)) / kWidth).value();
     xdot.block<4, 1>(3, 0) = A * x.block<4, 1>(3, 0) + B * u;
     return xdot;
-}
-
-frc::LinearSystem<4, 2, 2> DrivetrainController::VelocityPositionDynamics() {
-    Eigen::Matrix<double, 4, 4> A;
-    A.block<2, 2>(0, 0) = kPlant.A();
-    A.block<2, 2>(0, 2).setZero();
-    A.block<2, 2>(2, 0).setIdentity();
-    A.block<2, 2>(2, 2).setZero();
-    Eigen::Matrix<double, 4, 2> B;
-    B.block<2, 2>(0, 0) = kPlant.B();
-    B.block<2, 2>(2, 0).setZero();
-    Eigen::Matrix<double, 2, 4> C;
-    C.block<2, 2>(0, 0).setZero();
-    C.block<2, 2>(0, 2).setIdentity();
-    Eigen::Matrix<double, 2, 2> D = Eigen::Matrix<double, 2, 2>::Zero();
-
-    return frc::LinearSystem<4, 2, 2>(A, B, C, D);
 }
 
 Eigen::Vector<double, 5> DrivetrainController::LocalMeasurementModel(

@@ -80,6 +80,14 @@ public:
     /// Maximum linear acceleration.
     static constexpr auto kMaxA = 12_V / kLinearA;
 
+    class VelocityFilterState {
+    public:
+        /// Left encoder velocity.
+        static constexpr int kLeftVelocity = 0;
+        /// Right encoder velocity.
+        static constexpr int kRightVelocity = 1;
+    };
+
     /**
      * States of the drivetrain system.
      */
@@ -334,8 +342,6 @@ public:
     static Eigen::Vector<double, 7> Dynamics(const Eigen::Vector<double, 7>& x,
                                              const Eigen::Vector<double, 2>& u);
 
-    static frc::LinearSystem<4, 2, 2> VelocityPositionDynamics();
-
     /**
      * Returns the local measurements that correspond to the given state and
      * input vectors.
@@ -361,7 +367,7 @@ private:
     static constexpr auto kVelocityTolerance = 2_mps;
     static constexpr auto kAngleTolerance = 0.52_rad;
 
-    static const frc::LinearSystem<2, 2, 2> kPlant;
+    static frc::LinearSystem<2, 2, 2> kPlant;
 
     frc::ControlAffinePlantInversionFeedforward<7, 2> m_ff{
         Dynamics, Constants::kControllerPeriod};

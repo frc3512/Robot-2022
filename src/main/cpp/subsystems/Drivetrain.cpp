@@ -21,10 +21,7 @@ using namespace frc3512;
 const Eigen::Matrix<double, 2, 2> Drivetrain::kGlobalR =
     frc::MakeCovMatrix(0.2, 0.2);
 
-const frc::LinearSystem<2, 2, 2> Drivetrain::kPlant{
-    DrivetrainController::GetPlant()};
-frc::LinearSystem<2, 2, 2> Drivetrain::kVelPosDynamics{
-    DrivetrainController::GetPlant()};
+frc::LinearSystem<2, 2, 2> Drivetrain::kPlant{DrivetrainController::GetPlant()};
 
 Drivetrain::Drivetrain()
     : ControlledSubsystemBase(
@@ -139,7 +136,7 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_xHat = xHat;
     m_observer.ResetPosition(initialPose, GetAngle());
     Eigen::Vector<double, 2> filterXHat = Eigen::Vector<double, 2>::Zero();
-    m_velPosObserver.SetXhat(filterXHat);
+    m_velObserver.SetXhat(filterXHat);
 
     if constexpr (frc::RobotBase::IsSimulation()) {
         m_drivetrainSim.SetState(xHat);
@@ -152,14 +149,19 @@ void Drivetrain::ControllerPeriodic() {
 
     UpdateDt();
 
-    m_velPosObserver.Predict(m_u, GetDt());
+    m_velObserver.Predict(m_u, GetDt());
 
     m_leftPos = GetLeftPosition();
     m_rightPos = GetRightPosition();
     m_time = frc::Timer::GetFPGATimestamp();
 
+    // WPILib uses the time between pulses in GetRate() to calculate velocity,
+    // but this is very noisy for high-resolution encoders. Instead, we
+    // calculate a velocity from the change in position over change in time,
+    // which is more precise.
     auto rawLeftVelocity = (m_leftPos - m_lastLeftPos) / (m_time - m_lastTime);
-    auto rawRightVelocity = (m_rightPos - m_lastRightPos) / (m_time - m_lastTime);
+    auto rawRightVelocity =
+        (m_rightPos - m_lastRightPos) / (m_time - m_lastTime);
 
     m_leftVelocity = m_velocityFilter.Calculate(rawLeftVelocity);
     m_rightVelocity = m_velocityFilter.Calculate(rawRightVelocity);
@@ -173,7 +175,7 @@ void Drivetrain::ControllerPeriodic() {
                                GetAccelerationY().value()};
     m_observer.Update(GetAngle(), GetLeftPosition(), GetRightPosition());
 
-    m_velPosObserver.Correct(m_controller.GetInputs(), velPosY);
+    m_velObserver.Correct(m_controller.GetInputs(), velPosY);
 
     Eigen::Vector<double, 7> controllerState = GetStates();
 
@@ -354,10 +356,14 @@ units::radian_t Drivetrain::GetHeading() {
 }
 
 const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
+    using VelocityState = DrivetrainController::VelocityFilterState;
     m_xHat = Eigen::Vector<double, 7>{
-        GetPose().X().value(),    GetPose().Y().value(),
-        GetAngle().value(),       m_velPosObserver.Xhat(0),
-        m_velPosObserver.Xhat(1), GetLeftPosition().value(),
+        GetPose().X().value(),
+        GetPose().Y().value(),
+        GetAngle().value(),
+        m_velObserver.Xhat(VelocityState::kLeftVelocity),
+        m_velObserver.Xhat(VelocityState::kRightVelocity),
+        GetLeftPosition().value(),
         GetRightPosition().value()};
     return m_xHat;
 }

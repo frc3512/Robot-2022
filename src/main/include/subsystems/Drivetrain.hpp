@@ -306,8 +306,7 @@ private:
 
     static const Eigen::Matrix<double, 2, 2> kGlobalR;
 
-    static const frc::LinearSystem<2, 2, 2> kPlant;
-    static frc::LinearSystem<2, 2, 2> kVelPosDynamics;
+    static frc::LinearSystem<2, 2, 2> kPlant;
 
     rev::CANSparkMax m_leftLeader{HWConfig::Drivetrain::kLeftMotorLeaderID,
                                   rev::CANSparkMax::MotorType::kBrushless};
@@ -340,14 +339,16 @@ private:
 
     units::meters_per_second_t m_leftVelocity;
     units::meters_per_second_t m_rightVelocity;
+    // Filters out encoder quantization noise
     frc::LinearFilter<units::meters_per_second_t> m_velocityFilter =
         frc::LinearFilter<units::meters_per_second_t>::MovingAverage(4);
 
-    frc::KalmanFilter<2, 2, 2> m_velPosObserver{kVelPosDynamics,
-                                                {0.25, 0.25},
-                                                {DrivetrainController::kDpP / Constants::kControllerPeriod.value(), 
-                                                DrivetrainController::kDpP / Constants::kControllerPeriod.value()},
-                                                Constants::kControllerPeriod};
+    frc::KalmanFilter<2, 2, 2> m_velObserver{
+        kPlant,
+        {0.25, 0.25},
+        {DrivetrainController::kDpP / Constants::kControllerPeriod.value(),
+         DrivetrainController::kDpP / Constants::kControllerPeriod.value()},
+        Constants::kControllerPeriod};
 
     frc::DifferentialDriveOdometry m_observer{frc::Rotation2d(), frc::Pose2d()};
     Eigen::Vector<double, 7> m_xHat = Eigen::Vector<double, 7>::Zero();
