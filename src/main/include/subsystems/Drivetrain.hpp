@@ -275,6 +275,11 @@ public:
      */
     units::radian_t GetVisionYaw();
 
+    /**
+     * Aims the drivetrain using vision.
+     */
+    void AimWithVision();
+
     void DisabledInit() override;
 
     void AutonomousInit() override;
@@ -328,8 +333,10 @@ private:
     DrivetrainController m_controller;
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
 
-    photonlib::PhotonCamera m_camera{"mmal_service_16.1"};
+    frc3512::Vision vision;
 
+    frc::Timer m_visionTimer;
+    bool m_aimWithVision = false;
     frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
         10_rad_per_s, 4.4_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
@@ -338,7 +345,7 @@ private:
     bool m_hasNewHeading = false;
     frc::SimpleMotorFeedforward<units::radian> m_turningFeedforward{
         0.17964_V, 2.6447_V / 1_rad_per_s};
-    frc2::PIDController m_aimPID {kTurningP, kTurningI, kTurningD};
+    frc2::PIDController m_aimPID{kTurningP, kTurningI, kTurningD};
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(

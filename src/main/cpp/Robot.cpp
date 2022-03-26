@@ -181,10 +181,7 @@ void Robot::TeleopPeriodic() {
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
     if (driveStick2.GetRawButtonPressed(5)) {
-        if (vision.HaveTargets()) {
-            drivetrain.SetHeadingGoal(-drivetrain.GetVisionYaw() +
-                                      drivetrain.GetHeading());
-        }
+        drivetrain.AimWithVision();
     }
 
     if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {

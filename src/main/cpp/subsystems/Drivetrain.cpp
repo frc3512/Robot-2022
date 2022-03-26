@@ -126,6 +126,7 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     m_rightEncoder.Reset();
     m_imu.Reset();
     m_headingOffset = initialPose.Rotation().Radians();
+    m_visionTimer.Reset();
 
     Eigen::Vector<double, 7> xHat;
     xHat(State::kX) = initialPose.X().value();
@@ -253,6 +254,14 @@ void Drivetrain::ControllerPeriodic() {
 }
 
 void Drivetrain::RobotPeriodic() {
+    if (!m_visionTimer.HasElapsed(1.5_s) && m_aimWithVision) {
+        SetHeadingGoal(GetAngle() - m_controller.GetVisionYaw());
+    } else {
+        m_visionTimer.Stop();
+        m_visionTimer.Reset();
+        m_aimWithVision = false;
+    }
+
     m_headingGoalEntry.SetBoolean(AtHeading());
     m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
 }
@@ -342,6 +351,11 @@ units::radian_t Drivetrain::GetVisionYaw() {
     return m_controller.GetVisionYaw();
 }
 
+void Drivetrain::AimWithVision() {
+    m_visionTimer.Start();
+    m_aimWithVision = true;
+}
+
 void Drivetrain::DisabledInit() {
     SetBrakeMode();
     Disable();
@@ -392,17 +406,8 @@ void Drivetrain::TeleopPeriodic() {
 
     double y =
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
-    double x;
-
-    if (driveStick2.GetRawButton(4)) {
-        if (m_camera.HasTargets()) {
-            x = -m_aimPID.Calculate(m_controller.GetVisionYaw().value(), 0);
-        } else {
-            x = 0.0;
-        }
-    } else {
-         x = frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
-    }
+    double x =
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
 
     if (driveStick1.GetRawButton(1)) {
         y *= 0.5;
@@ -448,8 +453,10 @@ void Drivetrain::TestPeriodic() {
                                                  GetRightVelocity().value()},
                         Eigen::Vector<double, 2>{left * 12.0, right * 12.0});
 
-    m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
-    m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
+    if (!HasHeadingGoal()) {
+        m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
+        m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
+    }
 }
 
 void Drivetrain::SetBrakeMode() {
