@@ -150,10 +150,7 @@ private:
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetFrontPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
-        m_plant,
-        {200.0},
-        {FlywheelController::kDpP / Constants::kControllerPeriod.value()},
-        Constants::kControllerPeriod};
+        m_plant, {0.25}, {2.5}, Constants::kControllerPeriod};
 
     FlywheelController m_controller{FlywheelPose::kFront};
 

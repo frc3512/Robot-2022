@@ -17,10 +17,10 @@
 using namespace frc3512;
 
 FrontFlywheel::FrontFlywheel()
-    : ControlledSubsystemBase(
-          "Front Flywheel", {ControllerLabel{"Angular velocity", "rad/s"}},
-          {ControllerLabel{"Voltage", "V"}},
-          {ControllerLabel{"Angular velocity", "rad/s"}}, true) {
+    : ControlledSubsystemBase("Front Flywheel",
+                              {ControllerLabel{"Angular velocity", "rad/s"}},
+                              {ControllerLabel{"Voltage", "V"}},
+                              {ControllerLabel{"Angular velocity", "rad/s"}}) {
     m_frontGrbx.SetSmartCurrentLimit(40);
 
     // Ensures CANSparkMax::Get() returns an initialized value

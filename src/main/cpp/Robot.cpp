@@ -215,7 +215,7 @@ void Robot::TestPeriodic() {
     SubsystemBase::RunAllTestPeriodic();
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
-    if (appendageStick1.GetRawButtonPressed(1)) {
+    if (appendageStick1.GetRawButtonPressed(3)) {
         intake.SetTimeToShoot(true);
     }
     if (appendageStick1.GetRawButtonPressed(2)) {

@@ -17,10 +17,10 @@
 using namespace frc3512;
 
 BackFlywheel::BackFlywheel()
-    : ControlledSubsystemBase(
-          "Back Flywheel", {ControllerLabel{"Angular velocity", "rad/s"}},
-          {ControllerLabel{"Voltage", "V"}},
-          {ControllerLabel{"Angular velocity", "rad/s"}}, true) {
+    : ControlledSubsystemBase("Back Flywheel",
+                              {ControllerLabel{"Angular velocity", "rad/s"}},
+                              {ControllerLabel{"Voltage", "V"}},
+                              {ControllerLabel{"Angular velocity", "rad/s"}}) {
     m_backGrbx.SetSmartCurrentLimit(40);
 
     // Ensures CANSparkMax::Get() returns an initialized value
