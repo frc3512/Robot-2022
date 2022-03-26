@@ -48,10 +48,10 @@ public:
     static constexpr units::meter_t kTargetHeight = 2.6_m;
 
     /// Camera Height
-    static constexpr units::meter_t kCameraHeight = 0.8635_m;
+    static constexpr units::meter_t kCameraHeight = 0.76835_m;
 
     /// Camera Pitch
-    static constexpr units::degree_t kCameraPitch = 52.4_deg;
+    static constexpr units::degree_t kCameraPitch = 29.6_deg;
 
     /// Pi camera V1 diagonal field of view
     static constexpr units::degree_t kCameraDiagonalFOV = 74.8_deg;

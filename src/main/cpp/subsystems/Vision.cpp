@@ -4,6 +4,7 @@
 
 #include <frc/DriverStation.h>
 #include <frc/Joystick.h>
+#include <frc/RobotBase.h>
 #include <frc/Timer.h>
 #include <photonlib/PhotonUtils.h>
 
@@ -47,53 +48,56 @@ int Vision::GetPipelineIndex() { return m_rpiCam.GetPipelineIndex(); }
 void Vision::SetPipeline(int pipeline) { m_rpiCam.SetPipelineIndex(pipeline); }
 
 void Vision::RobotPeriodic() {
-    static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
+    if constexpr (!frc::RobotBase::IsSimulation()) {
+        static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
-    const auto& result = m_rpiCam.GetLatestResult();
+        const auto& result = m_rpiCam.GetLatestResult();
 
-    if (result.GetTargets().size() == 0 || frc::DriverStation::IsDisabled()) {
-        m_haveTargets = false;
-        return;
-    }
-
-    m_haveTargets = true;
-
-    auto timestamp = frc::Timer::GetFPGATimestamp() - result.GetLatency();
-
-    m_timestampEntry.SetDouble(units::time::second_t{timestamp}.value());
-
-    photonlib::PhotonTrackedTarget target = result.GetBestTarget();
-
-    if (frc::DriverStation::IsTeleop()) {
-        if (appendageStick1.GetRawButtonPressed(4)) {
-            TurnLEDOn();
-        } else if (appendageStick1.GetRawButtonPressed(6)) {
-            TurnLEDOff();
+        if (result.GetTargets().size() == 0 ||
+            frc::DriverStation::IsDisabled()) {
+            m_haveTargets = false;
+            return;
         }
-    }
 
-    // Converts solvePnP() data from the NetworkTables to a global drivetrain
-    // pose measurement
-    auto cameraInTarget = target.GetCameraRelativePose();
-    auto cameraInGlobal =
-        TargetModel::kTargetPoseInGlobal.TransformBy(cameraInTarget);
-    std::array<double, 3> pose{cameraInGlobal.X().value(),
-                               cameraInGlobal.Y().value(),
-                               cameraInGlobal.Rotation().Radians().value()};
-    m_poseEntry.SetDoubleArray(pose);
+        m_haveTargets = true;
 
-    m_pitch = units::degree_t{target.GetPitch()};
-    m_yaw = units::degree_t{target.GetYaw()};
+        auto timestamp = frc::Timer::GetFPGATimestamp() - result.GetLatency();
 
-    m_yawEntry.SetDouble(units::radian_t{m_yaw}.value());
+        m_timestampEntry.SetDouble(units::time::second_t{timestamp}.value());
 
-    m_range = photonlib::PhotonUtils::CalculateDistanceToTarget(
-        kCameraHeight, TargetModel::kCenter.Z(), kCameraPitch,
-        units::degree_t{m_pitch});
+        photonlib::PhotonTrackedTarget target = result.GetBestTarget();
 
-    m_rangeEntry.SetDouble(units::meter_t{m_range}.value());
+        if (frc::DriverStation::IsTeleop()) {
+            if (appendageStick1.GetRawButtonPressed(4)) {
+                TurnLEDOn();
+            } else if (appendageStick1.GetRawButtonPressed(6)) {
+                TurnLEDOff();
+            }
+        }
 
-    for (auto& queue : m_subsystemQueues) {
-        queue->push_back({m_yaw, m_pitch, m_range});
+        // Converts solvePnP() data from the NetworkTables to a global
+        // drivetrain pose measurement
+        auto cameraInTarget = target.GetCameraRelativePose();
+        auto cameraInGlobal =
+            TargetModel::kTargetPoseInGlobal.TransformBy(cameraInTarget);
+        std::array<double, 3> pose{cameraInGlobal.X().value(),
+                                   cameraInGlobal.Y().value(),
+                                   cameraInGlobal.Rotation().Radians().value()};
+        m_poseEntry.SetDoubleArray(pose);
+
+        m_pitch = units::degree_t{target.GetPitch()};
+        m_yaw = units::degree_t{target.GetYaw()};
+
+        m_yawEntry.SetDouble(units::radian_t{m_yaw}.value());
+
+        m_range = photonlib::PhotonUtils::CalculateDistanceToTarget(
+            kCameraHeight, TargetModel::kCenter.Z(), kCameraPitch,
+            units::degree_t{m_pitch});
+
+        m_rangeEntry.SetDouble(units::meter_t{m_range}.value());
+
+        for (auto& queue : m_subsystemQueues) {
+            queue->push_back({m_yaw, m_pitch, m_range});
+        }
     }
 }
