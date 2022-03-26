@@ -95,8 +95,8 @@ namespace Climber {
 constexpr int kLeftClimberID = 12;
 constexpr int kRightClimberID = 3;
 
-constexpr int kBottomSensorChannel = 0;
-constexpr int kTopSensorChannel = 1;
+constexpr int kLeftMagneticSwitch = 0;
+constexpr int kRightMagnticSwitch = 1;
 
 constexpr int kClimberSolenoidChannel = 5;
 }  // namespace Climber
