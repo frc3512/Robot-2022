@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <frc/DigitalInput.h>
 #include <frc/AnalogInput.h>
+#include <frc/DigitalInput.h>
 #include <frc/Solenoid.h>
 #include <frc/filter/Debouncer.h>
 #include <frc/simulation/LinearSystemSim.h>
@@ -36,7 +36,7 @@ namespace frc3512 {
  */
 class Climber : public SubsystemBase {
 public:
-    ///Magnetic Switch constant value`
+    /// Magnetic Switch constant value`
     const int kSwitchConstant = 160;
     /**
      * Climber states.
@@ -101,8 +101,10 @@ public:
     void SimulationPeriodic() override;
 
 private:
-    frc::AnalogInput m_leftClimberSwitch{HWConfig::Climber::kLeftMagneticSwitch};
-    frc::AnalogInput m_rightClimberSwitch{HWConfig::Climber::kRightMagnticSwitch};
+    frc::AnalogInput m_leftClimberSwitch{
+        HWConfig::Climber::kLeftMagneticSwitch};
+    frc::AnalogInput m_rightClimberSwitch{
+        HWConfig::Climber::kRightMagnticSwitch};
 
     rev::CANSparkMax m_leftGrbx{HWConfig::Climber::kLeftClimberID,
                                 rev::CANSparkMax::MotorType::kBrushless};
@@ -124,9 +126,11 @@ private:
             "/Diagnostics/Climber/Right Elevator Encoder");
 
     nt::NetworkTableEntry m_leftTopSwitchEntry =
-        NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Climber/Left Top Switch");
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Climber/Left Top Switch");
     nt::NetworkTableEntry m_rightTopSwitchEntry =
-        NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Climber/Right Top Switch");
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Climber/Right Top Switch");
 
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{
