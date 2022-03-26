@@ -10,6 +10,7 @@
 #include <frc/controller/ControlAffinePlantInversionFeedforward.h>
 #include <frc/controller/LTVDiffDriveController.h>
 #include <frc/geometry/Pose2d.h>
+#include <frc/geometry/Velocity2d.h>
 #include <frc/system/LinearSystem.h>
 #include <frc/trajectory/Trajectory.h>
 #include <frc/trajectory/TrajectoryConfig.h>
@@ -59,7 +60,7 @@ public:
         2048.0;
 
     /// Drivetrain chassis width.
-    static constexpr units::meter_t kWidth = 1.083869_m;
+    static constexpr units::meter_t kWidth = 0.65664_m;
 
     /// Linear velocity system ID gain.
     static constexpr auto kLinearV = 1.1839_V / 1_mps;
@@ -165,6 +166,58 @@ public:
      * Move assignment operator.
      */
     DrivetrainController& operator=(DrivetrainController&&) = default;
+
+    /**
+     * Set yaw of the vision measurment.
+     *
+     * @param yaw yaw measurement in radians from the vision subsystem.
+     */
+    void SetVisionYaw(units::radian_t yaw);
+
+    /**
+     * Set pitch of the vision measurment.
+     *
+     * @param pitch pitch measurement in radians from the vision subsystem.
+     */
+    void SetVisionPitch(units::radian_t pitch);
+
+    /**
+     * Set range of the vision measurment.
+     *
+     * @param range range measurement in radians from the vision subsystem.
+     */
+    void SetVisionRange(units::meter_t range);
+
+    /**
+     * Return yaw from what vision measured.
+     */
+    units::radian_t GetVisionYaw();
+
+    /**
+     * Return pitch from what vision measured.
+     */
+    units::radian_t GetVisionPitch();
+
+    /**
+     * Return range from what vision measured.
+     */
+    units::meter_t GetVisionRange();
+
+    /**
+     * Returns the angle the robot must rotate to in the global frame to point
+     * at the target.
+     *
+     * @param targetInGlobal Next timestep's X and Y of the target in the
+     *                       global frame.
+     * @param drivetrainInGlobal Next timestep's X and Y of the drivetrain in
+     * the global frame.
+     */
+    units::radian_t CalculateHeading(frc::Translation2d targetInGlobal,
+                                     frc::Translation2d drivetrainInGlobal);
+    /**
+     * Sets the current estimated global pose of the drivetrain.
+     */
+    void SetDrivetrainStates(const Eigen::Vector<double, 7>& x);
 
     /**
      * Adds a trajectory with the given waypoints.
@@ -319,6 +372,15 @@ private:
     frc::Trajectory m_trajectory;
     frc::Pose2d m_goal;
     frc::Timer m_trajectoryTimeElapsed;
+
+    units::radian_t m_visionYaw = 0_rad;
+    units::radian_t m_visionPitch = 0_rad;
+    units::meter_t m_visionRange = 0_m;
+    units::second_t m_timestamp = 0_s;
+
+    frc::Pose2d m_drivetrainNextPoseInGlobal;
+    units::meters_per_second_t m_drivetrainLeftVelocity = 0_mps;
+    units::meters_per_second_t m_drivetrainRightVelocity = 0_mps;
 
     /**
      * Converts velocity and curvature of drivetrain into left and right wheel

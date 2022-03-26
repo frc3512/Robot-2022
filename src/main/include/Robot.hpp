@@ -19,6 +19,7 @@
 #include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/Intake.hpp"
 #include "subsystems/SubsystemBase.hpp"
+#include "subsystems/Vision.hpp"
 
 #if RUNNING_FRC_TESTS
 #include <gtest/gtest.h>
@@ -76,6 +77,9 @@ public:
 
     /// Climber subsystem.
     Climber climber;
+
+    /// Vision subsystem
+    Vision vision;
 
     Robot();
 

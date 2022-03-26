@@ -108,6 +108,8 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     if constexpr (!IsSimulation()) {
         frc::CameraServer::StartAutomaticCapture();
     }
+
+    vision.SubscribeToVisionData(drivetrain.visionQueue);
 }
 
 Robot::~Robot() {}
@@ -177,6 +179,10 @@ void Robot::TeleopPeriodic() {
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
     static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
+
+    if (driveStick2.GetRawButton(5)) {
+        drivetrain.AimWithVision();
+    }
 
     if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
         if (driveStick1.GetRawButtonPressed(1) ||

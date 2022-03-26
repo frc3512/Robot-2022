@@ -27,6 +27,7 @@
 #include <frc/trajectory/TrajectoryConfig.h>
 #include <frc/trajectory/TrapezoidProfile.h>
 #include <networktables/NetworkTableEntry.h>
+#include <photonlib/PhotonCamera.h>
 #include <rev/CANSparkMax.h>
 #include <units/acceleration.h>
 #include <units/angle.h>
@@ -39,6 +40,7 @@
 #include "Constants.hpp"
 #include "HWConfig.hpp"
 #include "NetworkTableUtil.hpp"
+#include "Vision.hpp"
 #include "controllers/DrivetrainController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
 
@@ -58,6 +60,12 @@ public:
      * Distance from middle of robot to intake.
      */
     static constexpr units::meter_t kMiddleOfRobotToIntake = 0.656_m;
+
+    /**
+     * Producer-consumer queue for global pose measurements from Vision
+     * subsystem.
+     */
+    wpi::static_circular_buffer<Vision::GlobalMeasurements, 8> visionQueue;
 
     Drivetrain();
 
@@ -234,7 +242,7 @@ public:
     /**
      * Returns whether the drivetrain is at the goal heading.
      */
-    bool AtHeading() const;
+    bool AtHeading();
 
     /**
      * Returns the current heading state. Used for setting points after
@@ -262,6 +270,16 @@ public:
      */
     frc::Pose2d GetSimPose() const;
 
+    /**
+     * Returns the yaw from vision
+     */
+    units::radian_t GetVisionYaw();
+
+    /**
+     * Aims the drivetrain using vision.
+     */
+    void AimWithVision();
+
     void DisabledInit() override;
 
     void AutonomousInit() override;
@@ -279,7 +297,7 @@ public:
     void ControllerPeriodic() override;
 
 private:
-    static constexpr double kTurningP = 1.7435;
+    static constexpr double kTurningP = 3.0;
     static constexpr double kTurningI = 0.0;
     static constexpr double kTurningD = 0.0;
 
@@ -307,6 +325,7 @@ private:
                                 HWConfig::Drivetrain::kRightEncoderB};
 
     frc::ADIS16470_IMU m_imu;
+    units::radian_t m_headingOffset = 0_rad;
 
     frc::DifferentialDriveOdometry m_observer{frc::Rotation2d(), frc::Pose2d()};
     Eigen::Vector<double, 7> m_xHat = Eigen::Vector<double, 7>::Zero();
@@ -314,14 +333,19 @@ private:
     DrivetrainController m_controller;
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
 
+    frc3512::Vision vision;
+
+    frc::Timer m_visionTimer;
+    bool m_aimWithVision = false;
     frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
-        5_rad_per_s, 2.2_rad_per_s_sq};
+        10_rad_per_s, 4.4_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
         kTurningP, kTurningI, kTurningD, m_turningConstraints,
         Constants::kControllerPeriod};
     bool m_hasNewHeading = false;
     frc::SimpleMotorFeedforward<units::radian> m_turningFeedforward{
-        0.15647_V, 0.075722_V / 1_rad_per_s};
+        0.17964_V, 2.6447_V / 1_rad_per_s};
+    frc2::PIDController m_aimPID{kTurningP, kTurningI, kTurningD};
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
@@ -338,6 +362,29 @@ private:
     frc::sim::EncoderSim m_rightEncoderSim{m_rightEncoder};
     frc::sim::ADIS16470_IMUSim m_imuSim{m_imu};
     frc::Field2d m_field;
+
+    nt::NetworkTableEntry m_headingGoalEntry = NetworkTableUtil::MakeBoolEntry(
+        "/Diagnostics/Drivetrain/Outputs/Goal Heading Achieved");
+
+    nt::NetworkTableEntry m_yawControllerEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Controller Yaw Value");
+
+    nt::NetworkTableEntry m_rangeControllerEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Controller Range Value");
+
+    nt::NetworkTableEntry m_hasHeadingGoalEntry =
+        NetworkTableUtil::MakeBoolEntry(
+            "/Diagnostics/Drivetrain/Outputs/Has New Goal Heading");
+
+    nt::NetworkTableEntry m_currHeadingEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Current Heading");
+
+    nt::NetworkTableEntry m_headingGoalValueEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Heading Goal");
 
     /**
      * Set drivetrain motors to brake mode, which the feedback controllers
