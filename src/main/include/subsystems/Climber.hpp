@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <frc/AnalogInput.h>
 #include <frc/DigitalInput.h>
 #include <frc/Solenoid.h>
 #include <frc/filter/Debouncer.h>
@@ -35,6 +36,8 @@ namespace frc3512 {
  */
 class Climber : public SubsystemBase {
 public:
+    /// Magnetic Switch constant value`
+    const int kSwitchConstant = 160;
     /**
      * Climber states.
      */
@@ -70,16 +73,6 @@ public:
     bool IsClimberDeployed();
 
     /**
-     * Returns the height of the left side elevator in meters
-     */
-    units::meter_t GetLeftHeight();
-
-    /**
-     * Returns the height of the right side elevator in meters
-     */
-    units::meter_t GetRightHeight();
-
-    /**
      * Returns whether or not the right climber has passed the top limit
      */
     bool HasRightPassedTopLimit();
@@ -108,13 +101,15 @@ public:
     void SimulationPeriodic() override;
 
 private:
+    frc::AnalogInput m_leftClimberSwitch{
+        HWConfig::Climber::kLeftMagneticSwitch};
+    frc::AnalogInput m_rightClimberSwitch{
+        HWConfig::Climber::kRightMagnticSwitch};
+
     rev::CANSparkMax m_leftGrbx{HWConfig::Climber::kLeftClimberID,
                                 rev::CANSparkMax::MotorType::kBrushless};
     rev::CANSparkMax m_rightGrbx{HWConfig::Climber::kRightClimberID,
                                  rev::CANSparkMax::MotorType::kBrushless};
-
-    rev::SparkMaxRelativeEncoder m_leftEncoder{m_leftGrbx.GetEncoder()};
-    rev::SparkMaxRelativeEncoder m_rightEncoder{m_rightGrbx.GetEncoder()};
 
     frc::Solenoid m_solenoid{frc::PneumaticsModuleType::CTREPCM,
                              HWConfig::Climber::kClimberSolenoidChannel};
@@ -130,10 +125,12 @@ private:
         NetworkTableUtil::MakeDoubleEntry(
             "/Diagnostics/Climber/Right Elevator Encoder");
 
-    nt::NetworkTableEntry m_leftTopLimitEntry =
-        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Left Top Limit");
-    nt::NetworkTableEntry m_rightTopLimitEntry =
-        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Climber/Right Top Limit");
+    nt::NetworkTableEntry m_leftTopSwitchEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Climber/Left Top Switch");
+    nt::NetworkTableEntry m_rightTopSwitchEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Climber/Right Top Switch");
 
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{

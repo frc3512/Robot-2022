@@ -33,30 +33,12 @@ void Climber::StowClimbers() { m_solenoid.Set(false); }
 
 bool Climber::IsClimberDeployed() { return m_solenoid.Get(); }
 
-units::meter_t Climber::GetLeftHeight() {
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        return units::meter_t{m_leftClimberSimLS.GetOutput(0)};
-    } else {
-        return units::meter_t{m_leftEncoder.GetPosition()};
-    }
-}
-
-units::meter_t Climber::GetRightHeight() {
-    if constexpr (frc::RobotBase::IsSimulation()) {
-        return units::meter_t{m_rightClimberSimLS.GetOutput(0)};
-    } else {
-        return units::meter_t{m_rightEncoder.GetPosition()};
-    }
-}
-
 bool Climber::HasRightPassedTopLimit() {
-    return (IsClimberDeployed()) ? (GetRightHeight() > 0.711_m)
-                                 : (GetRightHeight() > 0.66_m);
+    return (m_rightClimberSwitch.GetValue() < kSwitchConstant);
 }
 
 bool Climber::HasLeftPassedTopLimit() {
-    return (IsClimberDeployed()) ? (GetRightHeight() > 0.711_m)
-                                 : (GetRightHeight() > 0.66_m);
+    return (m_leftClimberSwitch.GetValue() < kSwitchConstant);
 }
 
 units::volt_t Climber::GetLeftElevatorMotorOutput() const {
@@ -88,15 +70,16 @@ void Climber::TeleopPeriodic() {
     // elevator.
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    double rightY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1);
+    double rightY =
+        frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1) * 0.8;
 
-    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1);
+    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1) * 0.8;
 
     // Disable soft limits for comps. Couldn't debug before matches, no one has
     // had any problems with them, so they're unnecessary for now.
     SetClimber(leftY, rightY, false);
 
-    if (appendageStick1.GetRawButtonPressed(6)) {
+    if (appendageStick1.GetRawButtonPressed(1)) {
         if (IsClimberDeployed()) {
             StowClimbers();
         } else {
@@ -104,8 +87,8 @@ void Climber::TeleopPeriodic() {
         }
     }
 
-    m_leftTopLimitEntry.SetBoolean(HasLeftPassedTopLimit());
-    m_rightTopLimitEntry.SetBoolean(HasRightPassedTopLimit());
+    m_leftTopSwitchEntry.SetDouble(m_leftClimberSwitch.GetValue());
+    m_rightTopSwitchEntry.SetDouble(m_rightClimberSwitch.GetValue());
 }
 
 void Climber::TestPeriodic() {
@@ -116,13 +99,14 @@ void Climber::TestPeriodic() {
     // elevator.
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    double rightY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1);
+    double rightY =
+        frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1) * 0.8;
 
-    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1);
+    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1) * 0.8;
 
     SetClimber(leftY, rightY, true);
 
-    if (appendageStick1.GetRawButtonPressed(6)) {
+    if (appendageStick1.GetRawButtonPressed(1)) {
         if (IsClimberDeployed()) {
             StowClimbers();
         } else {
@@ -130,8 +114,8 @@ void Climber::TestPeriodic() {
         }
     }
 
-    m_leftTopLimitEntry.SetBoolean(HasLeftPassedTopLimit());
-    m_rightTopLimitEntry.SetBoolean(HasRightPassedTopLimit());
+    m_leftTopSwitchEntry.SetDouble(m_leftClimberSwitch.GetValue());
+    m_rightTopSwitchEntry.SetDouble(m_rightClimberSwitch.GetValue());
 }
 
 void Climber::SimulationPeriodic() {
@@ -159,13 +143,13 @@ void Climber::SetClimber(double leftSpeed, double rightSpeed,
         m_leftGrbx.Set(leftSpeed);
         m_rightGrbx.Set(rightSpeed);
     } else {
-        if (!HasLeftPassedTopLimit()) {
+        if (!HasLeftPassedTopLimit() || leftSpeed > 0) {
             m_leftGrbx.Set(leftSpeed);
         } else {
             m_leftGrbx.Set(0.0);
         }
 
-        if (!HasRightPassedTopLimit()) {
+        if (!HasRightPassedTopLimit() || rightSpeed > 0) {
             m_rightGrbx.Set(rightSpeed);
         } else {
             m_rightGrbx.Set(0.0);
