@@ -30,7 +30,7 @@ public:
     static constexpr double kGearRatio = 1.0 / 1.0;
 
     /// Angle per encoder pulse.
-    static constexpr double kDpP = (wpi::numbers::pi * 2.0) * kGearRatio / 42;
+    static constexpr double kDpP = (wpi::numbers::pi * 2.0) * kGearRatio / 2048;
 
     /**
      * Constructs a flywheel controller
@@ -116,7 +116,7 @@ public:
 
 private:
     static constexpr auto kAngularVelocityShotThreshold = 25_rad_per_s;
-    static constexpr auto kAngularVelocityRecoveryThreshold = 15_rad_per_s;
+    static constexpr auto kAngularVelocityRecoveryThreshold = 25_rad_per_s;
 
     FlywheelPose m_pose;
 

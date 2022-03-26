@@ -17,19 +17,20 @@
 using namespace frc3512;
 
 FrontFlywheel::FrontFlywheel()
-    : ControlledSubsystemBase("Front Flywheel",
-                              {ControllerLabel{"Angular velocity", "rad/s"}},
-                              {ControllerLabel{"Voltage", "V"}},
-                              {ControllerLabel{"Angular velocity", "rad/s"}}) {
+    : ControlledSubsystemBase(
+          "Front Flywheel", {ControllerLabel{"Angular velocity", "rad/s"}},
+          {ControllerLabel{"Voltage", "V"}},
+          {ControllerLabel{"Angular velocity", "rad/s"}}, true) {
     m_frontGrbx.SetSmartCurrentLimit(40);
 
     // Ensures CANSparkMax::Get() returns an initialized value
     m_frontGrbx.Set(0.0);
 
-    m_frontGrbx.SetInverted(false);
+    m_frontGrbx.SetInverted(true);
 
     m_frontEncoder.SetDistancePerPulse(FlywheelController::kDpP);
     m_frontEncoder.SetSamplesToAverage(5);
+    m_frontEncoder.SetReverseDirection(true);
 
     SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kMinimal);
 
@@ -82,6 +83,10 @@ void FrontFlywheel::RobotPeriodic() {
         m_testThrottle = appendageStick2.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
         SetGoal(manualRef);
+        double percent = (manualRef.value() /
+                          FrontFlywheelConstants::kMaxAngularVelocity.value()) *
+                         100.0;
+        m_percentageEntry.SetDouble(percent);
     }
 }
 

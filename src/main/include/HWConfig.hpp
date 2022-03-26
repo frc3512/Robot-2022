@@ -52,10 +52,10 @@ constexpr int kRightUltrasonicChannel = 2;
 
 namespace Flywheel {
 /// Front motor CAN ID
-constexpr int kFrontMotorID = 1;
+constexpr int kFrontMotorID = 2;
 
 /// Back motor CAN ID
-constexpr int kBackMotorID = 2;
+constexpr int kBackMotorID = 1;
 
 /// Front encoder channel A
 constexpr int kFrontEncoderA = 4;

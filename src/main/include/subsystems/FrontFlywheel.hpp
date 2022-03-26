@@ -175,6 +175,9 @@ private:
     // measuring flywheel lookup table values.
     double m_testThrottle = 0.0;
 
+    nt::NetworkTableEntry m_percentageEntry = NetworkTableUtil::MakeDoubleEntry(
+        "/Diagnostics/Front Flywheel/Percent");
+
     // Measurement noise isn't added because the simulated encoder stores the
     // count as an integer, which already introduces quantization noise.
     FlywheelSim m_flywheelSim{m_controller.GetFrontPlant(),

@@ -17,16 +17,16 @@
 using namespace frc3512;
 
 BackFlywheel::BackFlywheel()
-    : ControlledSubsystemBase("Back Flywheel",
-                              {ControllerLabel{"Angular velocity", "rad/s"}},
-                              {ControllerLabel{"Voltage", "V"}},
-                              {ControllerLabel{"Angular velocity", "rad/s"}}) {
+    : ControlledSubsystemBase(
+          "Back Flywheel", {ControllerLabel{"Angular velocity", "rad/s"}},
+          {ControllerLabel{"Voltage", "V"}},
+          {ControllerLabel{"Angular velocity", "rad/s"}}, true) {
     m_backGrbx.SetSmartCurrentLimit(40);
 
     // Ensures CANSparkMax::Get() returns an initialized value
     m_backGrbx.Set(0.0);
 
-    m_backGrbx.SetInverted(false);
+    m_backGrbx.SetInverted(true);
 
     m_backEncoder.SetDistancePerPulse(FlywheelController::kDpP);
     m_backEncoder.SetSamplesToAverage(5);
@@ -92,12 +92,25 @@ void BackFlywheel::TeleopPeriodic() {
 }
 
 void BackFlywheel::RobotPeriodic() {
+    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
     if (frc::DriverStation::IsTest()) {
         m_testThrottle = appendageStick1.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
         SetGoal(manualRef);
+        double percent = (manualRef.value() /
+                          BackFlywheelConstants::kMaxAngularVelocity.value()) *
+                         100.0;
+        m_percentageEntry.SetDouble(percent);
+
+        if (driveStick2.GetRawButtonPressed(4)) {
+            if (IsHoodDeployed()) {
+                StowHood();
+            } else {
+                DeployHood();
+            }
+        }
     }
 }
 
