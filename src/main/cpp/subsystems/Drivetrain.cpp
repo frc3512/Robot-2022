@@ -392,8 +392,17 @@ void Drivetrain::TeleopPeriodic() {
 
     double y =
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
-    double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
+    double x;
+
+    if (driveStick2.GetRawButton(4)) {
+        if (m_camera.HasTargets()) {
+            x = -m_aimPID.Calculate(m_controller.GetVisionYaw().value(), 0);
+        } else {
+            x = 0.0;
+        }
+    } else {
+         x = frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
+    }
 
     if (driveStick1.GetRawButton(1)) {
         y *= 0.5;
@@ -412,10 +421,6 @@ void Drivetrain::TeleopPeriodic() {
 
     m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
     m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
-
-    if (driveStick2.GetRawButtonPressed(4)) {
-        SetHeadingGoal(GetHeading() - units::radian_t{0.5});
-    }
 }
 
 void Drivetrain::TestPeriodic() {

@@ -292,7 +292,7 @@ public:
     void ControllerPeriodic() override;
 
 private:
-    static constexpr double kTurningP = 1.7435;
+    static constexpr double kTurningP = 3.0;
     static constexpr double kTurningI = 0.0;
     static constexpr double kTurningD = 0.0;
 
@@ -337,7 +337,8 @@ private:
         Constants::kControllerPeriod};
     bool m_hasNewHeading = false;
     frc::SimpleMotorFeedforward<units::radian> m_turningFeedforward{
-        0.15647_V, 0.075722_V / 1_rad_per_s};
+        0.17964_V, 2.6447_V / 1_rad_per_s};
+    frc2::PIDController m_aimPID {kTurningP, kTurningI, kTurningD};
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(

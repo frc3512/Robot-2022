@@ -60,7 +60,7 @@ public:
         2048.0;
 
     /// Drivetrain chassis width.
-    static constexpr units::meter_t kWidth = 1.083869_m;
+    static constexpr units::meter_t kWidth = 0.65664_m;
 
     /// Linear velocity system ID gain.
     static constexpr auto kLinearV = 1.1839_V / 1_mps;
