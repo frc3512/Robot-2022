@@ -161,7 +161,9 @@ void Drivetrain::ControllerPeriodic() {
         auto measurement = visionQueue.pop_front();
 
         m_controller.SetVisionYaw(measurement.yaw);
-        m_yawControllerEntry.SetDouble(measurement.yaw.value());
+        m_controller.SetVisionRange(measurement.range);
+        m_yawControllerEntry.SetDouble(GetVisionYaw().value());
+        m_rangeControllerEntry.SetDouble(m_controller.GetVisionRange().value());
     }
 
     if (m_controller.HaveTrajectory()) {

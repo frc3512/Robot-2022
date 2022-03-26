@@ -370,6 +370,10 @@ private:
         NetworkTableUtil::MakeDoubleEntry(
             "/Diagnostics/Drivetrain/Outputs/Controller Yaw Value");
 
+    nt::NetworkTableEntry m_rangeControllerEntry =
+        NetworkTableUtil::MakeDoubleEntry(
+            "/Diagnostics/Drivetrain/Outputs/Controller Range Value");
+
     nt::NetworkTableEntry m_hasHeadingGoalEntry =
         NetworkTableUtil::MakeBoolEntry(
             "/Diagnostics/Drivetrain/Outputs/Has New Goal Heading");
