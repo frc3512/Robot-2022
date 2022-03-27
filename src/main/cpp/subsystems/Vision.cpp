@@ -86,13 +86,18 @@ void Vision::RobotPeriodic() {
         m_poseEntry.SetDoubleArray(pose);
 
         m_pitch = units::degree_t{target.GetPitch()};
-        m_yaw = units::degree_t{target.GetYaw()};
+        if (target.GetYaw() < 0.0) {
+            m_yaw = units::degree_t{target.GetYaw()} - kYawOffset;
+        } else if (target.GetYaw() > 0.0) {
+            m_yaw = units::degree_t{target.GetYaw()} + kYawOffset;
+        } else {
+            m_yaw = units::degree_t{target.GetYaw()};
+        }
 
         m_yawEntry.SetDouble(units::radian_t{m_yaw}.value());
 
         m_range = photonlib::PhotonUtils::CalculateDistanceToTarget(
-            kCameraHeight, TargetModel::kCenter.Z(), kCameraPitch,
-            units::degree_t{m_pitch});
+            kCameraHeight, 2.606_m, kCameraPitch, units::degree_t{m_pitch});
 
         m_rangeEntry.SetDouble(units::meter_t{m_range}.value());
 

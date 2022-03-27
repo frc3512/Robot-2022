@@ -88,7 +88,7 @@ frc::Pose2d Drivetrain::GetReferencePose() const {
 frc::Pose2d Drivetrain::GetPose() const { return m_observer.GetPose(); }
 
 units::radian_t Drivetrain::GetAngle() const {
-    return units::degree_t{m_imu.GetAngle() + m_headingOffset};
+    return units::degree_t{m_imu.GetAngle()} + +m_headingOffset;
 }
 
 units::meter_t Drivetrain::GetLeftPosition() const {
@@ -162,8 +162,6 @@ void Drivetrain::ControllerPeriodic() {
 
         m_controller.SetVisionYaw(measurement.yaw);
         m_controller.SetVisionRange(measurement.range);
-        m_yawControllerEntry.SetDouble(GetVisionYaw().value());
-        m_rangeControllerEntry.SetDouble(m_controller.GetVisionRange().value());
     }
 
     if (m_controller.HaveTrajectory()) {
@@ -211,6 +209,16 @@ void Drivetrain::ControllerPeriodic() {
             controllerState(DrivetrainController::State::kHeading)});
     }
 
+    if ((!(m_controller.GetVisionYaw() < 0.1_rad) ||
+         !(m_controller.GetVisionYaw() > -0.1_rad)) &&
+        m_aimWithVision && !m_visionTimer.HasElapsed(3_s)) {
+        SetHeadingGoal(GetAngle() - m_controller.GetVisionYaw());
+    } else {
+        m_visionTimer.Stop();
+        m_visionTimer.Reset();
+        m_aimWithVision = false;
+    }
+
     m_currHeadingEntry.SetDouble(m_turningPID.GetGoal().position.value());
     m_headingGoalValueEntry.SetDouble(m_turningPID.GetGoal().position.value());
 
@@ -255,18 +263,7 @@ void Drivetrain::ControllerPeriodic() {
     }
 }
 
-void Drivetrain::RobotPeriodic() {
-    if (!m_visionTimer.HasElapsed(1.5_s) && m_aimWithVision) {
-        SetHeadingGoal(GetAngle() - m_controller.GetVisionYaw());
-    } else {
-        m_visionTimer.Stop();
-        m_visionTimer.Reset();
-        m_aimWithVision = false;
-    }
-
-    m_headingGoalEntry.SetBoolean(AtHeading());
-    m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
-}
+void Drivetrain::RobotPeriodic() {}
 
 void Drivetrain::AddTrajectory(const frc::Pose2d& start,
                                const std::vector<frc::Translation2d>& interior,
@@ -381,6 +378,9 @@ void Drivetrain::TeleopInit() {
     // turning action so teleop driving can occur.
     AbortTurnInPlace();
 
+    m_turningPID.SetTolerance(units::radian_t{0.5},
+                              units::radians_per_second_t{2});
+
     Enable();
 }
 
@@ -428,6 +428,16 @@ void Drivetrain::TeleopPeriodic() {
 
     m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
     m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
+
+    if (driveStick1.GetRawButtonPressed(3)) {
+        SetHeadingGoal(GetAngle() + units::radian_t{wpi::numbers::pi});
+    }
+
+    m_headingGoalEntry.SetBoolean(AtHeading());
+    m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
+
+    m_yawControllerEntry.SetDouble(GetVisionYaw().value());
+    m_rangeControllerEntry.SetDouble(m_controller.GetVisionRange().value());
 }
 
 void Drivetrain::TestPeriodic() {
@@ -459,6 +469,9 @@ void Drivetrain::TestPeriodic() {
         m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
         m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
     }
+
+    m_headingGoalEntry.SetBoolean(AtHeading());
+    m_hasHeadingGoalEntry.SetBoolean(HasHeadingGoal());
 }
 
 void Drivetrain::SetBrakeMode() {

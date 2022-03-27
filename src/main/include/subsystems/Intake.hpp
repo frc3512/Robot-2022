@@ -113,6 +113,8 @@ public:
      */
     bool IsLowerSensorBlocked() const;
 
+    void TeleopPeriodic() override;
+
     void RobotPeriodic() override;
 
     void SimulationPeriodic() override;

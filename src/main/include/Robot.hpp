@@ -54,7 +54,9 @@ public:
      */
     enum class ShootingState {
         kIdle,
+        kVisionSpinUp,
         kSpinUp,
+        kVisionAim,
         kStartConveyor,
         kFirstBall,
         kSecondBall,
@@ -203,19 +205,23 @@ public:
      *
      * @param frontSpeed    Speed for the front flywheel
      * @param backSpeed     Speed for the back flywheel
+     * @param visionAim     Whether or not the robot should use vision to aim at
+     * the hub.
      */
     void Shoot(units::radians_per_second_t frontSpeed,
-               units::radians_per_second_t backSpeed);
+               units::radians_per_second_t backSpeed, bool visionAim = false);
 
     /**
      * Runs the shooter state machine.
-     * When idle, the state machine does nothing, when the flywheel is starting
-     * up, it checks to ensure that the flywheel gets up to speed. If so, then
-     * the conveyor starts. If the flywheel isn't up to speed after a few
-     * seconds, then the state machine idles. If successful the conveyor starts,
-     * after a few seoncds (enough time for the robot two shoot the max two
-     * balls we can carry), the conveyor and shooter turn off and the state
-     * machine returns to idle.
+     * When idle, the nothing happens. If vision is being used the robot first
+     * aims at the target. Once aimed, the flywheel calculates its goal from the
+     * distance it is from the target. It then waits until the flywheel is at
+     * goal before continuing. If vision aim is not used, then the state machine
+     * skips ahead and simply waits until the flywheel is up to speed. After it
+     * is up to speed, the conveyor lifts the first ball into the shooter. It
+     * then waits an almost needless delay for the second ball, and finishes the
+     * sequence returning to idle. The robot does not need two balls for the
+     * state machine to work, however it is optimized for two balls.
      */
     void RunShooterSM();
 
@@ -241,6 +247,7 @@ private:
     frc::Timer m_shootTimer;
     ShootingState m_state = ShootingState::kIdle;
     bool m_readyToShoot = false;
+    bool m_visionAim = true;
 
     AutonomousChooser m_autonChooser{"No-op", [=] { AutoNoOp(); }};
 

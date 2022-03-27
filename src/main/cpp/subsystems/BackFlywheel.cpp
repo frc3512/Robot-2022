@@ -33,6 +33,12 @@ BackFlywheel::BackFlywheel()
 
     SetCANSparkMaxBusUsage(m_backGrbx, Usage::kMinimal);
 
+    m_table.Insert(12_in, 100_rad_per_s);  // hood down.
+    m_table.Insert(24_in, 100_rad_per_s);  // hood up.
+    m_table.Insert(48_in, 166_rad_per_s);
+    m_table.Insert(72_in, 221_rad_per_s);
+    m_table.Insert(96_in, 271_rad_per_s);
+
     Reset();
     SetGoal(0_rad_per_s);
 }
@@ -42,10 +48,6 @@ void BackFlywheel::DeployHood() { m_solenoid.Set(false); }
 void BackFlywheel::StowHood() { m_solenoid.Set(true); }
 
 bool BackFlywheel::IsHoodDeployed() { return !m_solenoid.Get(); }
-
-void BackFlywheel::SetMoveAndShoot(bool moveAndShoot) {
-    m_moveAndShoot = moveAndShoot;
-}
 
 units::radian_t BackFlywheel::GetAngle() {
     return units::radian_t{m_backEncoder.GetDistance()};
@@ -61,6 +63,10 @@ void BackFlywheel::SetGoal(units::radians_per_second_t velocity) {
 
 units::radians_per_second_t BackFlywheel::GetGoal() const {
     return m_controller.GetGoal();
+}
+
+units::radians_per_second_t BackFlywheel::GetGoalFromRange() {
+    return m_table[m_range];
 }
 
 void BackFlywheel::Stop() { SetGoal(0_rad_per_s); }
@@ -135,6 +141,11 @@ void BackFlywheel::ControllerPeriodic() {
     m_observer.Correct(m_controller.GetInputs(), y);
     m_u = m_controller.Calculate(m_observer.Xhat());
     SetVoltage(units::volt_t{m_u(Input::kVoltage)});
+
+    while (visionQueue.size() > 0) {
+        auto measurement = visionQueue.pop_front();
+        m_range = measurement.range;
+    }
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 

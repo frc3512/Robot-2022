@@ -23,9 +23,11 @@
 #include "Constants.hpp"
 #include "FlywheelSim.hpp"
 #include "HWConfig.hpp"
+#include "LerpTable.hpp"
 #include "NetworkTableUtil.hpp"
 #include "controllers/FlywheelController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
+#include "subsystems/Vision.hpp"
 
 namespace frc3512 {
 
@@ -45,6 +47,12 @@ public:
     FrontFlywheel& operator=(const FrontFlywheel&) = delete;
 
     /**
+     * Producer-consumer queue for yaw, pitch, and range measurements from
+     * Vision subsystem.
+     */
+    wpi::static_circular_buffer<Vision::GlobalMeasurements, 8> visionQueue;
+
+    /**
      * Deploys the solenoid for the shooter.
      */
     void DeployShooterSolenoid();
@@ -53,14 +61,6 @@ public:
      * Stows the solenoid for the shooter.
      */
     void StowShooterSolenoid();
-
-    /**
-     * Sets whether the robot will adjust the front flywheel's
-     * radians while the robot is moving
-     *
-     * @param moveAndShoot Whether or not to move and shoot.
-     */
-    void SetMoveAndShoot(bool moveAndShoot);
 
     /**
      * Returns angular displacement of the front flywheel
@@ -88,6 +88,11 @@ public:
      * Returns the current goal of the controller.
      */
     units::radians_per_second_t GetGoal() const;
+
+    /**
+     * Returns the goal given the current range from the target.
+     */
+    units::radians_per_second_t GetGoalFromRange();
 
     /**
      * Sets the front flywheel goal to zero
@@ -152,11 +157,13 @@ private:
     frc::KalmanFilter<1, 1, 1> m_observer{
         m_plant, {0.25}, {2.5}, Constants::kControllerPeriod};
 
+    LerpTable<units::meter_t, units::radians_per_second_t> m_table;
+
     FlywheelController m_controller{FlywheelPose::kFront};
 
     Eigen::Matrix<double, 1, 1> m_u = Eigen::Matrix<double, 1, 1>::Zero();
 
-    bool m_moveAndShoot = true;
+    units::meter_t m_range;
 
     units::radian_t m_angle;
     units::radian_t m_lastAngle;
