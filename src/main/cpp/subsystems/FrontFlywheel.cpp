@@ -26,19 +26,24 @@ FrontFlywheel::FrontFlywheel()
     // Ensures CANSparkMax::Get() returns an initialized value
     m_frontGrbx.Set(0.0);
 
-    m_frontGrbx.SetInverted(false);
+    m_frontGrbx.SetInverted(true);
 
     m_frontEncoder.SetDistancePerPulse(FlywheelController::kDpP);
     m_frontEncoder.SetSamplesToAverage(5);
+    m_frontEncoder.SetReverseDirection(true);
 
     SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kMinimal);
 
+    // currently flywheel goes to constants speed, but might need to increase
+    // for farther shots. using LerpTable for furture proofing.
+    m_table.Insert(12_in, 359_rad_per_s);  // hood down.
+    m_table.Insert(24_in, 359_rad_per_s);  // hood up.
+    m_table.Insert(48_in, 359_rad_per_s);
+    m_table.Insert(72_in, 359_rad_per_s);
+    m_table.Insert(96_in, 359_rad_per_s);
+
     Reset();
     SetGoal(0_rad_per_s);
-}
-
-void FrontFlywheel::SetMoveAndShoot(bool moveAndShoot) {
-    m_moveAndShoot = moveAndShoot;
 }
 
 units::radian_t FrontFlywheel::GetAngle() {
@@ -55,6 +60,10 @@ void FrontFlywheel::SetGoal(units::radians_per_second_t velocity) {
 
 units::radians_per_second_t FrontFlywheel::GetGoal() const {
     return m_controller.GetGoal();
+}
+
+units::radians_per_second_t FrontFlywheel::GetGoalFromRange() {
+    return m_table[m_range];
 }
 
 void FrontFlywheel::Stop() { SetGoal(0_rad_per_s); }
@@ -82,6 +91,10 @@ void FrontFlywheel::RobotPeriodic() {
         m_testThrottle = appendageStick2.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
         SetGoal(manualRef);
+        double percent = (manualRef.value() /
+                          FrontFlywheelConstants::kMaxAngularVelocity.value()) *
+                         100.0;
+        m_percentageEntry.SetDouble(percent);
     }
 }
 
@@ -106,6 +119,11 @@ void FrontFlywheel::ControllerPeriodic() {
     m_observer.Correct(m_controller.GetInputs(), y);
     m_u = m_controller.Calculate(m_observer.Xhat());
     SetVoltage(units::volt_t{m_u(Input::kVoltage)});
+
+    while (visionQueue.size() > 0) {
+        auto measurement = visionQueue.pop_front();
+        m_range = measurement.range;
+    }
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 

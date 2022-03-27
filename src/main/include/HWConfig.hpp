@@ -52,10 +52,10 @@ constexpr int kRightUltrasonicChannel = 2;
 
 namespace Flywheel {
 /// Front motor CAN ID
-constexpr int kFrontMotorID = 1;
+constexpr int kFrontMotorID = 2;
 
 /// Back motor CAN ID
-constexpr int kBackMotorID = 2;
+constexpr int kBackMotorID = 1;
 
 /// Front encoder channel A
 constexpr int kFrontEncoderA = 4;
@@ -68,6 +68,10 @@ constexpr int kBackEncoderA = 0;
 
 /// Back encoder channel B
 constexpr int kBackEncoderB = 1;
+
+/// Angle solenoid channel
+constexpr int kShooterSolenoidChannel = 6;
+
 }  // namespace Flywheel
 
 namespace Intake {

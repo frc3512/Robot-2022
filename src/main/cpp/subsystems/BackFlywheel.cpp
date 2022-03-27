@@ -26,20 +26,28 @@ BackFlywheel::BackFlywheel()
     // Ensures CANSparkMax::Get() returns an initialized value
     m_backGrbx.Set(0.0);
 
-    m_backGrbx.SetInverted(false);
+    m_backGrbx.SetInverted(true);
 
     m_backEncoder.SetDistancePerPulse(FlywheelController::kDpP);
     m_backEncoder.SetSamplesToAverage(5);
 
     SetCANSparkMaxBusUsage(m_backGrbx, Usage::kMinimal);
 
+    m_table.Insert(12_in, 100_rad_per_s);  // hood down.
+    m_table.Insert(24_in, 100_rad_per_s);  // hood up.
+    m_table.Insert(48_in, 166_rad_per_s);
+    m_table.Insert(72_in, 221_rad_per_s);
+    m_table.Insert(96_in, 271_rad_per_s);
+
     Reset();
     SetGoal(0_rad_per_s);
 }
 
-void BackFlywheel::SetMoveAndShoot(bool moveAndShoot) {
-    m_moveAndShoot = moveAndShoot;
-}
+void BackFlywheel::DeployHood() { m_solenoid.Set(false); }
+
+void BackFlywheel::StowHood() { m_solenoid.Set(true); }
+
+bool BackFlywheel::IsHoodDeployed() { return !m_solenoid.Get(); }
 
 units::radian_t BackFlywheel::GetAngle() {
     return units::radian_t{m_backEncoder.GetDistance()};
@@ -55,6 +63,10 @@ void BackFlywheel::SetGoal(units::radians_per_second_t velocity) {
 
 units::radians_per_second_t BackFlywheel::GetGoal() const {
     return m_controller.GetGoal();
+}
+
+units::radians_per_second_t BackFlywheel::GetGoalFromRange() {
+    return m_table[m_range];
 }
 
 void BackFlywheel::Stop() { SetGoal(0_rad_per_s); }
@@ -73,15 +85,38 @@ void BackFlywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void BackFlywheel::TeleopPeriodic() {}
+void BackFlywheel::TeleopPeriodic() {
+    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
+
+    if (driveStick2.GetRawButtonPressed(4)) {
+        if (IsHoodDeployed()) {
+            StowHood();
+        } else {
+            DeployHood();
+        }
+    }
+}
 
 void BackFlywheel::RobotPeriodic() {
+    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
     if (frc::DriverStation::IsTest()) {
         m_testThrottle = appendageStick1.GetThrottle();
         auto manualRef = ThrottleToReference(m_testThrottle);
         SetGoal(manualRef);
+        double percent = (manualRef.value() /
+                          BackFlywheelConstants::kMaxAngularVelocity.value()) *
+                         100.0;
+        m_percentageEntry.SetDouble(percent);
+
+        if (driveStick2.GetRawButtonPressed(4)) {
+            if (IsHoodDeployed()) {
+                StowHood();
+            } else {
+                DeployHood();
+            }
+        }
     }
 }
 
@@ -106,6 +141,11 @@ void BackFlywheel::ControllerPeriodic() {
     m_observer.Correct(m_controller.GetInputs(), y);
     m_u = m_controller.Calculate(m_observer.Xhat());
     SetVoltage(units::volt_t{m_u(Input::kVoltage)});
+
+    while (visionQueue.size() > 0) {
+        auto measurement = visionQueue.pop_front();
+        m_range = measurement.range;
+    }
 
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 

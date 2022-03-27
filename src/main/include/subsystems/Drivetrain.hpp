@@ -338,7 +338,7 @@ private:
     frc::Timer m_visionTimer;
     bool m_aimWithVision = false;
     frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
-        10_rad_per_s, 4.4_rad_per_s_sq};
+        10_rad_per_s, 5.6_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
         kTurningP, kTurningI, kTurningD, m_turningConstraints,
         Constants::kControllerPeriod};

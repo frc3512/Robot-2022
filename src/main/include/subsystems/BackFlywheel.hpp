@@ -4,6 +4,7 @@
 
 #include <frc/DigitalInput.h>
 #include <frc/Encoder.h>
+#include <frc/Solenoid.h>
 #include <frc/Timer.h>
 #include <frc/estimator/KalmanFilter.h>
 #include <frc/filter/LinearFilter.h>
@@ -22,9 +23,11 @@
 #include "Constants.hpp"
 #include "FlywheelSim.hpp"
 #include "HWConfig.hpp"
+#include "LerpTable.hpp"
 #include "NetworkTableUtil.hpp"
 #include "controllers/FlywheelController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
+#include "subsystems/Vision.hpp"
 
 namespace frc3512 {
 
@@ -44,12 +47,25 @@ public:
     BackFlywheel& operator=(const BackFlywheel&) = delete;
 
     /**
-     * Sets whether the robot will adjust the rear flywheel's
-     * radians while the robot is moving
-     *
-     * @param moveAndShoot Whether or not to move and shoot.
+     * Producer-consumer queue for yaw, pitch, and range measurements from
+     * Vision subsystem.
      */
-    void SetMoveAndShoot(bool moveAndShoot);
+    wpi::static_circular_buffer<Vision::GlobalMeasurements, 8> visionQueue;
+
+    /**
+     * Deploys the hood out.
+     */
+    void DeployHood();
+
+    /**
+     * Stows the hood in.
+     */
+    void StowHood();
+
+    /**
+     * Returns whether or not the hood is deployed.
+     */
+    bool IsHoodDeployed();
 
     /**
      * Returns angular displacement of the rear flywheel
@@ -77,6 +93,11 @@ public:
      * Returns the current goal of the controller.
      */
     units::radians_per_second_t GetGoal() const;
+
+    /**
+     * Returns the goal given the current range from the target.
+     */
+    units::radians_per_second_t GetGoalFromRange();
 
     /**
      * Sets the rear flywheel goal to zero
@@ -136,19 +157,20 @@ private:
 
     frc::Encoder m_backEncoder{HWConfig::Flywheel::kBackEncoderA,
                                HWConfig::Flywheel::kBackEncoderB};
+    frc::Solenoid m_solenoid{frc::PneumaticsModuleType::CTREPCM,
+                             HWConfig::Flywheel::kShooterSolenoidChannel};
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetBackPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
-        m_plant,
-        {200.0},
-        {FlywheelController::kDpP / Constants::kControllerPeriod.value()},
-        Constants::kControllerPeriod};
+        m_plant, {0.25}, {2.5}, Constants::kControllerPeriod};
+
+    LerpTable<units::meter_t, units::radians_per_second_t> m_table;
 
     FlywheelController m_controller{FlywheelPose::kBack};
 
     Eigen::Matrix<double, 1, 1> m_u = Eigen::Matrix<double, 1, 1>::Zero();
 
-    bool m_moveAndShoot = true;
+    units::meter_t m_range;
 
     units::radian_t m_angle;
     units::radian_t m_lastAngle;
@@ -163,6 +185,9 @@ private:
     // Used in test mode for manually setting flywheel goal. This is helpful for
     // measuring flywheel lookup table values.
     double m_testThrottle = 0.0;
+
+    nt::NetworkTableEntry m_percentageEntry =
+        NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Back Flywheel/Percent");
 
     // Measurement noise isn't added because the simulated encoder stores the
     // count as an integer, which already introduces quantization noise.

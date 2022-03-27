@@ -57,7 +57,7 @@ void Intake::SetTimeToShoot(bool timeToShoot) { m_timeToShoot = timeToShoot; }
 
 bool Intake::IsTimeToShoot() const { return m_timeToShoot; }
 
-void Intake::RobotPeriodic() {
+void Intake::TeleopPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     if (appendageStick2.GetRawButton(3)) {
@@ -75,6 +75,10 @@ void Intake::RobotPeriodic() {
             Deploy();
         }
     }
+}
+
+void Intake::RobotPeriodic() {
+    static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     if (m_state == IntakeDirection::kOuttake) {
         SetConveyor(0.8);

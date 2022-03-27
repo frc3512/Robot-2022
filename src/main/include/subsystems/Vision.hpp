@@ -56,6 +56,9 @@ public:
     /// Pi camera V1 diagonal field of view
     static constexpr units::degree_t kCameraDiagonalFOV = 74.8_deg;
 
+    /// The yaw offset of the vision camera.
+    static constexpr units::degree_t kYawOffset = 3.5_deg;
+
     /**
      * Container for global measurements.
      *
