@@ -1,28 +1,17 @@
-<<<<<<< HEAD
 {
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
-      "/SmartDashboard/Autonomous modes": "String Chooser",
-      "/SmartDashboard/Climber": "Mechanism2d",
-      "/SmartDashboard/Field": "Field2d"
-    },
-    "windows": {
-      "/SmartDashboard/Field": {
-        "image": "/home/matthew/Downloads/2022-field.png",
-        "window": {
-          "visible": true
-        }
-      }
-    }
-  }
-}
-||||||| constructed merge base
-=======
-{
-  "NTProvider": {
-    "types": {
-      "/FMSInfo": "FMSInfo",
+      "/LiveWindow/Ungrouped/DigitalInput[0]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[1]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[2]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[3]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[4]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[5]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[6]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[7]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[8]": "Digital Input",
+      "/LiveWindow/Ungrouped/DigitalInput[9]": "Digital Input",
       "/SmartDashboard/Autonomous modes": "String Chooser",
       "/SmartDashboard/Climber": "Mechanism2d",
       "/SmartDashboard/Field": "Field2d"
@@ -53,4 +42,3 @@
     }
   }
 }
->>>>>>> Add four ball auton, slow down robot in auton

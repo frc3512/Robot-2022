@@ -83,6 +83,8 @@ public:
     /// Vision subsystem
     Vision vision;
 
+    frc::Timer autonTimer;
+
     Robot();
 
     ~Robot();

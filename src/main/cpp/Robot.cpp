@@ -196,20 +196,20 @@ void Robot::TeleopPeriodic() {
         }
     } else {
         if (driveStick1.GetRawButtonPressed(1)) {
-            Shoot(FrontFlywheelConstants::kShootHighTarmac,
-                  BackFlywheelConstants::kShootHighTarmac);
-        }
-        if (driveStick2.GetRawButtonPressed(1)) {
-            Shoot(FrontFlywheelConstants::kShootLow,
-                  BackFlywheelConstants::kShootLow, true);
-        }
-        if (driveStick2.GetRawButtonPressed(11)) {
             Shoot(FrontFlywheelConstants::kShootHighFender,
                   BackFlywheelConstants::kShootHighFender);
         }
-        if (driveStick2.GetRawButtonPressed(3)) {
+        if (driveStick2.GetRawButtonPressed(1)) {
             Shoot(frontFlywheel.GetGoalFromRange(),
                   backFlywheel.GetGoalFromRange());
+        }
+        if (driveStick2.GetRawButtonPressed(11)) {
+            Shoot(FrontFlywheelConstants::kShootHighTarmac,
+                  BackFlywheelConstants::kShootHighTarmac);
+        }
+        if (driveStick1.GetRawButtonPressed(4)) {
+            Shoot(FrontFlywheelConstants::kShootLow,
+                  BackFlywheelConstants::kShootLow);
         }
         if (driveStick1.GetRawButtonPressed(2)) {
             StopShooter();
@@ -318,20 +318,9 @@ void Robot::RunShooterSM() {
             break;
         case ShootingState::kSpinUp:
             if (ReadyToShoot()) {
-                if (frc::RobotBase::IsAutonomousEnabled() &&
-                    frontFlywheel.IsReady() && backFlywheel.IsReady()) {
-                    m_state = ShootingState::kStartConveyor;
-                } else if (frc::RobotBase::IsTeleopEnabled() &&
-                           frontFlywheel.IsReady() && backFlywheel.IsReady()) {
+                if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
                     m_state = ShootingState::kStartConveyor;
                 }
-            } else if (!frontFlywheel.IsReady() && !backFlywheel.IsReady() &&
-                       m_shootTimer.HasElapsed(3_s)) {
-                fmt::print(stderr, "Flywheels didn't get up to speed!");
-                frontFlywheel.SetGoal(0_rad_per_s);
-                backFlywheel.SetGoal(0_rad_per_s);
-                m_shootTimer.Stop();
-                m_state = ShootingState::kIdle;
             }
             break;
         case ShootingState::kStartConveyor:
@@ -348,14 +337,14 @@ void Robot::RunShooterSM() {
             }
             break;
         case ShootingState::kSecondBall:
-            if (m_shootTimer.HasElapsed(0.1_s)) {
+            if (m_shootTimer.HasElapsed(0.5_s)) {
                 intake.SetTimeToShoot(true);
                 m_shootTimer.Reset();
                 m_state = ShootingState::kEndShoot;
             }
             break;
         case ShootingState::kEndShoot:
-            if (m_shootTimer.HasElapsed(1_s)) {
+            if (m_shootTimer.HasElapsed(0.5_s)) {
                 StopShooter();
                 m_state = ShootingState::kIdle;
             }

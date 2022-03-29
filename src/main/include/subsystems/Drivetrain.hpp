@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <limits>
 #include <vector>
 
 #include <Eigen/Core>
@@ -63,6 +64,13 @@ public:
      * Distance from middle of robot to intake.
      */
     static constexpr units::meter_t kMiddleOfRobotToIntake = 0.656_m;
+
+    /// The constraints for the turn-in-place controller during auton.
+    frc::TrapezoidProfile<units::radian>::Constraints autonConstraints{
+        4_rad_per_s, 2.2_rad_per_s_sq};
+    /// The constraints for the turn-in-place controller when vision aiming.
+    frc::TrapezoidProfile<units::radian>::Constraints aimingConstraints{
+        1.5_rad_per_s, 0.5_rad_per_s_sq};
 
     /**
      * Producer-consumer queue for global pose measurements from Vision
@@ -254,6 +262,25 @@ public:
     units::radian_t GetHeading();
 
     /**
+     * Sets the tolerance of the turn-in-place ProfiledPID.
+     *
+     * @param headingTolerance The tolerance on the heading.
+     * @param velocityTolerance The tolerance on the velocity.
+     */
+    void SetTurningTolerance(units::radian_t headingTolerance,
+                             units::radians_per_second_t velocityTolerance =
+                                 units::radians_per_second_t{
+                                     std::numeric_limits<double>::infinity()});
+
+    /**
+     * Sets the constraint of the turn-in-place ProfiledPID.
+     *
+     * @param constraint the new constraint of the controller.
+     */
+    void SetTurningConstraints(
+        frc::TrapezoidProfile<units::radian>::Constraints constraint);
+
+    /**
      * Returns the drivetrain state estimate.
      */
     const Eigen::Vector<double, 7>& GetStates();
@@ -362,10 +389,8 @@ private:
 
     frc::Timer m_visionTimer;
     bool m_aimWithVision = false;
-    frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
-        10_rad_per_s, 5.6_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
-        kTurningP, kTurningI, kTurningD, m_turningConstraints,
+        kTurningP, kTurningI, kTurningD, autonConstraints,
         Constants::kControllerPeriod};
     bool m_hasNewHeading = false;
     frc::SimpleMotorFeedforward<units::radian> m_turningFeedforward{

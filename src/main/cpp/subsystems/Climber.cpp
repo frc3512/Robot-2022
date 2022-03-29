@@ -15,6 +15,7 @@
 #include <wpi/numbers>
 
 #include "CANSparkMaxUtil.hpp"
+#include "Constants.hpp"
 #include "HWConfig.hpp"
 
 using namespace frc3512;
@@ -70,14 +71,17 @@ void Climber::TeleopPeriodic() {
     // elevator.
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    double rightY =
-        frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1) * 0.8;
+    double rightY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1),
+                                       Constants::kJoystickDeadband) *
+                    0.75;
 
-    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1) * 0.8;
+    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1),
+                                      Constants::kJoystickDeadband) *
+                   0.8;
 
     // Disable soft limits for comps. Couldn't debug before matches, no one has
     // had any problems with them, so they're unnecessary for now.
-    SetClimber(leftY, rightY, true);
+    SetClimber(leftY, rightY);
 
     if (appendageStick1.GetRawButtonPressed(1)) {
         if (IsClimberDeployed()) {
@@ -100,11 +104,11 @@ void Climber::TestPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     double rightY =
-        frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1) * 0.8;
+        frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1) * 0.76;
 
     double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1) * 0.8;
 
-    SetClimber(leftY, rightY, true);
+    SetClimber(leftY, rightY, false);
 
     if (appendageStick1.GetRawButtonPressed(1)) {
         if (IsClimberDeployed()) {

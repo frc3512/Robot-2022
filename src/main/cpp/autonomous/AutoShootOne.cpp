@@ -8,11 +8,11 @@ void Robot::AutoShootOne() {
     /// ball.
     frc::Pose2d kInitialPose{2.5_m, 2_m, 0_rad};
     /// Backup Pose - drive back off the tarmac
-    frc::Pose2d kBackupPose{0_m, 2_m, 0_rad};
+    frc::Pose2d kBackupPose{1.25_m, 2_m, 0_rad};
 
     // shoots one preloaded ball.
     Shoot(FrontFlywheelConstants::kShootHighFender,
-          BackFlywheelConstants::kShootHighFender);
+          BackFlywheelConstants::kShootHighFender, true);
     // shoots as soon as flywheels are up to speed.
     SetReadyToShoot(true);
 

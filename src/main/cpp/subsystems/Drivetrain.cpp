@@ -38,8 +38,7 @@ Drivetrain::Drivetrain()
            ControllerLabel{"Left position", "m"},
            ControllerLabel{"Right position", "m"},
            ControllerLabel{"Longitudinal Acceleration", "m/s^2"},
-           ControllerLabel{"Lateral Acceleration", "m/s^2"}},
-          true) {
+           ControllerLabel{"Lateral Acceleration", "m/s^2"}}) {
     SetCANSparkMaxBusUsage(m_leftLeader, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_leftFollower, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_rightLeader, Usage::kMinimal);
@@ -71,8 +70,7 @@ Drivetrain::Drivetrain()
 
     m_turningPID.EnableContinuousInput(units::radian_t{-wpi::numbers::pi},
                                        units::radian_t{wpi::numbers::pi});
-    m_turningPID.SetTolerance(units::radian_t{0.25},
-                              units::radians_per_second_t{2});
+    m_turningPID.SetTolerance(units::radian_t{0.25});
 
     frc::SmartDashboard::PutData(&m_field);
 }
@@ -282,9 +280,9 @@ void Drivetrain::ControllerPeriodic() {
             (2.0 * DrivetrainController::kWidth));
 
         m_field.SetRobotPose(m_drivetrainSim.GetPose());
-        m_headingGoalEntry.SetBoolean(AtHeading());
-        m_atGoalEntry.SetBoolean(AtGoal());
     }
+
+    m_headingGoalEntry.SetBoolean(AtHeading());
 
     m_lastLeftPos = m_leftPos;
     m_lastRightPos = m_rightPos;
@@ -355,6 +353,17 @@ units::radian_t Drivetrain::GetHeading() {
         controllerState(DrivetrainController::State::kHeading)};
 }
 
+void Drivetrain::SetTurningTolerance(
+    units::radian_t headingTolerance,
+    units::radians_per_second_t velocityTolerance) {
+    m_turningPID.SetTolerance(headingTolerance, velocityTolerance);
+}
+
+void Drivetrain::SetTurningConstraints(
+    frc::TrapezoidProfile<units::radian>::Constraints constraint) {
+    m_turningPID.SetConstraints(constraint);
+}
+
 const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
     using VelocityState = DrivetrainController::VelocityFilterState;
     m_xHat = Eigen::Vector<double, 7>{
@@ -394,6 +403,8 @@ void Drivetrain::DisabledInit() {
 
 void Drivetrain::AutonomousInit() {
     SetBrakeMode();
+    SetTurningTolerance(0.25_rad);
+    SetTurningConstraints(autonConstraints);
     Enable();
 }
 
@@ -410,8 +421,8 @@ void Drivetrain::TeleopInit() {
     // turning action so teleop driving can occur.
     AbortTurnInPlace();
 
-    m_turningPID.SetTolerance(units::radian_t{0.5},
-                              units::radians_per_second_t{2});
+    SetTurningTolerance(0.15_rad);
+    SetTurningConstraints(autonConstraints);
 
     Enable();
 }
@@ -428,6 +439,9 @@ void Drivetrain::TestInit() {
     // autonomous, it will continue to do so in teleop. This aborts any
     // turning action so teleop driving can occur.
     AbortTurnInPlace();
+
+    SetTurningTolerance(0.15_rad);
+    SetTurningConstraints(aimingConstraints);
 
     Enable();
 }
@@ -462,7 +476,7 @@ void Drivetrain::TeleopPeriodic() {
     m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
 
     if (driveStick1.GetRawButtonPressed(3)) {
-        SetHeadingGoal(GetAngle() + units::radian_t{wpi::numbers::pi});
+        SetHeadingGoal(GetAngle() + 0.2_rad);
     }
 
     m_headingGoalEntry.SetBoolean(AtHeading());
