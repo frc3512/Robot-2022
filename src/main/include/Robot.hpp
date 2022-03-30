@@ -83,6 +83,7 @@ public:
     /// Vision subsystem
     Vision vision;
 
+    /// Timer used to add delays into autonomous
     frc::Timer autonTimer;
 
     Robot();

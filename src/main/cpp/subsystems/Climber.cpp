@@ -77,7 +77,7 @@ void Climber::TeleopPeriodic() {
 
     double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1),
                                       Constants::kJoystickDeadband) *
-                   0.8;
+                   0.76;
 
     // Disable soft limits for comps. Couldn't debug before matches, no one has
     // had any problems with them, so they're unnecessary for now.
