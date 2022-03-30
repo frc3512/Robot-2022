@@ -231,9 +231,9 @@ void Drivetrain::ControllerPeriodic() {
 
     if ((!(m_controller.GetVisionYaw() < 0.1_rad) ||
          !(m_controller.GetVisionYaw() > -0.1_rad)) &&
-        m_aimWithVision && !m_visionTimer.HasElapsed(3_s)) {
+        m_aimWithVision) {
         SetHeadingGoal(GetAngle() - m_controller.GetVisionYaw());
-    } else {
+    } else if (m_visionTimer.HasElapsed(3_s) && m_controller.) {
         m_visionTimer.Stop();
         m_visionTimer.Reset();
         m_aimWithVision = false;

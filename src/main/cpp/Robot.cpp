@@ -309,7 +309,8 @@ void Robot::RunShooterSM() {
             break;
         case ShootingState::kVisionSpinUp:
             if (drivetrain.AtHeading() ||
-                (!drivetrain.AtHeading() && m_shootTimer.HasElapsed(3_s))) {
+                (!drivetrain.AtHeading() && m_shootTimer.HasElapsed(3_s) &&
+                 !vision.HaveTargets())) {
                 frontFlywheel.SetGoal(frontFlywheel.GetGoalFromRange());
                 backFlywheel.SetGoal(backFlywheel.GetGoalFromRange());
                 drivetrain.SetHeadingGoal(drivetrain.GetAngle());
