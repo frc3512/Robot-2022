@@ -12,7 +12,7 @@ void Robot::AutoShootTwo() {
 
     // Intake Pose - Just in front of the initial position. Right on top of the
     // colored ball.
-    frc::Pose2d kIntakePose{8.598_m, 6.831_m,
+    frc::Pose2d kIntakePose{8.598_m, 7.431_m,
                             units::radian_t{wpi::numbers::pi / 2}};
 
     drivetrain.Reset(kInitialPose);
@@ -53,7 +53,6 @@ void Robot::AutoShootTwo() {
     }
 
     drivetrain.SetTurningTolerance(units::radian_t{0.15});
-    drivetrain.SetTurningConstraints(drivetrain.aimingConstraints);
 
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           FrontFlywheelConstants::kShootHighTarmac, true);

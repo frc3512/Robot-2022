@@ -310,6 +310,13 @@ public:
      */
     void AimWithVision();
 
+    /**
+     * Disengage aiming with vision.
+     */
+    void DisengageVisionAim();
+
+    bool IsVisionAiming() const;
+
     void DisabledInit() override;
 
     void AutonomousInit() override;

@@ -100,7 +100,7 @@ constexpr int kLeftClimberID = 12;
 constexpr int kRightClimberID = 3;
 
 constexpr int kLeftMagneticSwitch = 0;
-constexpr int kRightMagnticSwitch = 1;
+constexpr int kRightMagnticSwitch = 2;
 
 constexpr int kClimberSolenoidChannel = 5;
 }  // namespace Climber

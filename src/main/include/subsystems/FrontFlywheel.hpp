@@ -46,6 +46,8 @@ public:
     FrontFlywheel(const FrontFlywheel&) = delete;
     FrontFlywheel& operator=(const FrontFlywheel&) = delete;
 
+    static constexpr double kSpeedOffset = 0.95;
+
     /**
      * Producer-consumer queue for yaw, pitch, and range measurements from
      * Vision subsystem.

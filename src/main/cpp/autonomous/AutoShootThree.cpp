@@ -12,11 +12,11 @@ void Robot::AutoShootThree() {
 
     // Intake Pose - Just in front of the initial position. Right on top of the
     // colored ball.
-    frc::Pose2d kIntakePose{8.598_m, 6.831_m,
+    frc::Pose2d kIntakePose{8.598_m, 7.231_m,
                             units::radian_t{wpi::numbers::pi / 2}};
 
     // Shoot Pose - Right on top of the third ball.
-    const frc::Pose2d kEndPose{10.068_m, 5.677_m, units::radian_t{0}};
+    const frc::Pose2d kEndPose{11.068_m, 6.177_m, units::radian_t{0}};
 
     drivetrain.Reset(kInitialPose);
 
@@ -56,7 +56,6 @@ void Robot::AutoShootThree() {
     }
 
     drivetrain.SetTurningTolerance(units::radian_t{0.15});
-    drivetrain.SetTurningConstraints(drivetrain.aimingConstraints);
 
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           FrontFlywheelConstants::kShootHighTarmac, true);
@@ -106,7 +105,6 @@ void Robot::AutoShootThree() {
     }
 
     drivetrain.SetTurningTolerance(units::radian_t{0.15});
-    drivetrain.SetTurningConstraints(drivetrain.aimingConstraints);
 
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           BackFlywheelConstants::kShootHighTarmac, true);

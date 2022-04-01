@@ -73,7 +73,7 @@ void Climber::TeleopPeriodic() {
 
     double rightY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1),
                                        Constants::kJoystickDeadband) *
-                    0.75;
+                    0.8;
 
     double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1),
                                       Constants::kJoystickDeadband) *
@@ -89,6 +89,11 @@ void Climber::TeleopPeriodic() {
         } else {
             DeployClimbers();
         }
+    }
+
+    if (appendageStick2.GetRawButtonPressed(2))
+    {
+        m_ignoreLimits = !m_ignoreLimits;
     }
 
     m_leftTopSwitchEntry.SetDouble(m_leftClimberSwitch.GetValue());
@@ -108,7 +113,12 @@ void Climber::TestPeriodic() {
 
     double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1) * 0.8;
 
-    SetClimber(leftY, rightY, false);
+    SetClimber(leftY, rightY);
+
+    if (appendageStick2.GetRawButtonPressed(2))
+    {
+        m_ignoreLimits = !m_ignoreLimits;
+    }
 
     if (appendageStick1.GetRawButtonPressed(1)) {
         if (IsClimberDeployed()) {
@@ -141,9 +151,8 @@ void Climber::SimulationPeriodic() {
     m_extensionBase->SetLength(extension);
 }
 
-void Climber::SetClimber(double leftSpeed, double rightSpeed,
-                         bool ignoreLimits) {
-    if (ignoreLimits) {
+void Climber::SetClimber(double leftSpeed, double rightSpeed) {
+    if (m_ignoreLimits) {
         m_leftGrbx.Set(leftSpeed);
         m_rightGrbx.Set(rightSpeed);
     } else {

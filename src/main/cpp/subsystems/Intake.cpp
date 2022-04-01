@@ -77,6 +77,27 @@ void Intake::TeleopPeriodic() {
     }
 }
 
+void Intake::TestPeriodic()
+{
+    static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
+
+    if (appendageStick2.GetRawButton(3)) {
+        Start(IntakeDirection::kIntake);
+    } else if (appendageStick2.GetRawButton(4)) {
+        Start(IntakeDirection::kOuttake);
+    } else {
+        Stop();
+    }
+
+    if (appendageStick2.GetRawButtonPressed(1)) {
+        if (IsDeployed()) {
+            Stow();
+        } else {
+            Deploy();
+        }
+    }
+}
+
 void Intake::RobotPeriodic() {
     if (m_state == IntakeDirection::kOuttake) {
         SetConveyor(0.8);

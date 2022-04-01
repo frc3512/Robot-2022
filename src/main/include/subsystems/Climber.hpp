@@ -37,7 +37,7 @@ namespace frc3512 {
 class Climber : public SubsystemBase {
 public:
     /// Magnetic Switch constant value`
-    const int kSwitchConstant = 160;
+    const int kSwitchConstant = 3000;
     /**
      * Climber states.
      */
@@ -116,6 +116,8 @@ private:
 
     frc::Debouncer m_debouncer{50_ms, frc::Debouncer::DebounceType::kBoth};
 
+    bool m_ignoreLimits = false;
+
     // Networktable entries
     nt::NetworkTableEntry m_leftElevatorEncoderEntry =
         NetworkTableUtil::MakeDoubleEntry(
@@ -157,7 +159,6 @@ private:
      * @param rightSpeed right side climber speed.
      * @param ignoreLimits whether or not to ignore soft limits on climber.
      */
-    void SetClimber(double leftSpeed, double righSpeed,
-                    bool ignoreLimits = false);
+    void SetClimber(double leftSpeed, double righSpeed);
 };
 }  // namespace frc3512
