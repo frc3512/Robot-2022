@@ -230,10 +230,12 @@ public:
      * @param backSpeed     Speed for the back flywheel
      * @param visionAim     Whether or not the robot should use vision to aim at
      * the hub.
-     * @param shootWithRange Whether or not the robot should set the flywheel speed with vision.
+     * @param shootWithRange Whether or not the robot should set the flywheel
+     * speed with vision.
      */
     void Shoot(units::radians_per_second_t frontSpeed,
-               units::radians_per_second_t backSpeed, bool visionAim = false, bool shootWithRange = false);
+               units::radians_per_second_t backSpeed, bool visionAim = false,
+               bool shootWithRange = false);
 
     /**
      * Runs the shooter state machine.

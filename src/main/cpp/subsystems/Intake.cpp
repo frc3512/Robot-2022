@@ -77,8 +77,7 @@ void Intake::TeleopPeriodic() {
     }
 }
 
-void Intake::TestPeriodic()
-{
+void Intake::TestPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     if (appendageStick2.GetRawButton(3)) {

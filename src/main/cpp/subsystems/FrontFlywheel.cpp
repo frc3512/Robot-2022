@@ -84,7 +84,9 @@ void FrontFlywheel::Reset() {
 }
 
 void FrontFlywheel::TeleopPeriodic() {
-    double percent = GetGoal().value() / FrontFlywheelConstants::kMaxAngularVelocity.value() * 100.0;
+    double percent = GetGoal().value() /
+                     FrontFlywheelConstants::kMaxAngularVelocity.value() *
+                     100.0;
     m_percentageEntry.SetDouble(percent);
 }
 

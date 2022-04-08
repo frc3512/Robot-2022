@@ -16,7 +16,8 @@ void Robot::AutoShootFour() {
                             units::radian_t{wpi::numbers::pi / 2}};
 
     // Third Ball - Right on top of the third ball.
-    frc::Pose2d kThirdBall{11.068_m, 6.177_m, units::radian_t{(11 * wpi::numbers::pi) / 6}};
+    frc::Pose2d kThirdBall{11.068_m, 6.177_m,
+                           units::radian_t{(11 * wpi::numbers::pi) / 6}};
 
     /// Fourth Ball - Right in front of the human player station on top of the
     /// ball.

@@ -46,6 +46,7 @@ public:
     FrontFlywheel(const FrontFlywheel&) = delete;
     FrontFlywheel& operator=(const FrontFlywheel&) = delete;
 
+    /// offset applied to shooting speeds.
     static constexpr double kSpeedOffset = 0.95;
 
     /**

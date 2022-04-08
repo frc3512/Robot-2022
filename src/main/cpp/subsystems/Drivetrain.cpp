@@ -396,15 +396,9 @@ void Drivetrain::AimWithVision() {
     m_aimWithVision = true;
 }
 
-void Drivetrain::DisengageVisionAim()
-{
-    m_aimWithVision = false;
-}
+void Drivetrain::DisengageVisionAim() { m_aimWithVision = false; }
 
-bool Drivetrain::IsVisionAiming() const
-{
-    return m_aimWithVision;
-}
+bool Drivetrain::IsVisionAiming() const { return m_aimWithVision; }
 
 void Drivetrain::DisabledInit() {
     SetBrakeMode();
@@ -465,7 +459,8 @@ void Drivetrain::TeleopPeriodic() {
     double y =
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) * 0.6;
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
+        0.6;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));
@@ -481,7 +476,7 @@ void Drivetrain::TeleopPeriodic() {
     m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
 
     if (driveStick1.GetRawButtonPressed(3)) {
-        SetHeadingGoal(GetAngle() + 0.2_rad);
+        SetHeadingGoal(GetAngle() + units::radian_t{wpi::numbers::pi});
     }
 
     m_headingGoalEntry.SetBoolean(AtHeading());
@@ -500,7 +495,8 @@ void Drivetrain::TestPeriodic() {
     double y =
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) * 0.6;
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
+        0.6;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));

@@ -19,5 +19,16 @@
         }
       }
     }
+  },
+  "NetworkTables": {
+    "Diagnostics": {
+      "Drivetrain": {
+        "Outputs": {
+          "open": true
+        },
+        "open": true
+      },
+      "open": true
+    }
   }
 }

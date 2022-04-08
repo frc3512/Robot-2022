@@ -80,6 +80,12 @@ public:
     /// Maximum linear acceleration.
     static constexpr auto kMaxA = 12_V / kLinearA;
 
+    /// Maximum angular velocity.
+    static constexpr auto kMaxAngularV = 12_V / kAngularV;
+
+    /// Maximum angular acceleration.
+    static constexpr auto kMaxAngularA = 12_V / kAngularA;
+
     /**
      * States of the drivetrain wheel velocity filter.
      */

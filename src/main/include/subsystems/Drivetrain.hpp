@@ -315,6 +315,9 @@ public:
      */
     void DisengageVisionAim();
 
+    /**
+     * Returns whether or not the robot is aiming with vision.
+     */
     bool IsVisionAiming() const;
 
     void DisabledInit() override;

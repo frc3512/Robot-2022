@@ -91,8 +91,7 @@ void Climber::TeleopPeriodic() {
         }
     }
 
-    if (appendageStick2.GetRawButtonPressed(2))
-    {
+    if (appendageStick2.GetRawButtonPressed(2)) {
         m_ignoreLimits = !m_ignoreLimits;
     }
 
@@ -115,8 +114,7 @@ void Climber::TestPeriodic() {
 
     SetClimber(leftY, rightY);
 
-    if (appendageStick2.GetRawButtonPressed(2))
-    {
+    if (appendageStick2.GetRawButtonPressed(2)) {
         m_ignoreLimits = !m_ignoreLimits;
     }
 
