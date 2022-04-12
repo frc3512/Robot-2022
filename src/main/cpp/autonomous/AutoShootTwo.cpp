@@ -46,14 +46,14 @@ void Robot::AutoShootTwo() {
     intake.Stop();
     intake.Stow();
 
+    drivetrain.SetTurningTolerance(0.25_rad);
     drivetrain.SetHeadingGoal(units::radian_t{(3 * wpi::numbers::pi) / 2});
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
         return;
     }
 
-    drivetrain.SetTurningTolerance(units::radian_t{0.15});
-
+    drivetrain.SetTurningTolerance(0.15_rad);
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           FrontFlywheelConstants::kShootHighTarmac, true);
     SetReadyToShoot(true);

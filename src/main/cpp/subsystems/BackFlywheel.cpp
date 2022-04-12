@@ -33,12 +33,12 @@ BackFlywheel::BackFlywheel()
 
     SetCANSparkMaxBusUsage(m_backGrbx, Usage::kMinimal);
 
-    m_table.Insert(12_in, 100_rad_per_s * kSpeedOffset);  // hood down.
-    m_table.Insert(24_in, 100_rad_per_s * kSpeedOffset);  // hood up.
-    m_table.Insert(48_in, 166_rad_per_s * kSpeedOffset);
-    m_table.Insert(72_in, 221_rad_per_s * kSpeedOffset);
-    m_table.Insert(96_in, 271_rad_per_s * kSpeedOffset);
-    m_table.Insert(108_in, 271_rad_per_s * kSpeedOffset);
+    m_table.Insert(12_in, 100_rad_per_s);     // hood down.
+    m_table.Insert(24_in, 233.96_rad_per_s);  // hood up.
+    m_table.Insert(48_in, 263.205_rad_per_s);
+    m_table.Insert(72_in, 292.45_rad_per_s);
+    m_table.Insert(96_in, 350.94_rad_per_s);
+    m_table.Insert(120_in, 350.94_rad_per_s);
 
     Reset();
     SetGoal(0_rad_per_s);

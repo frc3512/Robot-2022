@@ -116,20 +116,20 @@ public:
     static frc::LinearSystem<1, 1, 1> GetBackPlant();
 
 private:
-    static constexpr auto kAngularVelocityShotThreshold = 25_rad_per_s;
-    static constexpr auto kAngularVelocityRecoveryThreshold = 25_rad_per_s;
+    static constexpr auto kAngularVelocityShotThreshold = 18_rad_per_s;
+    static constexpr auto kAngularVelocityRecoveryThreshold = 18_rad_per_s;
 
     FlywheelPose m_pose;
 
     frc::LinearSystem<1, 1, 1> m_frontPlant{GetFrontPlant()};
     frc::LinearQuadraticRegulator<1, 1> m_frontLQR{
-        m_frontPlant, {50.0}, {12.0}, Constants::kControllerPeriod};
+        m_frontPlant, {25.0}, {12.0}, Constants::kControllerPeriod};
     frc::LinearPlantInversionFeedforward<1, 1> m_frontFF{
         m_frontPlant, Constants::kControllerPeriod};
 
     frc::LinearSystem<1, 1, 1> m_backPlant{GetBackPlant()};
     frc::LinearQuadraticRegulator<1, 1> m_backLQR{
-        m_backPlant, {50.0}, {12.0}, Constants::kControllerPeriod};
+        m_backPlant, {25.0}, {12.0}, Constants::kControllerPeriod};
     frc::LinearPlantInversionFeedforward<1, 1> m_backFF{
         m_backPlant, Constants::kControllerPeriod};
 

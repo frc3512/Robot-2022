@@ -99,7 +99,7 @@ void Intake::TestPeriodic() {
 
 void Intake::RobotPeriodic() {
     if (m_state == IntakeDirection::kOuttake) {
-        SetConveyor(0.8);
+        SetConveyor(0.95);
     } else if (IsTimeToShoot()) {
         SetConveyor(-0.45);
     } else if (!IsTimeToShoot() && !IsUpperSensorBlocked() &&

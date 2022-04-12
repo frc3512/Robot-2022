@@ -165,7 +165,7 @@ private:
 
     frc::LinearSystem<1, 1, 1> m_plant{FlywheelController::GetBackPlant()};
     frc::KalmanFilter<1, 1, 1> m_observer{
-        m_plant, {0.25}, {2.5}, Constants::kControllerPeriod};
+        m_plant, {100.0}, {2.5}, Constants::kControllerPeriod};
 
     LerpTable<units::meter_t, units::radians_per_second_t> m_table;
 

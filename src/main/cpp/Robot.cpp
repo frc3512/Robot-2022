@@ -111,7 +111,7 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
         0.7_ms);
 
     if constexpr (!IsSimulation()) {
-        frc::CameraServer::StartAutomaticCapture();
+        frc::CameraServer::StartAutomaticCapture().SetResolution(160, 120);
     }
 
     vision.SubscribeToVisionData(drivetrain.visionQueue);

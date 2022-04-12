@@ -15,13 +15,13 @@ enum class FlywheelPose { kFront, kBack };
 
 namespace FrontFlywheelConstants {
 /// Static friction system ID gain.
-static constexpr auto kS = 0.18296_V;
+static constexpr auto kS = 0.15418_V;
 
 /// Angular velocity system ID gain.
-static constexpr auto kV = 0.020245_V / 1_rad_per_s;
+static constexpr auto kV = 0.020604_V / 1_rad_per_s;
 
 /// Angular acceleration system ID gain.
-static constexpr auto kA = 0.003333_V / 1_rad_per_s_sq;
+static constexpr auto kA = 0.0027615_V / 1_rad_per_s_sq;
 
 /// Maximum front flywheel angular velocity.
 static constexpr auto kMaxAngularVelocity = 12_V / kV;
@@ -38,13 +38,13 @@ static constexpr units::radians_per_second_t kShootLow = 240_rad_per_s;
 
 namespace BackFlywheelConstants {
 /// Static friction system ID gain.
-static constexpr auto kS = 0.070473_V;
+static constexpr auto kS = 0.26895_V;
 
 /// Angular velocity system ID gain.
-static constexpr auto kV = 0.021752_V / 1_rad_per_s;
+static constexpr auto kV = 0.020516_V / 1_rad_per_s;
 
 /// Angular acceleration system ID gain.
-static constexpr auto kA = 0.0095716_V / 1_rad_per_s_sq;
+static constexpr auto kA = 0.0016076_V / 1_rad_per_s_sq;
 
 /// Maximum back flywheel angular velocity.
 static constexpr auto kMaxAngularVelocity = 12_V / kV;

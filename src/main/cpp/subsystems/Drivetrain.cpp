@@ -231,7 +231,7 @@ void Drivetrain::ControllerPeriodic() {
 
     if ((!(m_controller.GetVisionYaw() < 0.1_rad) ||
          !(m_controller.GetVisionYaw() > -0.1_rad)) &&
-        m_aimWithVision) {
+        m_visionTimer.HasElapsed(3_s)) {
         SetHeadingGoal(GetAngle() - m_controller.GetVisionYaw());
     } else {
         m_visionTimer.Stop();
@@ -460,7 +460,7 @@ void Drivetrain::TeleopPeriodic() {
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
         frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
-        0.6;
+        0.4;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));
@@ -496,7 +496,7 @@ void Drivetrain::TestPeriodic() {
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
         frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
-        0.6;
+        0.4;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));

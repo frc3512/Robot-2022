@@ -35,13 +35,13 @@ FrontFlywheel::FrontFlywheel()
     SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kMinimal);
 
     // currently flywheel goes to constants speed, but might need to increase
-    // for farther shots. using LerpTable for furture proofing.
-    m_table.Insert(12_in, 359_rad_per_s);  // hood down.
-    m_table.Insert(24_in, 359_rad_per_s);  // hood up.
-    m_table.Insert(48_in, 359_rad_per_s);
-    m_table.Insert(72_in, 359_rad_per_s);
-    m_table.Insert(96_in, 359_rad_per_s);
-    m_table.Insert(108_in, 414.89_rad_per_s);
+    // for farther shots. using LerpTable for future proofing.
+    m_table.Insert(12_in, 232_rad_per_s);     // hood down.
+    m_table.Insert(24_in, 262.08_rad_per_s);  // hood up.
+    m_table.Insert(48_in, 262.08_rad_per_s);
+    m_table.Insert(72_in, 262.08_rad_per_s);
+    m_table.Insert(96_in, 262.08_rad_per_s);
+    m_table.Insert(120_in, 262.08_rad_per_s);
 
     Reset();
     SetGoal(0_rad_per_s);

@@ -30,5 +30,12 @@ void Robot::AutoShootOne() {
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
         return;
     }
+
+    drivetrain.SetTurningTolerance(0.15_rad);
+    // shoots one preloaded ball.
+    Shoot(FrontFlywheelConstants::kShootHighFender,
+          BackFlywheelConstants::kShootHighFender, true);
+    // shoots as soon as flywheels are up to speed.
+    SetReadyToShoot(true);
 }
 }  // namespace frc3512
