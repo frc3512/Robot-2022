@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <limits>
 #include <vector>
 
 #include <Eigen/Core>
@@ -12,6 +13,8 @@
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/controller/SimpleMotorFeedforward.h>
 #include <frc/estimator/AngleStatistics.h>
+#include <frc/estimator/KalmanFilter.h>
+#include <frc/estimator/KalmanFilterLatencyCompensator.h>
 #include <frc/filter/LinearFilter.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Translation2d.h>
@@ -49,17 +52,25 @@ namespace frc3512 {
 /**
  * The drivetrain subsystem.
  *
- * The drivetrain uses an unscented Kalman filter for state estimation.
+ * The drivetrain uses a Kalman Filter for encoder position and velocity
+ * estimation and the DifferentialDriveOdometry class for pose estimation.
  */
 class Drivetrain : public ControlledSubsystemBase<7, 2, 5> {
 public:
     /// The drivetrain length.
-    static constexpr units::meter_t kLength = 0.9398_m;
+    static constexpr units::meter_t kLength = 0.5851068_m;
 
     /**
      * Distance from middle of robot to intake.
      */
     static constexpr units::meter_t kMiddleOfRobotToIntake = 0.656_m;
+
+    /// The constraints for the turn-in-place controller during auton.
+    frc::TrapezoidProfile<units::radian>::Constraints autonConstraints{
+        4_rad_per_s, 2.2_rad_per_s_sq};
+    /// The constraints for the turn-in-place controller when vision aiming.
+    frc::TrapezoidProfile<units::radian>::Constraints aimingConstraints{
+        1.5_rad_per_s, 0.5_rad_per_s_sq};
 
     /**
      * Producer-consumer queue for global pose measurements from Vision
@@ -251,6 +262,25 @@ public:
     units::radian_t GetHeading();
 
     /**
+     * Sets the tolerance of the turn-in-place ProfiledPID.
+     *
+     * @param headingTolerance The tolerance on the heading.
+     * @param velocityTolerance The tolerance on the velocity.
+     */
+    void SetTurningTolerance(units::radian_t headingTolerance,
+                             units::radians_per_second_t velocityTolerance =
+                                 units::radians_per_second_t{
+                                     std::numeric_limits<double>::infinity()});
+
+    /**
+     * Sets the constraint of the turn-in-place ProfiledPID.
+     *
+     * @param constraint the new constraint of the controller.
+     */
+    void SetTurningConstraints(
+        frc::TrapezoidProfile<units::radian>::Constraints constraint);
+
+    /**
      * Returns the drivetrain state estimate.
      */
     const Eigen::Vector<double, 7>& GetStates();
@@ -280,6 +310,16 @@ public:
      */
     void AimWithVision();
 
+    /**
+     * Disengage aiming with vision.
+     */
+    void DisengageVisionAim();
+
+    /**
+     * Returns whether or not the robot is aiming with vision.
+     */
+    bool IsVisionAiming() const;
+
     void DisabledInit() override;
 
     void AutonomousInit() override;
@@ -303,7 +343,7 @@ private:
 
     static const Eigen::Matrix<double, 2, 2> kGlobalR;
 
-    static const frc::LinearSystem<2, 2, 2> kPlant;
+    static frc::LinearSystem<2, 2, 2> kPlant;
 
     rev::CANSparkMax m_leftLeader{HWConfig::Drivetrain::kLeftMotorLeaderID,
                                   rev::CANSparkMax::MotorType::kBrushless};
@@ -327,6 +367,28 @@ private:
     frc::ADIS16470_IMU m_imu;
     units::radian_t m_headingOffset = 0_rad;
 
+    units::meter_t m_leftPos;
+    units::meter_t m_lastLeftPos;
+    units::meter_t m_rightPos;
+    units::meter_t m_lastRightPos;
+    units::second_t m_time = frc::Timer::GetFPGATimestamp();
+    units::second_t m_lastTime = m_time - Constants::kControllerPeriod;
+
+    units::meters_per_second_t m_leftVelocity;
+    units::meters_per_second_t m_rightVelocity;
+    // Filters out encoder quantization noise
+    frc::LinearFilter<units::meters_per_second_t> m_leftVelocityFilter =
+        frc::LinearFilter<units::meters_per_second_t>::MovingAverage(4);
+    frc::LinearFilter<units::meters_per_second_t> m_rightVelocityFilter =
+        frc::LinearFilter<units::meters_per_second_t>::MovingAverage(4);
+
+    frc::KalmanFilter<2, 2, 2> m_velocityObserver{
+        kPlant,
+        {0.25, 0.25},
+        {DrivetrainController::kDpP / Constants::kControllerPeriod.value(),
+         DrivetrainController::kDpP / Constants::kControllerPeriod.value()},
+        Constants::kControllerPeriod};
+
     frc::DifferentialDriveOdometry m_observer{frc::Rotation2d(), frc::Pose2d()};
     Eigen::Vector<double, 7> m_xHat = Eigen::Vector<double, 7>::Zero();
 
@@ -337,10 +399,8 @@ private:
 
     frc::Timer m_visionTimer;
     bool m_aimWithVision = false;
-    frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
-        10_rad_per_s, 5.6_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
-        kTurningP, kTurningI, kTurningD, m_turningConstraints,
+        kTurningP, kTurningI, kTurningD, autonConstraints,
         Constants::kControllerPeriod};
     bool m_hasNewHeading = false;
     frc::SimpleMotorFeedforward<units::radian> m_turningFeedforward{

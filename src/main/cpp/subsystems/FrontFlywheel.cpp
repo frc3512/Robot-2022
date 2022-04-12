@@ -41,6 +41,7 @@ FrontFlywheel::FrontFlywheel()
     m_table.Insert(48_in, 359_rad_per_s);
     m_table.Insert(72_in, 359_rad_per_s);
     m_table.Insert(96_in, 359_rad_per_s);
+    m_table.Insert(108_in, 414.89_rad_per_s);
 
     Reset();
     SetGoal(0_rad_per_s);
@@ -82,7 +83,12 @@ void FrontFlywheel::Reset() {
     m_lastAngle = m_angle;
 }
 
-void FrontFlywheel::TeleopPeriodic() {}
+void FrontFlywheel::TeleopPeriodic() {
+    double percent = GetGoal().value() /
+                     FrontFlywheelConstants::kMaxAngularVelocity.value() *
+                     100.0;
+    m_percentageEntry.SetDouble(percent);
+}
 
 void FrontFlywheel::RobotPeriodic() {
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};

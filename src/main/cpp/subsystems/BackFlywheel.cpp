@@ -33,11 +33,12 @@ BackFlywheel::BackFlywheel()
 
     SetCANSparkMaxBusUsage(m_backGrbx, Usage::kMinimal);
 
-    m_table.Insert(12_in, 100_rad_per_s);  // hood down.
-    m_table.Insert(24_in, 100_rad_per_s);  // hood up.
-    m_table.Insert(48_in, 166_rad_per_s);
-    m_table.Insert(72_in, 221_rad_per_s);
-    m_table.Insert(96_in, 271_rad_per_s);
+    m_table.Insert(12_in, 100_rad_per_s * kSpeedOffset);  // hood down.
+    m_table.Insert(24_in, 100_rad_per_s * kSpeedOffset);  // hood up.
+    m_table.Insert(48_in, 166_rad_per_s * kSpeedOffset);
+    m_table.Insert(72_in, 221_rad_per_s * kSpeedOffset);
+    m_table.Insert(96_in, 271_rad_per_s * kSpeedOffset);
+    m_table.Insert(108_in, 271_rad_per_s * kSpeedOffset);
 
     Reset();
     SetGoal(0_rad_per_s);
@@ -95,6 +96,10 @@ void BackFlywheel::TeleopPeriodic() {
             DeployHood();
         }
     }
+
+    double percent = GetGoal().value() /
+                     BackFlywheelConstants::kMaxAngularVelocity.value() * 100.0;
+    m_percentageEntry.SetDouble(percent);
 }
 
 void BackFlywheel::RobotPeriodic() {

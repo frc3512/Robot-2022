@@ -80,6 +80,23 @@ public:
     /// Maximum linear acceleration.
     static constexpr auto kMaxA = 12_V / kLinearA;
 
+    /// Maximum angular velocity.
+    static constexpr auto kMaxAngularV = 12_V / kAngularV;
+
+    /// Maximum angular acceleration.
+    static constexpr auto kMaxAngularA = 12_V / kAngularA;
+
+    /**
+     * States of the drivetrain wheel velocity filter.
+     */
+    class VelocityFilterState {
+    public:
+        /// Left encoder velocity.
+        static constexpr int kLeftVelocity = 0;
+        /// Right encoder velocity.
+        static constexpr int kRightVelocity = 1;
+    };
+
     /**
      * States of the drivetrain system.
      */
@@ -357,9 +374,9 @@ public:
 private:
     static constexpr auto kPositionTolerance = 0.25_m;
     static constexpr auto kVelocityTolerance = 2_mps;
-    static constexpr auto kAngleTolerance = 0.15_rad;
+    static constexpr auto kAngleTolerance = 0.52_rad;
 
-    static const frc::LinearSystem<2, 2, 2> kPlant;
+    static frc::LinearSystem<2, 2, 2> kPlant;
 
     frc::ControlAffinePlantInversionFeedforward<7, 2> m_ff{
         Dynamics, Constants::kControllerPeriod};

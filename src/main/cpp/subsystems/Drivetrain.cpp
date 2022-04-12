@@ -21,8 +21,7 @@ using namespace frc3512;
 const Eigen::Matrix<double, 2, 2> Drivetrain::kGlobalR =
     frc::MakeCovMatrix(0.2, 0.2);
 
-const frc::LinearSystem<2, 2, 2> Drivetrain::kPlant{
-    DrivetrainController::GetPlant()};
+frc::LinearSystem<2, 2, 2> Drivetrain::kPlant{DrivetrainController::GetPlant()};
 
 Drivetrain::Drivetrain()
     : ControlledSubsystemBase(
@@ -71,8 +70,7 @@ Drivetrain::Drivetrain()
 
     m_turningPID.EnableContinuousInput(units::radian_t{-wpi::numbers::pi},
                                        units::radian_t{wpi::numbers::pi});
-    m_turningPID.SetTolerance(units::radian_t{0.25},
-                              units::radians_per_second_t{2});
+    m_turningPID.SetTolerance(units::radian_t{0.25});
 
     frc::SmartDashboard::PutData(&m_field);
 }
@@ -88,7 +86,7 @@ frc::Pose2d Drivetrain::GetReferencePose() const {
 frc::Pose2d Drivetrain::GetPose() const { return m_observer.GetPose(); }
 
 units::radian_t Drivetrain::GetAngle() const {
-    return units::degree_t{m_imu.GetAngle()} + +m_headingOffset;
+    return units::degree_t{m_imu.GetAngle()} + m_headingOffset;
 }
 
 units::meter_t Drivetrain::GetLeftPosition() const {
@@ -100,11 +98,11 @@ units::meter_t Drivetrain::GetRightPosition() const {
 }
 
 units::meters_per_second_t Drivetrain::GetLeftVelocity() const {
-    return units::meters_per_second_t{m_leftEncoder.GetRate()};
+    return m_leftVelocity;
 }
 
 units::meters_per_second_t Drivetrain::GetRightVelocity() const {
-    return units::meters_per_second_t{m_rightEncoder.GetRate()};
+    return m_rightVelocity;
 }
 
 units::meters_per_second_squared_t Drivetrain::GetAccelerationX() const {
@@ -134,8 +132,9 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
     xHat(State::kHeading) = initialPose.Rotation().Radians().value();
     xHat.block<4, 1>(3, 0).setZero();
     m_xHat = xHat;
-    m_observer.ResetPosition(initialPose,
-                             frc::Rotation2d(frc::AngleModulus(GetAngle())));
+    m_observer.ResetPosition(initialPose, GetAngle());
+    Eigen::Vector<double, 2> filterXHat = Eigen::Vector<double, 2>::Zero();
+    m_velocityObserver.SetXhat(filterXHat);
 
     if constexpr (frc::RobotBase::IsSimulation()) {
         m_drivetrainSim.SetState(xHat);
@@ -148,12 +147,33 @@ void Drivetrain::ControllerPeriodic() {
 
     UpdateDt();
 
-    Eigen::Vector<double, 5> y{
-        frc::AngleModulus(GetAngle()).value(), GetLeftPosition().value(),
-        GetRightPosition().value(), GetAccelerationX().value(),
-        GetAccelerationY().value()};
-    m_observer.Update(frc::Rotation2d(frc::AngleModulus(GetAngle())),
-                      GetLeftPosition(), GetRightPosition());
+    m_velocityObserver.Predict(m_u, GetDt());
+
+    m_leftPos = GetLeftPosition();
+    m_rightPos = GetRightPosition();
+    m_time = frc::Timer::GetFPGATimestamp();
+
+    // WPILib uses the time between pulses in GetRate() to calculate velocity,
+    // but this is very noisy for high-resolution encoders. Instead, we
+    // calculate a velocity from the change in position over change in time,
+    // which is more precise.
+    auto rawLeftVelocity = (m_leftPos - m_lastLeftPos) / (m_time - m_lastTime);
+    auto rawRightVelocity =
+        (m_rightPos - m_lastRightPos) / (m_time - m_lastTime);
+
+    m_leftVelocity = m_leftVelocityFilter.Calculate(rawLeftVelocity);
+    m_rightVelocity = m_rightVelocityFilter.Calculate(rawRightVelocity);
+
+    Eigen::Vector<double, 2> velPosY{GetLeftVelocity().value(),
+                                     GetRightVelocity().value()};
+
+    Eigen::Vector<double, 5> y{GetAngle().value(), GetLeftPosition().value(),
+                               GetRightPosition().value(),
+                               GetAccelerationX().value(),
+                               GetAccelerationY().value()};
+    m_observer.Update(GetAngle(), GetLeftPosition(), GetRightPosition());
+
+    m_velocityObserver.Correct(m_controller.GetInputs(), velPosY);
 
     Eigen::Vector<double, 7> controllerState = GetStates();
 
@@ -211,7 +231,7 @@ void Drivetrain::ControllerPeriodic() {
 
     if ((!(m_controller.GetVisionYaw() < 0.1_rad) ||
          !(m_controller.GetVisionYaw() > -0.1_rad)) &&
-        m_aimWithVision && !m_visionTimer.HasElapsed(3_s)) {
+        m_aimWithVision) {
         SetHeadingGoal(GetAngle() - m_controller.GetVisionYaw());
     } else {
         m_visionTimer.Stop();
@@ -261,6 +281,12 @@ void Drivetrain::ControllerPeriodic() {
 
         m_field.SetRobotPose(m_drivetrainSim.GetPose());
     }
+
+    m_headingGoalEntry.SetBoolean(AtHeading());
+
+    m_lastLeftPos = m_leftPos;
+    m_lastRightPos = m_rightPos;
+    m_lastTime = m_time;
 }
 
 void Drivetrain::RobotPeriodic() {}
@@ -327,12 +353,27 @@ units::radian_t Drivetrain::GetHeading() {
         controllerState(DrivetrainController::State::kHeading)};
 }
 
+void Drivetrain::SetTurningTolerance(
+    units::radian_t headingTolerance,
+    units::radians_per_second_t velocityTolerance) {
+    m_turningPID.SetTolerance(headingTolerance, velocityTolerance);
+}
+
+void Drivetrain::SetTurningConstraints(
+    frc::TrapezoidProfile<units::radian>::Constraints constraint) {
+    m_turningPID.SetConstraints(constraint);
+}
+
 const Eigen::Vector<double, 7>& Drivetrain::GetStates() {
+    using VelocityState = DrivetrainController::VelocityFilterState;
     m_xHat = Eigen::Vector<double, 7>{
-        GetPose().X().value(),      GetPose().Y().value(),
-        GetAngle().value(),         GetLeftVelocity().value(),
-        GetRightVelocity().value(), GetLeftPosition().value(),
-        GetRightVelocity().value()};
+        GetPose().X().value(),
+        GetPose().Y().value(),
+        GetAngle().value(),
+        m_velocityObserver.Xhat(VelocityState::kLeftVelocity),
+        m_velocityObserver.Xhat(VelocityState::kRightVelocity),
+        GetLeftPosition().value(),
+        GetRightPosition().value()};
     return m_xHat;
 }
 
@@ -355,6 +396,10 @@ void Drivetrain::AimWithVision() {
     m_aimWithVision = true;
 }
 
+void Drivetrain::DisengageVisionAim() { m_aimWithVision = false; }
+
+bool Drivetrain::IsVisionAiming() const { return m_aimWithVision; }
+
 void Drivetrain::DisabledInit() {
     SetBrakeMode();
     Disable();
@@ -362,6 +407,8 @@ void Drivetrain::DisabledInit() {
 
 void Drivetrain::AutonomousInit() {
     SetBrakeMode();
+    SetTurningTolerance(0.25_rad);
+    SetTurningConstraints(autonConstraints);
     Enable();
 }
 
@@ -378,8 +425,8 @@ void Drivetrain::TeleopInit() {
     // turning action so teleop driving can occur.
     AbortTurnInPlace();
 
-    m_turningPID.SetTolerance(units::radian_t{0.5},
-                              units::radians_per_second_t{2});
+    SetTurningTolerance(0.15_rad);
+    SetTurningConstraints(autonConstraints);
 
     Enable();
 }
@@ -397,6 +444,9 @@ void Drivetrain::TestInit() {
     // turning action so teleop driving can occur.
     AbortTurnInPlace();
 
+    SetTurningTolerance(0.15_rad);
+    SetTurningConstraints(aimingConstraints);
+
     Enable();
 }
 
@@ -409,12 +459,8 @@ void Drivetrain::TeleopPeriodic() {
     double y =
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
-
-    if (driveStick1.GetRawButton(1)) {
-        y *= 0.5;
-        x *= 0.5;
-    }
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
+        0.6;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));
@@ -449,12 +495,9 @@ void Drivetrain::TestPeriodic() {
     double y =
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
+        0.6;
 
-    if (driveStick1.GetRawButton(1)) {
-        y *= 0.5;
-        x *= 0.5;
-    }
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));
 

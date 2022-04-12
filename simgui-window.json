@@ -6,15 +6,20 @@
       "style": "0",
       "userScale": "2",
       "width": "1855",
-      "xpos": "65",
-      "ypos": "24"
+      "xpos": "640",
+      "ypos": "332"
     }
   },
   "Window": {
+    "###/SmartDashboard/Autonomous modes": {
+      "Collapsed": "0",
+      "Pos": "18,707",
+      "Size": "254,54"
+    },
     "###/SmartDashboard/Field": {
       "Collapsed": "0",
-      "Pos": "297,49",
-      "Size": "1165,593"
+      "Pos": "244,21",
+      "Size": "956,598"
     },
     "###FMS": {
       "Collapsed": "0",
@@ -23,13 +28,13 @@
     },
     "###Joysticks": {
       "Collapsed": "0",
-      "Pos": "405,790",
+      "Pos": "250,465",
       "Size": "796,155"
     },
     "###NetworkTables": {
       "Collapsed": "0",
-      "Pos": "250,277",
-      "Size": "750,185"
+      "Pos": "376,671",
+      "Size": "750,294"
     },
     "###Other Devices": {
       "Collapsed": "0",

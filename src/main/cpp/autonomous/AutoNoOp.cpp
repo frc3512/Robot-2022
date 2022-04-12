@@ -5,5 +5,4 @@
 namespace frc3512 {
 
 void Robot::AutoNoOp() {}
-
 }  // namespace frc3512

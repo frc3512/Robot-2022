@@ -15,7 +15,7 @@
 
 using namespace frc3512;
 
-const frc::LinearSystem<2, 2, 2> DrivetrainController::kPlant{GetPlant()};
+frc::LinearSystem<2, 2, 2> DrivetrainController::kPlant{GetPlant()};
 
 DrivetrainController::DrivetrainController() {
     m_fb.SetTolerance(
@@ -197,7 +197,7 @@ frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig() {
 frc::TrajectoryConfig DrivetrainController::MakeTrajectoryConfig(
     units::meters_per_second_t startVelocity,
     units::meters_per_second_t endVelocity) {
-    frc::TrajectoryConfig config{kMaxV * 0.5, 2.2_mps_sq};
+    frc::TrajectoryConfig config{kMaxV * 0.5, 6.6_mps_sq};
 
     config.AddConstraint(frc::DifferentialDriveVelocitySystemConstraint{
         kPlant, frc::DifferentialDriveKinematics{kWidth}, 8_V});

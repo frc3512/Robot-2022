@@ -69,18 +69,23 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     // dashboard plots
     SetNetworkTablesFlushEnabled(true);
 
-    m_autonChooser.AddAutonomous("Auto Shoot One", [=] { AutoShootOne(); });
+    // AUTONOMOUS MODES
+    m_autonChooser.AddAutonomous("Drive Backwards", [=] { AutoBackwards(); });
+    m_autonChooser.AddAutonomous("Shoot One", [=] { AutoShootOne(); });
+    m_autonChooser.AddAutonomous("Shoot Two", [=] { AutoShootTwo(); });
+    m_autonChooser.AddAutonomous("Shoot Three", [=] { AutoShootThree(); });
+    m_autonChooser.AddAutonomous("Shoot Four", [=] { AutoShootFour(); });
 
     // TIMESLICE ALLOCATION TABLE
     //
-    // |  Subsystem | Duration (ms) | Allocation (ms) |
-    // |------------|---------------|-----------------|
-    // | **Total**  | 5.0           | 5.0             |
-    // | TimedRobot | ?             | 2.0             |
-    // | Drivetrain | 1.32          | 1.5             |
-    // | Flywheel   | 0.6           | 0.7             |
-    // | Turret     | 0.6           | 0.8             |
-    // | **Free**   | 0.0           | N/A             |
+    // |  Subsystem     | Duration (ms) | Allocation (ms) |
+    // |----------------|---------------|-----------------|
+    // | **Total**      | 5.0           | 5.0             |
+    // | TimedRobot     | ?             | 2.0             |
+    // | Drivetrain     | 1.35          | 1.5             |
+    // | FrontFlywheel  | 0.6           | 0.7             |
+    // | BackFlywheel   | 0.6           | 0.7             |
+    // | **Free**       | None          | N/A             |
     Schedule(
         [=] {
             if (IsEnabled()) {
@@ -190,21 +195,22 @@ void Robot::TeleopPeriodic() {
             SetReadyToShoot(true);
         }
     } else {
+        if (driveStick2.GetRawButtonPressed(11)) {
+            backFlywheel.StowHood();
+            Shoot(FrontFlywheelConstants::kShootHighFender,
+                  BackFlywheelConstants::kShootHighFender);
+        }
+        if (driveStick2.GetRawButtonPressed(1)) {
+            Shoot(FrontFlywheelConstants::kShootHighTarmac,
+                  BackFlywheelConstants::kShootHighTarmac, false, true);
+        }
         if (driveStick1.GetRawButtonPressed(1)) {
             Shoot(FrontFlywheelConstants::kShootHighTarmac,
                   BackFlywheelConstants::kShootHighTarmac);
         }
-        if (driveStick2.GetRawButtonPressed(1)) {
+        if (driveStick1.GetRawButtonPressed(4)) {
             Shoot(FrontFlywheelConstants::kShootLow,
-                  BackFlywheelConstants::kShootLow, true);
-        }
-        if (driveStick2.GetRawButtonPressed(11)) {
-            Shoot(FrontFlywheelConstants::kShootHighFender,
-                  BackFlywheelConstants::kShootHighFender);
-        }
-        if (driveStick2.GetRawButtonPressed(3)) {
-            Shoot(frontFlywheel.GetGoalFromRange(),
-                  backFlywheel.GetGoalFromRange());
+                  BackFlywheelConstants::kShootLow);
         }
         if (driveStick1.GetRawButtonPressed(2)) {
             StopShooter();
@@ -270,7 +276,8 @@ void Robot::ExpectAutonomousEndConds() {
 bool Robot::IsShooting() const { return m_state != ShootingState::kIdle; }
 
 void Robot::Shoot(units::radians_per_second_t frontSpeed,
-                  units::radians_per_second_t backSpeed, bool visionAim) {
+                  units::radians_per_second_t backSpeed, bool visionAim,
+                  bool shootWithRange) {
     if (m_state == ShootingState::kIdle) {
         frontFlywheel.SetGoal(frontSpeed);
         backFlywheel.SetGoal(backSpeed);
@@ -280,9 +287,14 @@ void Robot::Shoot(units::radians_per_second_t frontSpeed,
 
         // if we don't want to aim with vision, skip ahead in the state machine.
         m_visionAim = visionAim;
-        if (m_visionAim) {
+        m_shootWithRange = shootWithRange;
+        if (m_visionAim && !m_shootWithRange) {
             m_state = ShootingState::kVisionAim;
-        } else {
+        } else if (!m_visionAim && m_shootWithRange) {
+            m_state = ShootingState::kVisionSpinUp;
+        } else if (!m_visionAim && !m_shootWithRange) {
+            m_shootTimer.Reset();
+            m_shootTimer.Start();
             m_state = ShootingState::kSpinUp;
         }
     }
@@ -303,30 +315,27 @@ void Robot::RunShooterSM() {
             }
             break;
         case ShootingState::kVisionSpinUp:
-            if (drivetrain.AtHeading() ||
-                (!drivetrain.AtHeading() && m_shootTimer.HasElapsed(3_s))) {
+            if ((drivetrain.AtHeading() ||
+                 (!drivetrain.AtHeading() && m_shootTimer.HasElapsed(3_s)) ||
+                 m_shootWithRange) &&
+                ReadyToShoot()) {
                 frontFlywheel.SetGoal(frontFlywheel.GetGoalFromRange());
                 backFlywheel.SetGoal(backFlywheel.GetGoalFromRange());
-                drivetrain.SetHeadingGoal(drivetrain.GetAngle());
+                m_shootTimer.Reset();
+                m_shootTimer.Start();
+                if (drivetrain.IsVisionAiming()) {
+                    drivetrain.DisengageVisionAim();
+                }
                 m_state = ShootingState::kSpinUp;
             }
             break;
         case ShootingState::kSpinUp:
             if (ReadyToShoot()) {
-                if (frc::RobotBase::IsAutonomousEnabled() &&
-                    frontFlywheel.IsReady() && backFlywheel.IsReady()) {
-                    m_state = ShootingState::kStartConveyor;
-                } else if (frc::RobotBase::IsTeleopEnabled() &&
-                           frontFlywheel.IsReady() && backFlywheel.IsReady()) {
+                if (frontFlywheel.IsReady() && backFlywheel.IsReady() &&
+                    m_shootTimer.HasElapsed(1.25_s)) {
+                    m_shootTimer.Stop();
                     m_state = ShootingState::kStartConveyor;
                 }
-            } else if (!frontFlywheel.IsReady() && !backFlywheel.IsReady() &&
-                       m_shootTimer.HasElapsed(3_s)) {
-                fmt::print(stderr, "Flywheels didn't get up to speed!");
-                frontFlywheel.SetGoal(0_rad_per_s);
-                backFlywheel.SetGoal(0_rad_per_s);
-                m_shootTimer.Stop();
-                m_state = ShootingState::kIdle;
             }
             break;
         case ShootingState::kStartConveyor:
@@ -343,14 +352,14 @@ void Robot::RunShooterSM() {
             }
             break;
         case ShootingState::kSecondBall:
-            if (m_shootTimer.HasElapsed(0.1_s)) {
+            if (m_shootTimer.HasElapsed(0.5_s)) {
                 intake.SetTimeToShoot(true);
                 m_shootTimer.Reset();
                 m_state = ShootingState::kEndShoot;
             }
             break;
         case ShootingState::kEndShoot:
-            if (m_shootTimer.HasElapsed(1_s)) {
+            if (m_shootTimer.HasElapsed(0.5_s)) {
                 StopShooter();
                 m_state = ShootingState::kIdle;
             }
@@ -363,6 +372,11 @@ void Robot::StopShooter() {
     backFlywheel.SetGoal(0_rad_per_s);
     intake.SetTimeToShoot(false);
     SetReadyToShoot(false);
+
+    if (!backFlywheel.IsHoodDeployed()) {
+        backFlywheel.DeployHood();
+    }
+    drivetrain.DisengageVisionAim();
     m_state = ShootingState::kIdle;
 }
 

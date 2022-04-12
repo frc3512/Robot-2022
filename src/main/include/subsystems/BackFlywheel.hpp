@@ -46,6 +46,9 @@ public:
     BackFlywheel(const BackFlywheel&) = delete;
     BackFlywheel& operator=(const BackFlywheel&) = delete;
 
+    /// offset for all shooting speeds.
+    static constexpr auto kSpeedOffset = 0.9;
+
     /**
      * Producer-consumer queue for yaw, pitch, and range measurements from
      * Vision subsystem.

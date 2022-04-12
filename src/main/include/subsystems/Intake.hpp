@@ -115,6 +115,8 @@ public:
 
     void TeleopPeriodic() override;
 
+    void TestPeriodic() override;
+
     void RobotPeriodic() override;
 
     void SimulationPeriodic() override;
