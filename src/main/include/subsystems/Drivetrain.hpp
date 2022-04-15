@@ -12,6 +12,7 @@
 #include <frc/controller/ImplicitModelFollower.h>
 #include <frc/controller/ProfiledPIDController.h>
 #include <frc/controller/SimpleMotorFeedforward.h>
+#include <frc/drive/DifferentialDrive.h>
 #include <frc/estimator/AngleStatistics.h>
 #include <frc/estimator/KalmanFilter.h>
 #include <frc/estimator/KalmanFilterLatencyCompensator.h>
@@ -64,13 +65,6 @@ public:
      * Distance from middle of robot to intake.
      */
     static constexpr units::meter_t kMiddleOfRobotToIntake = 0.656_m;
-
-    /// The constraints for the turn-in-place controller during auton.
-    frc::TrapezoidProfile<units::radian>::Constraints autonConstraints{
-        4_rad_per_s, 2.2_rad_per_s_sq};
-    /// The constraints for the turn-in-place controller when vision aiming.
-    frc::TrapezoidProfile<units::radian>::Constraints aimingConstraints{
-        1.5_rad_per_s, 0.5_rad_per_s_sq};
 
     /**
      * Producer-consumer queue for global pose measurements from Vision
@@ -320,6 +314,17 @@ public:
      */
     bool IsVisionAiming() const;
 
+    /**
+     * Returns whether or not the robot is looking at the center of the vision
+     * target.
+     */
+    bool AtVisionTarget() const;
+
+    /**
+     * Returns whether or not the robot is moving.
+     */
+    bool IsStationary();
+
     void DisabledInit() override;
 
     void AutonomousInit() override;
@@ -399,13 +404,20 @@ private:
 
     frc::Timer m_visionTimer;
     bool m_aimWithVision = false;
+    bool m_atVisionTarget = false;
+
+    frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
+        6_rad_per_s, 3.3_rad_per_s_sq};
     frc::ProfiledPIDController<units::radian> m_turningPID{
-        kTurningP, kTurningI, kTurningD, autonConstraints,
+        kTurningP, kTurningI, kTurningD, m_turningConstraints,
         Constants::kControllerPeriod};
     bool m_hasNewHeading = false;
     frc::SimpleMotorFeedforward<units::radian> m_turningFeedforward{
         0.17964_V, 2.6447_V / 1_rad_per_s};
     frc2::PIDController m_aimPID{kTurningP, kTurningI, kTurningD};
+
+    frc::DifferentialDrive m_visionAim{m_leftGrbx, m_rightGrbx};
+    frc2::PIDController m_visionController{1.5, kTurningI, 0.25};
 
     frc::LinearSystem<2, 2, 2> m_imfRef =
         frc::LinearSystemId::IdentifyDrivetrainSystem(
@@ -445,6 +457,11 @@ private:
     nt::NetworkTableEntry m_headingGoalValueEntry =
         NetworkTableUtil::MakeDoubleEntry(
             "/Diagnostics/Drivetrain/Outputs/Heading Goal");
+
+    nt::NetworkTableEntry m_rotationEntry =
+        NetworkTableUtil::MakeDoubleEntry("/Diagnostics/Drivetrain/Rotation");
+    nt::NetworkTableEntry m_isStationaryEntry = NetworkTableUtil::MakeBoolEntry(
+        "/Diagnostics/Drivetrain/Outputs/Is Stationary");
 
     /**
      * Set drivetrain motors to brake mode, which the feedback controllers

@@ -58,8 +58,6 @@ public:
         kSpinUp,
         kVisionAim,
         kStartConveyor,
-        kFirstBall,
-        kSecondBall,
         kEndShoot
     };
 

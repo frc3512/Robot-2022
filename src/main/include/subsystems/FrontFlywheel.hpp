@@ -88,6 +88,14 @@ public:
     void SetGoal(units::radians_per_second_t velocity);
 
     /**
+     * Sets the goal of the controller based on the distance from the target.
+     * This will will continue to happen until the driver disables it.
+     *
+     * @param setGoal set whether or not to continuously set goal from range.
+     */
+    void SetGoalFromRange(bool setGoal);
+
+    /**
      * Returns the current goal of the controller.
      */
     units::radians_per_second_t GetGoal() const;
@@ -167,6 +175,7 @@ private:
     Eigen::Matrix<double, 1, 1> m_u = Eigen::Matrix<double, 1, 1>::Zero();
 
     units::meter_t m_range;
+    bool m_setGoalFromRange = true;
 
     units::radian_t m_angle;
     units::radian_t m_lastAngle;

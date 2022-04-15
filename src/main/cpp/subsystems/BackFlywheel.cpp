@@ -33,22 +33,16 @@ BackFlywheel::BackFlywheel()
 
     SetCANSparkMaxBusUsage(m_backGrbx, Usage::kMinimal);
 
-    m_table.Insert(12_in, 100_rad_per_s);     // hood down.
-    m_table.Insert(24_in, 233.96_rad_per_s);  // hood up.
-    m_table.Insert(48_in, 263.205_rad_per_s);
-    m_table.Insert(72_in, 292.45_rad_per_s);
-    m_table.Insert(96_in, 350.94_rad_per_s);
-    m_table.Insert(120_in, 350.94_rad_per_s);
+    m_table.Insert(48_in, 146.225_rad_per_s);
+    m_table.Insert(72_in, 175.47_rad_per_s);
+    m_table.Insert(96_in, 204.715_rad_per_s);
+    m_table.Insert(120_in, 263.205_rad_per_s);
+    m_table.Insert(144_in, 321.695_rad_per_s);
+    m_table.Insert(168_in, 380.185_rad_per_s);
 
     Reset();
     SetGoal(0_rad_per_s);
 }
-
-void BackFlywheel::DeployHood() { m_solenoid.Set(false); }
-
-void BackFlywheel::StowHood() { m_solenoid.Set(true); }
-
-bool BackFlywheel::IsHoodDeployed() { return !m_solenoid.Get(); }
 
 units::radian_t BackFlywheel::GetAngle() {
     return units::radian_t{m_backEncoder.GetDistance()};
@@ -60,6 +54,10 @@ units::radians_per_second_t BackFlywheel::GetAngularVelocity() const {
 
 void BackFlywheel::SetGoal(units::radians_per_second_t velocity) {
     m_controller.SetGoal(velocity);
+}
+
+void BackFlywheel::SetGoalFromRange(bool setGoal) {
+    m_setGoalFromRange = setGoal;
 }
 
 units::radians_per_second_t BackFlywheel::GetGoal() const {
@@ -89,14 +87,6 @@ void BackFlywheel::Reset() {
 void BackFlywheel::TeleopPeriodic() {
     static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
-    if (driveStick2.GetRawButtonPressed(4)) {
-        if (IsHoodDeployed()) {
-            StowHood();
-        } else {
-            DeployHood();
-        }
-    }
-
     double percent = GetGoal().value() /
                      BackFlywheelConstants::kMaxAngularVelocity.value() * 100.0;
     m_percentageEntry.SetDouble(percent);
@@ -114,14 +104,6 @@ void BackFlywheel::RobotPeriodic() {
                           BackFlywheelConstants::kMaxAngularVelocity.value()) *
                          100.0;
         m_percentageEntry.SetDouble(percent);
-
-        if (driveStick2.GetRawButtonPressed(4)) {
-            if (IsHoodDeployed()) {
-                StowHood();
-            } else {
-                DeployHood();
-            }
-        }
     }
 }
 
@@ -166,6 +148,10 @@ void BackFlywheel::ControllerPeriodic() {
         m_flywheelSim.SetInput(Eigen::Vector<double, 1>{voltage.value()});
         m_flywheelSim.Update(GetDt());
         m_encoderSim.SetDistance(m_flywheelSim.GetAngle().value());
+    }
+
+    if (m_setGoalFromRange) {
+        SetGoal(m_table[m_range]);
     }
 
     m_lastAngle = m_angle;
