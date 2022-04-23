@@ -4,7 +4,8 @@
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Autonomous modes": "String Chooser",
       "/SmartDashboard/Climber": "Mechanism2d",
-      "/SmartDashboard/Field": "Field2d"
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/Vision PID": "PIDController"
     },
     "windows": {
       "/SmartDashboard/Autonomous modes": {
@@ -26,6 +27,9 @@
         "Outputs": {
           "open": true
         },
+        "open": true
+      },
+      "Robot": {
         "open": true
       },
       "open": true

@@ -49,14 +49,11 @@ void Robot::AutoShootThree() {
     intake.Stop();
     intake.Stow();
 
-    drivetrain.SetTurningTolerance(0.25_rad);
     drivetrain.SetHeadingGoal(units::radian_t{(3 * wpi::numbers::pi) / 2});
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
         return;
     }
-
-    drivetrain.SetTurningTolerance(0.15_rad);
 
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           FrontFlywheelConstants::kShootHighTarmac, true);
@@ -96,14 +93,12 @@ void Robot::AutoShootThree() {
     intake.Stow();
     intake.Stop();
 
-    drivetrain.SetTurningTolerance(0.25_rad);
     drivetrain.SetHeadingGoal(units::radian_t{(2.5 * wpi::numbers::pi) / 2.0});
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
         return;
     }
 
-    drivetrain.SetTurningTolerance(0.15_rad);
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           BackFlywheelConstants::kShootHighTarmac, true);
     SetReadyToShoot(true);

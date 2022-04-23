@@ -175,6 +175,7 @@ void Robot::AutonomousPeriodic() {
     RunShooterSM();
     m_backFlywheelAtGoal.SetBoolean(backFlywheel.IsReady());
     m_frontFlywheelAtGoal.SetBoolean(frontFlywheel.IsReady());
+    m_isShootingEntry.SetBoolean(IsShooting());
 }
 
 void Robot::TeleopPeriodic() {
@@ -191,7 +192,7 @@ void Robot::TeleopPeriodic() {
     if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
         if (driveStick1.GetRawButtonPressed(1) ||
             driveStick2.GetRawButtonPressed(1) ||
-            driveStick2.GetRawButtonPressed(4)) {
+            driveStick1.GetRawButtonPressed(4)) {
             SetReadyToShoot(true);
         }
     } else {
@@ -217,6 +218,7 @@ void Robot::TeleopPeriodic() {
 
     m_backFlywheelAtGoal.SetBoolean(backFlywheel.IsReady());
     m_frontFlywheelAtGoal.SetBoolean(frontFlywheel.IsReady());
+    m_isShootingEntry.SetBoolean(IsShooting());
 }
 
 void Robot::TestPeriodic() {
@@ -234,6 +236,7 @@ void Robot::TestPeriodic() {
     m_frontFlywheelAtGoal.SetBoolean(frontFlywheel.IsReady());
 
     // RunShooterSM();
+    m_isShootingEntry.SetBoolean(IsShooting());
 }
 
 frc::Pose2d Robot::UpdateAutoPoseRotation(const frc::Pose2d& pose,
@@ -305,17 +308,24 @@ void Robot::RunShooterSM() {
             m_state = ShootingState::kVisionSpinUp;
             break;
         case ShootingState::kVisionSpinUp:
-            if (vision.HaveTargets() || (m_shootWithRange && ReadyToShoot())) {
-                frontFlywheel.SetGoalFromRange(true);
-                backFlywheel.SetGoalFromRange(true);
+            if constexpr (IsSimulation()) {
                 m_state = ShootingState::kSpinUp;
+            } else {
+                if (vision.HaveTargets() ||
+                    (m_shootWithRange && ReadyToShoot())) {
+                    frontFlywheel.SetGoalFromRange(true);
+                    backFlywheel.SetGoalFromRange(true);
+                    m_state = ShootingState::kSpinUp;
+                }
             }
             break;
         case ShootingState::kSpinUp:
             if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
                 if ((m_visionAim && drivetrain.AtVisionTarget()) ||
-                    m_shootWithRange) {
+                    (m_shootWithRange && ReadyToShoot())) {
                     m_state = ShootingState::kStartConveyor;
+                } else if (drivetrain.HasVisionTimeOut()) {
+                    m_state = ShootingState::kEndShoot;
                 }
             }
             break;

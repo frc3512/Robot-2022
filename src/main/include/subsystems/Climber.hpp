@@ -133,6 +133,10 @@ private:
     nt::NetworkTableEntry m_rightTopSwitchEntry =
         NetworkTableUtil::MakeDoubleEntry(
             "/Diagnostics/Climber/Right Top Switch");
+    nt::NetworkTableEntry m_leftArmEntry = NetworkTableUtil::MakeDoubleEntry(
+        "/Diagnostics/Climber/Left Arm Value");
+    nt::NetworkTableEntry m_rightArmEntry = NetworkTableUtil::MakeDoubleEntry(
+        "/Diagnostics/Climber/Right Arm Value");
 
     // Simulation variables
     frc::sim::LinearSystemSim<2, 1, 1> m_leftClimberSimLS{

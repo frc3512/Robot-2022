@@ -71,11 +71,11 @@ void Climber::TeleopPeriodic() {
     // elevator.
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    double rightY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1),
+    double rightY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1),
                                        Constants::kJoystickDeadband) *
                     0.8;
 
-    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1),
+    double leftY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1),
                                       Constants::kJoystickDeadband) *
                    0.76;
 
