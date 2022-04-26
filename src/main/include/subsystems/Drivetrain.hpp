@@ -320,8 +320,6 @@ public:
      */
     bool AtVisionTarget() const;
 
-    bool HasVisionTimeOut() const;
-
     /**
      * Returns whether or not the robot is moving.
      */
@@ -407,7 +405,6 @@ private:
     frc::Timer m_visionTimer;
     bool m_aimWithVision = false;
     bool m_atVisionTarget = false;
-    bool m_visionTimeOut = false;
 
     frc::TrapezoidProfile<units::radian>::Constraints m_turningConstraints{
         6_rad_per_s, 3.3_rad_per_s_sq};

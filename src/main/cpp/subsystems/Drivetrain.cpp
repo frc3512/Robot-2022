@@ -243,11 +243,7 @@ void Drivetrain::ControllerPeriodic() {
           GetVisionYaw().value() >= -0.125) &&
          IsStationary())) {
         m_atVisionTarget = true;
-        m_visionTimeOut = false;
         DisengageVisionAim();
-    } else if (m_visionTimer.HasElapsed(5_s)) {
-        m_atVisionTarget = false;
-        m_visionTimeOut = true;
     } else {
         m_atVisionTarget = false;
     }
@@ -421,8 +417,6 @@ void Drivetrain::DisengageVisionAim() {
 bool Drivetrain::IsVisionAiming() const { return m_aimWithVision; }
 
 bool Drivetrain::AtVisionTarget() const { return m_atVisionTarget; }
-
-bool Drivetrain::HasVisionTimeOut() const { return m_visionTimeOut; }
 
 bool Drivetrain::IsStationary() {
     using State = DrivetrainController::State;

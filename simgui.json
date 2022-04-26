@@ -8,6 +8,11 @@
       "/SmartDashboard/Vision PID": "PIDController"
     },
     "windows": {
+      "/FMSInfo": {
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/Autonomous modes": {
         "window": {
           "visible": true

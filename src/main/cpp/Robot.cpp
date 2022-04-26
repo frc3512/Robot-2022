@@ -324,8 +324,6 @@ void Robot::RunShooterSM() {
                 if ((m_visionAim && drivetrain.AtVisionTarget()) ||
                     (m_shootWithRange && ReadyToShoot())) {
                     m_state = ShootingState::kStartConveyor;
-                } else if (drivetrain.HasVisionTimeOut()) {
-                    m_state = ShootingState::kEndShoot;
                 }
             }
             break;
