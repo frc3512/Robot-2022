@@ -43,6 +43,10 @@ FrontFlywheel::FrontFlywheel()
     m_table.Insert(144_in, 291.2_rad_per_s);
     m_table.Insert(168_in, 291.2_rad_per_s);
 
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        SetGoalFromRange(false);
+    }
+
     Reset();
     SetGoal(0_rad_per_s);
 }
