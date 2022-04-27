@@ -16,12 +16,17 @@ void Robot::AutoShootFour() {
                             units::radian_t{wpi::numbers::pi / 2}};
 
     // Third Ball - Right on top of the third ball.
-    frc::Pose2d kThirdBall{11.068_m, 6.177_m,
-                           units::radian_t{(11 * wpi::numbers::pi) / 6}};
+    frc::Pose2d kThirdBall{11.068_m, 6.518_m, units::radian_t{-5.524}};
 
     /// Fourth Ball - Right in front of the human player station on top of the
     /// ball.
     const frc::Pose2d kFourthBall{14.040_m, 6.568_m, units::radian_t{0.406644}};
+
+    // End Pose - The last position, between the third and fourth ball. Farther
+    // than the third ball from the goal so the robot doesn't have to travel as
+    // far.
+    const frc::Pose2d kEndPose{12.568_m, 6.177_m,
+                               units::radian_t{(3.0 * wpi::numbers::pi) / 2.0}};
 
     drivetrain.Reset(kInitialPose);
 
@@ -59,8 +64,6 @@ void Robot::AutoShootFour() {
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
         return;
     }
-
-    drivetrain.SetTurningTolerance(units::radian_t{0.15});
 
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           FrontFlywheelConstants::kShootHighTarmac, true);
@@ -103,21 +106,13 @@ void Robot::AutoShootFour() {
         auto config = DrivetrainController::MakeTrajectoryConfig();
         config.SetReversed(true);
 
-        drivetrain.AddTrajectory(kFourthBall, {}, kThirdBall, config);
+        drivetrain.AddTrajectory(kFourthBall, {}, kEndPose, config);
 
         if (!m_autonChooser.Suspend([=] { return drivetrain.AtGoal(); })) {
             return;
         }
     }
 
-    drivetrain.SetTurningTolerance(units::radian_t{0.25});
-    drivetrain.SetHeadingGoal(units::radian_t{(2.5 * wpi::numbers::pi) / 2});
-
-    if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
-        return;
-    }
-
-    drivetrain.SetTurningTolerance(units::radian_t{0.15});
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           BackFlywheelConstants::kShootHighTarmac, true);
     SetReadyToShoot(true);

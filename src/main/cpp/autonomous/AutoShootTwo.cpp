@@ -52,8 +52,6 @@ void Robot::AutoShootTwo() {
         return;
     }
 
-    drivetrain.SetTurningTolerance(units::radian_t{0.15});
-
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           FrontFlywheelConstants::kShootHighTarmac, true);
     SetReadyToShoot(true);

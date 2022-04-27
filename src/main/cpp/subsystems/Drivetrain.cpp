@@ -38,7 +38,8 @@ Drivetrain::Drivetrain()
            ControllerLabel{"Left position", "m"},
            ControllerLabel{"Right position", "m"},
            ControllerLabel{"Longitudinal Acceleration", "m/s^2"},
-           ControllerLabel{"Lateral Acceleration", "m/s^2"}}) {
+           ControllerLabel{"Lateral Acceleration", "m/s^2"}},
+          true) {
     SetCANSparkMaxBusUsage(m_leftLeader, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_leftFollower, Usage::kMinimal);
     SetCANSparkMaxBusUsage(m_rightLeader, Usage::kMinimal);
@@ -71,6 +72,8 @@ Drivetrain::Drivetrain()
     m_turningPID.EnableContinuousInput(units::radian_t{-wpi::numbers::pi},
                                        units::radian_t{wpi::numbers::pi});
     m_turningPID.SetTolerance(units::radian_t{0.25});
+
+    m_visionAim.SetSafetyEnabled(false);
 
     frc::SmartDashboard::PutData(&m_field);
 }
@@ -229,14 +232,21 @@ void Drivetrain::ControllerPeriodic() {
             controllerState(DrivetrainController::State::kHeading)});
     }
 
-    if ((!(m_controller.GetVisionYaw() < 0.1_rad) ||
-         !(m_controller.GetVisionYaw() > -0.1_rad)) &&
-        m_aimWithVision) {
-        SetHeadingGoal(GetAngle() - m_controller.GetVisionYaw());
+    if (IsVisionAiming()) {
+        double rotation =
+            -m_visionController.Calculate(GetVisionYaw().value(), 0.0);
+
+        m_rotationEntry.SetDouble(rotation);
+        m_visionAim.ArcadeDrive(0.0, rotation);
+    }
+
+    if (((GetVisionYaw().value() <= 0.125 &&
+          GetVisionYaw().value() >= -0.125) &&
+         IsStationary())) {
+        m_atVisionTarget = true;
+        DisengageVisionAim();
     } else {
-        m_visionTimer.Stop();
-        m_visionTimer.Reset();
-        m_aimWithVision = false;
+        m_atVisionTarget = false;
     }
 
     m_currHeadingEntry.SetDouble(m_turningPID.GetGoal().position.value());
@@ -283,13 +293,16 @@ void Drivetrain::ControllerPeriodic() {
     }
 
     m_headingGoalEntry.SetBoolean(AtHeading());
+    m_isStationaryEntry.SetBoolean(IsStationary());
 
     m_lastLeftPos = m_leftPos;
     m_lastRightPos = m_rightPos;
     m_lastTime = m_time;
 }
 
-void Drivetrain::RobotPeriodic() {}
+void Drivetrain::RobotPeriodic() {
+    frc::SmartDashboard::PutData("Vision PID", &m_visionController);
+}
 
 void Drivetrain::AddTrajectory(const frc::Pose2d& start,
                                const std::vector<frc::Translation2d>& interior,
@@ -396,9 +409,21 @@ void Drivetrain::AimWithVision() {
     m_aimWithVision = true;
 }
 
-void Drivetrain::DisengageVisionAim() { m_aimWithVision = false; }
+void Drivetrain::DisengageVisionAim() {
+    m_aimWithVision = false;
+    m_visionTimer.Reset();
+    m_visionTimer.Stop();
+}
 
 bool Drivetrain::IsVisionAiming() const { return m_aimWithVision; }
+
+bool Drivetrain::AtVisionTarget() const { return m_atVisionTarget; }
+
+bool Drivetrain::IsStationary() {
+    using State = DrivetrainController::State;
+    return GetStates()(State::kLeftVelocity) < 0.1 &&
+           GetStates()(State::kRightVelocity) < 0.1;
+}
 
 void Drivetrain::DisabledInit() {
     SetBrakeMode();
@@ -408,7 +433,6 @@ void Drivetrain::DisabledInit() {
 void Drivetrain::AutonomousInit() {
     SetBrakeMode();
     SetTurningTolerance(0.25_rad);
-    SetTurningConstraints(autonConstraints);
     Enable();
 }
 
@@ -425,9 +449,6 @@ void Drivetrain::TeleopInit() {
     // turning action so teleop driving can occur.
     AbortTurnInPlace();
 
-    SetTurningTolerance(0.15_rad);
-    SetTurningConstraints(autonConstraints);
-
     Enable();
 }
 
@@ -443,10 +464,6 @@ void Drivetrain::TestInit() {
     // autonomous, it will continue to do so in teleop. This aborts any
     // turning action so teleop driving can occur.
     AbortTurnInPlace();
-
-    SetTurningTolerance(0.15_rad);
-    SetTurningConstraints(aimingConstraints);
-
     Enable();
 }
 
@@ -459,8 +476,11 @@ void Drivetrain::TeleopPeriodic() {
     double y =
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
-        0.6;
+        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
+
+    if (driveStick2.GetRawButton(2)) {
+        x *= 0.4;
+    }
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));
@@ -472,11 +492,9 @@ void Drivetrain::TeleopPeriodic() {
                                                  GetRightVelocity().value()},
                         Eigen::Vector<double, 2>{left * 12.0, right * 12.0});
 
-    m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
-    m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
-
-    if (driveStick1.GetRawButtonPressed(3)) {
-        SetHeadingGoal(GetAngle() + units::radian_t{wpi::numbers::pi});
+    if (!IsVisionAiming()) {
+        m_leftGrbx.SetVoltage(units::volt_t{u(Input::kLeftVoltage)});
+        m_rightGrbx.SetVoltage(units::volt_t{u(Input::kRightVoltage)});
     }
 
     m_headingGoalEntry.SetBoolean(AtHeading());
@@ -496,7 +514,7 @@ void Drivetrain::TestPeriodic() {
         frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
     double x =
         frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
-        0.6;
+        0.4;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
         y, x, driveStick2.GetRawButton(2));

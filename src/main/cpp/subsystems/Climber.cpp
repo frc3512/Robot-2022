@@ -71,11 +71,11 @@ void Climber::TeleopPeriodic() {
     // elevator.
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
-    double rightY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1),
+    double rightY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1),
                                        Constants::kJoystickDeadband) *
                     0.8;
 
-    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1),
+    double leftY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1),
                                       Constants::kJoystickDeadband) *
                    0.76;
 
@@ -100,17 +100,13 @@ void Climber::TeleopPeriodic() {
 }
 
 void Climber::TestPeriodic() {
-    // physically on to the left of the other controller, controls left climber
-    // elevator.
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
-    // physically on the right of the other controller, controsl right climber
-    // elevator.
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
 
     double rightY =
-        frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1) * 0.76;
+        frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1) * 0.76;
 
-    double leftY = frc::ApplyDeadband(appendageStick2.GetRawAxis(1), 0.1) * 0.8;
+    double leftY = frc::ApplyDeadband(appendageStick1.GetRawAxis(1), 0.1) * 0.8;
 
     SetClimber(leftY, rightY);
 

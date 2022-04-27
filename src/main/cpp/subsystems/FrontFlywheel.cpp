@@ -35,13 +35,17 @@ FrontFlywheel::FrontFlywheel()
     SetCANSparkMaxBusUsage(m_frontGrbx, Usage::kMinimal);
 
     // currently flywheel goes to constants speed, but might need to increase
-    // for farther shots. using LerpTable for furture proofing.
-    m_table.Insert(12_in, 359_rad_per_s);  // hood down.
-    m_table.Insert(24_in, 359_rad_per_s);  // hood up.
-    m_table.Insert(48_in, 359_rad_per_s);
-    m_table.Insert(72_in, 359_rad_per_s);
-    m_table.Insert(96_in, 359_rad_per_s);
-    m_table.Insert(108_in, 414.89_rad_per_s);
+    // for farther shots. using LerpTable for future proofing.
+    m_table.Insert(48_in, 291.2_rad_per_s);
+    m_table.Insert(72_in, 291.2_rad_per_s);
+    m_table.Insert(96_in, 291.2_rad_per_s);
+    m_table.Insert(120_in, 291.2_rad_per_s);
+    m_table.Insert(144_in, 291.2_rad_per_s);
+    m_table.Insert(168_in, 291.2_rad_per_s);
+
+    if constexpr (frc::RobotBase::IsSimulation()) {
+        SetGoalFromRange(false);
+    }
 
     Reset();
     SetGoal(0_rad_per_s);
@@ -57,6 +61,10 @@ units::radians_per_second_t FrontFlywheel::GetAngularVelocity() const {
 
 void FrontFlywheel::SetGoal(units::radians_per_second_t velocity) {
     m_controller.SetGoal(velocity);
+}
+
+void FrontFlywheel::SetGoalFromRange(bool setGoal) {
+    m_setGoalFromRange = setGoal;
 }
 
 units::radians_per_second_t FrontFlywheel::GetGoal() const {
@@ -145,6 +153,10 @@ void FrontFlywheel::ControllerPeriodic() {
         m_flywheelSim.SetInput(Eigen::Vector<double, 1>{voltage.value()});
         m_flywheelSim.Update(GetDt());
         m_encoderSim.SetDistance(m_flywheelSim.GetAngle().value());
+    }
+
+    if (m_setGoalFromRange) {
+        SetGoal(m_table[m_range]);
     }
 
     m_lastAngle = m_angle;

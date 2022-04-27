@@ -39,7 +39,7 @@ void Robot::AutoShootThree() {
     }
 
     autonTimer.Start();
-    if (!m_autonChooser.Suspend([=] { return autonTimer.HasElapsed(0.5_s); })) {
+    if (!m_autonChooser.Suspend([=] { return autonTimer.HasElapsed(1.0_s); })) {
         return;
     }
 
@@ -54,8 +54,6 @@ void Robot::AutoShootThree() {
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
         return;
     }
-
-    drivetrain.SetTurningTolerance(units::radian_t{0.15});
 
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           FrontFlywheelConstants::kShootHighTarmac, true);
@@ -95,16 +93,11 @@ void Robot::AutoShootThree() {
     intake.Stow();
     intake.Stop();
 
-    drivetrain.SetTurningTolerance(units::radian_t{0.25});
-    drivetrain.SetTurningConstraints(drivetrain.autonConstraints);
-
     drivetrain.SetHeadingGoal(units::radian_t{(2.5 * wpi::numbers::pi) / 2.0});
 
     if (!m_autonChooser.Suspend([=] { return drivetrain.AtHeading(); })) {
         return;
     }
-
-    drivetrain.SetTurningTolerance(units::radian_t{0.15});
 
     Shoot(FrontFlywheelConstants::kShootHighTarmac,
           BackFlywheelConstants::kShootHighTarmac, true);

@@ -58,8 +58,6 @@ public:
         kSpinUp,
         kVisionAim,
         kStartConveyor,
-        kFirstBall,
-        kSecondBall,
         kEndShoot
     };
 
@@ -288,5 +286,7 @@ private:
         NetworkTableUtil::MakeBoolEntry("/Diagnostics/Back Flywheel/At Goal");
     nt::NetworkTableEntry m_frontFlywheelAtGoal =
         NetworkTableUtil::MakeBoolEntry("/Diagnostics/Front Flywheel/At Goal");
+    nt::NetworkTableEntry m_isShootingEntry =
+        NetworkTableUtil::MakeBoolEntry("/Diagnostics/Robot/Is Shooting");
 };
 }  // namespace frc3512
