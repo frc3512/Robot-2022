@@ -5,11 +5,11 @@
 #include <algorithm>
 
 #include <frc/DriverStation.h>
-#include <frc/Joystick.h>
 #include <frc/MathUtil.h>
 #include <frc/RobotBase.h>
 #include <frc/RobotController.h>
 #include <frc/StateSpaceUtil.h>
+#include <frc/XboxController.h>
 #include <frc/drive/DifferentialDrive.h>
 #include <frc/fmt/Eigen.h>
 #include <frc/smartdashboard/SmartDashboard.h>
@@ -470,20 +470,16 @@ void Drivetrain::TestInit() {
 void Drivetrain::TeleopPeriodic() {
     using Input = DrivetrainController::Input;
 
-    static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
-    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
+    static frc::XboxController driveController{HWConfig::kDriveControllerPort};
 
-    double y =
-        frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
-    double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband);
-
-    if (driveStick2.GetRawButton(2)) {
-        x *= 0.4;
-    }
+    double y = frc::ApplyDeadband(driveController.GetLeftTriggerAxis(),
+                                  Constants::kJoystickDeadband);
+    double x = frc::ApplyDeadband(driveController.GetRightTriggerAxis(),
+                                  Constants::kJoystickDeadband) *
+               0.4;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
-        y, x, driveStick2.GetRawButton(2));
+        y, x, driveController.GetRightStickButton());
 
     // Implicit model following
     // TODO: Velocities need filtering
@@ -507,17 +503,16 @@ void Drivetrain::TeleopPeriodic() {
 void Drivetrain::TestPeriodic() {
     using Input = DrivetrainController::Input;
 
-    static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
-    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
+    static frc::XboxController driveController{HWConfig::kDriveControllerPort};
 
-    double y =
-        frc::ApplyDeadband(-driveStick1.GetY(), Constants::kJoystickDeadband);
-    double x =
-        frc::ApplyDeadband(driveStick2.GetX(), Constants::kJoystickDeadband) *
-        0.4;
+    double y = frc::ApplyDeadband(driveController.GetLeftTriggerAxis(),
+                                  Constants::kJoystickDeadband);
+    double x = frc::ApplyDeadband(driveController.GetRightTriggerAxis(),
+                                  Constants::kJoystickDeadband) *
+               0.4;
 
     auto [left, right] = frc::DifferentialDrive::CurvatureDriveIK(
-        y, x, driveStick2.GetRawButton(2));
+        y, x, driveController.GetRightStickButton());
 
     // Implicit model following
     // TODO: Velocities need filtering

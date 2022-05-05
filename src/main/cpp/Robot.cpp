@@ -15,6 +15,7 @@
 #include <frc/RobotController.h>
 #include <frc/Threads.h>
 #include <frc/UidSetter.h>
+#include <frc/XboxController.h>
 #include <frc/livewindow/LiveWindow.h>
 #include <frc/simulation/BatterySim.h>
 #include <frc/simulation/RoboRioSim.h>
@@ -182,35 +183,35 @@ void Robot::TeleopPeriodic() {
     SubsystemBase::RunAllTeleopPeriodic();
     static frc::Joystick appendageStick2{HWConfig::kAppendageStick2Port};
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
-    static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
-    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
 
-    if (driveStick2.GetRawButton(5)) {
+    static frc::XboxController driveController{HWConfig::kDriveControllerPort};
+
+    if (driveController.GetYButtonPressed()) {
         drivetrain.AimWithVision();
     }
 
     if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {
-        if (driveStick1.GetRawButtonPressed(1) ||
-            driveStick2.GetRawButtonPressed(1) ||
-            driveStick1.GetRawButtonPressed(4)) {
+        if (driveController.GetXButtonPressed() ||
+            driveController.GetBButtonPressed() ||
+            driveController.GetAButtonPressed()) {
             SetReadyToShoot(true);
         }
     } else {
-        if (driveStick2.GetRawButtonPressed(1)) {
+        if (driveController.GetBButtonPressed()) {
             Shoot(FrontFlywheelConstants::kShootHighTarmac,
                   BackFlywheelConstants::kShootHighTarmac, true);
         }
-        if (driveStick1.GetRawButtonPressed(1)) {
+        if (driveController.GetXButtonPressed()) {
             Shoot(FrontFlywheelConstants::kShootHighTarmac,
                   BackFlywheelConstants::kShootHighTarmac);
         }
-        if (driveStick1.GetRawButtonPressed(4)) {
+        if (driveController.GetAButtonPressed()) {
             Shoot(FrontFlywheelConstants::kShootHighTarmac,
                   BackFlywheelConstants::kShootHighTarmac, false, true);
         }
     }
 
-    if (driveStick1.GetRawButtonPressed(2)) {
+    if (driveController.GetRightBumperPressed()) {
         StopShooter();
     }
 
@@ -297,9 +298,6 @@ void Robot::Shoot(units::radians_per_second_t frontSpeed,
 }
 
 void Robot::RunShooterSM() {
-    static frc::Joystick driveStick1{HWConfig::kDriveStick1Port};
-    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
-
     switch (m_state) {
         case ShootingState::kIdle:
             break;

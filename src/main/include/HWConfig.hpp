@@ -12,11 +12,8 @@
  */
 namespace frc3512::HWConfig {
 
-/// Drive joystick 1 port
-constexpr int kDriveStick1Port = 0;
-
-/// Drive joystick 2 port
-constexpr int kDriveStick2Port = 1;
+/// Drive controller port
+constexpr int kDriveControllerPort = 0;
 
 /// Appendage joystick 1 port
 constexpr int kAppendageStick1Port = 2;

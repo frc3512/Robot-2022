@@ -89,15 +89,12 @@ void BackFlywheel::Reset() {
 }
 
 void BackFlywheel::TeleopPeriodic() {
-    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
-
     double percent = GetGoal().value() /
                      BackFlywheelConstants::kMaxAngularVelocity.value() * 100.0;
     m_percentageEntry.SetDouble(percent);
 }
 
 void BackFlywheel::RobotPeriodic() {
-    static frc::Joystick driveStick2{HWConfig::kDriveStick2Port};
     static frc::Joystick appendageStick1{HWConfig::kAppendageStick1Port};
 
     if (frc::DriverStation::IsTest()) {
