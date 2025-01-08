@@ -27,7 +27,6 @@
 #include "NetworkTableUtil.hpp"
 #include "controllers/FlywheelController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
-#include "subsystems/Vision.hpp"
 
 namespace frc3512 {
 
@@ -48,12 +47,6 @@ public:
 
     /// offset applied to shooting speeds.
     static constexpr double kSpeedOffset = 0.95;
-
-    /**
-     * Producer-consumer queue for yaw, pitch, and range measurements from
-     * Vision subsystem.
-     */
-    wpi::static_circular_buffer<Vision::GlobalMeasurements, 8> visionQueue;
 
     /**
      * Deploys the solenoid for the shooter.

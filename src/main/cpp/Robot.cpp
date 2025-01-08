@@ -69,12 +69,6 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     // dashboard plots
     SetNetworkTablesFlushEnabled(true);
 
-    // AUTONOMOUS MODES
-    m_autonChooser.AddAutonomous("Drive Backwards", [=] { AutoBackwards(); });
-    m_autonChooser.AddAutonomous("Shoot One", [=] { AutoShootOne(); });
-    m_autonChooser.AddAutonomous("Shoot Two", [=] { AutoShootTwo(); });
-    m_autonChooser.AddAutonomous("Shoot Three", [=] { AutoShootThree(); });
-    m_autonChooser.AddAutonomous("Shoot Four", [=] { AutoShootFour(); });
 
     // TIMESLICE ALLOCATION TABLE
     //
@@ -113,10 +107,6 @@ Robot::Robot() : frc::TimesliceRobot{2_ms, Constants::kControllerPeriod} {
     if constexpr (!IsSimulation()) {
         frc::CameraServer::StartAutomaticCapture().SetResolution(160, 120);
     }
-
-    vision.SubscribeToVisionData(drivetrain.visionQueue);
-    vision.SubscribeToVisionData(backFlywheel.visionQueue);
-    vision.SubscribeToVisionData(frontFlywheel.visionQueue);
 }
 
 Robot::~Robot() {}
@@ -197,16 +187,16 @@ void Robot::TeleopPeriodic() {
         }
     } else {
         if (driveStick2.GetRawButtonPressed(1)) {
-            Shoot(FrontFlywheelConstants::kShootHighTarmac,
-                  BackFlywheelConstants::kShootHighTarmac, true);
+            Shoot(FrontFlywheelConstants::kShootHighFender,
+                  BackFlywheelConstants::kShootHighFender);
         }
         if (driveStick1.GetRawButtonPressed(1)) {
             Shoot(FrontFlywheelConstants::kShootHighTarmac,
                   BackFlywheelConstants::kShootHighTarmac);
         }
         if (driveStick1.GetRawButtonPressed(4)) {
-            Shoot(FrontFlywheelConstants::kShootHighTarmac,
-                  BackFlywheelConstants::kShootHighTarmac, false, true);
+            Shoot(FrontFlywheelConstants::kShootLow,
+                  BackFlywheelConstants::kShootLow);
         }
     }
 
@@ -275,8 +265,7 @@ void Robot::ExpectAutonomousEndConds() {
 bool Robot::IsShooting() const { return m_state != ShootingState::kIdle; }
 
 void Robot::Shoot(units::radians_per_second_t frontSpeed,
-                  units::radians_per_second_t backSpeed, bool visionAim,
-                  bool shootWithRange) {
+                  units::radians_per_second_t backSpeed) {
     if (m_state == ShootingState::kIdle) {
         frontFlywheel.SetGoal(frontSpeed);
         backFlywheel.SetGoal(backSpeed);
@@ -284,15 +273,8 @@ void Robot::Shoot(units::radians_per_second_t frontSpeed,
         m_shootTimer.Reset();
         m_shootTimer.Stop();
 
-        m_visionAim = visionAim;
-        m_shootWithRange = shootWithRange;
-        if (!m_visionAim && m_shootWithRange) {
-            m_state = ShootingState::kVisionSpinUp;
-        } else if (m_visionAim && !m_shootWithRange) {
-            m_state = ShootingState::kVisionAim;
-        } else {
-            m_state = ShootingState::kSpinUp;
-        }
+
+        m_state = ShootingState::kSpinUp;
     }
 }
 
@@ -302,22 +284,6 @@ void Robot::RunShooterSM() {
 
     switch (m_state) {
         case ShootingState::kIdle:
-            break;
-        case ShootingState::kVisionAim:
-            drivetrain.AimWithVision();
-            m_state = ShootingState::kVisionSpinUp;
-            break;
-        case ShootingState::kVisionSpinUp:
-            if constexpr (IsSimulation()) {
-                m_state = ShootingState::kSpinUp;
-            } else {
-                if (vision.HaveTargets() ||
-                    (m_shootWithRange && ReadyToShoot())) {
-                    frontFlywheel.SetGoalFromRange(true);
-                    backFlywheel.SetGoalFromRange(true);
-                    m_state = ShootingState::kSpinUp;
-                }
-            }
             break;
         case ShootingState::kSpinUp:
             if (frontFlywheel.IsReady() && backFlywheel.IsReady()) {

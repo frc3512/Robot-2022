@@ -146,8 +146,6 @@ void Drivetrain::Reset(const frc::Pose2d& initialPose) {
 }
 
 void Drivetrain::ControllerPeriodic() {
-    using Input = DrivetrainController::Input;
-
     UpdateDt();
 
     m_velocityObserver.Predict(m_u, GetDt());
@@ -177,60 +175,6 @@ void Drivetrain::ControllerPeriodic() {
     m_observer.Update(GetAngle(), GetLeftPosition(), GetRightPosition());
 
     m_velocityObserver.Correct(m_controller.GetInputs(), velPosY);
-
-    Eigen::Vector<double, 7> controllerState = GetStates();
-
-    while (visionQueue.size() > 0) {
-        auto measurement = visionQueue.pop_front();
-
-        m_controller.SetVisionYaw(measurement.yaw);
-        m_controller.SetVisionRange(measurement.range);
-    }
-
-    if (m_controller.HaveTrajectory()) {
-        m_u = m_controller.Calculate(GetStates());
-
-        if (!AtGoal()) {
-            m_leftGrbx.SetVoltage(units::volt_t{m_u(Input::kLeftVoltage)});
-            m_rightGrbx.SetVoltage(units::volt_t{m_u(Input::kRightVoltage)});
-        } else {
-            m_leftGrbx.SetVoltage(0_V);
-            m_rightGrbx.SetVoltage(0_V);
-        }
-    } else if (HasHeadingGoal()) {
-        // Update previous u stored in the controller. We don't care what the
-        // return value is.
-        static_cast<void>(m_controller.Calculate(GetStates()));
-
-        if (!AtHeading()) {
-            auto turningOutput = m_turningPID.Calculate(units::radian_t{
-                controllerState(DrivetrainController::State::kHeading)});
-            m_leftGrbx.SetVoltage(units::volt_t{-turningOutput} +
-                                  m_turningFeedforward.Calculate(
-                                      m_turningPID.GetGoal().velocity));
-            m_rightGrbx.SetVoltage(units::volt_t{turningOutput} +
-                                   m_turningFeedforward.Calculate(
-                                       m_turningPID.GetGoal().velocity));
-        } else {
-            m_hasNewHeading = false;
-            m_leftGrbx.SetVoltage(0_V);
-            m_rightGrbx.SetVoltage(0_V);
-        }
-    } else {
-        // Update previous u stored in the controller. We don't care what the
-        // return value is.
-        static_cast<void>(m_controller.Calculate(GetStates()));
-
-        // Run observer predict with inputs from teleop
-        m_u = Eigen::Vector<double, 2>{
-            std::clamp(m_leftGrbx.Get(), -1.0, 1.0) *
-                frc::RobotController::GetInputVoltage(),
-            std::clamp(m_rightGrbx.Get(), -1.0, 1.0) *
-                frc::RobotController::GetInputVoltage()};
-
-        m_turningPID.Calculate(units::radian_t{
-            controllerState(DrivetrainController::State::kHeading)});
-    }
 
     if (IsVisionAiming()) {
         double rotation =

@@ -4,7 +4,6 @@ plugins {
     id "cpp"
     id "google-test-test-suite"
     id "edu.wpi.first.GradleRIO" version "2022.4.1"
-    id "org.ysb33r.doxygen" version "0.7.0"
 }
 
 // For using remote development artifacts
@@ -205,29 +204,4 @@ task testRelease {
 task intellisense(type: Exec) {
     dependsOn 'generateCompileCommands'
     commandLine 'python3', './buildscripts/copy_compile_commands.py'
-}
-
-doxygen {
-    executables {
-        doxygen version : '1.9.2',
-        baseURI : 'https://frcmaven.wpi.edu/artifactory/generic-release-mirror/doxygen'
-    }
-
-    exclude 'frc/*'
-    exclude 'photonlib/*'
-
-    extension_mapping 'inc=C++'
-    generate_html true
-    generate_latex false
-    generate_treeview true
-    html_extra_stylesheet 'docs/theme.css'
-    html_timestamp true
-    quiet true
-    project_name 'Robot-2022'
-    use_mathjax true
-    warn_as_error 'FAIL_ON_WARNINGS'
-    warn_if_undocumented true
-
-    source 'src/main/include'
-    outputDir 'build/docs/'
 }

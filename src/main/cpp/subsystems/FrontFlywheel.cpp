@@ -134,11 +134,6 @@ void FrontFlywheel::ControllerPeriodic() {
     m_u = m_controller.Calculate(m_observer.Xhat());
     SetVoltage(units::volt_t{m_u(Input::kVoltage)});
 
-    while (visionQueue.size() > 0) {
-        auto measurement = visionQueue.pop_front();
-        m_range = measurement.range;
-    }
-
     Log(m_controller.GetReferences(), m_observer.Xhat(), m_u, y);
 
     if constexpr (frc::RobotBase::IsSimulation()) {

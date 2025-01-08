@@ -27,7 +27,6 @@
 #include "NetworkTableUtil.hpp"
 #include "controllers/FlywheelController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
-#include "subsystems/Vision.hpp"
 
 namespace frc3512 {
 
@@ -48,12 +47,6 @@ public:
 
     /// offset for all shooting speeds.
     static constexpr auto kSpeedOffset = 0.9;
-
-    /**
-     * Producer-consumer queue for yaw, pitch, and range measurements from
-     * Vision subsystem.
-     */
-    wpi::static_circular_buffer<Vision::GlobalMeasurements, 8> visionQueue;
 
     /**
      * Returns angular displacement of the rear flywheel

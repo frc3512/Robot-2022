@@ -31,7 +31,6 @@
 #include <frc/trajectory/TrajectoryConfig.h>
 #include <frc/trajectory/TrapezoidProfile.h>
 #include <networktables/NetworkTableEntry.h>
-#include <photonlib/PhotonCamera.h>
 #include <rev/CANSparkMax.h>
 #include <units/acceleration.h>
 #include <units/angle.h>
@@ -44,7 +43,6 @@
 #include "Constants.hpp"
 #include "HWConfig.hpp"
 #include "NetworkTableUtil.hpp"
-#include "Vision.hpp"
 #include "controllers/DrivetrainController.hpp"
 #include "subsystems/ControlledSubsystemBase.hpp"
 
@@ -65,12 +63,6 @@ public:
      * Distance from middle of robot to intake.
      */
     static constexpr units::meter_t kMiddleOfRobotToIntake = 0.656_m;
-
-    /**
-     * Producer-consumer queue for global pose measurements from Vision
-     * subsystem.
-     */
-    wpi::static_circular_buffer<Vision::GlobalMeasurements, 8> visionQueue;
 
     Drivetrain();
 
@@ -399,8 +391,6 @@ private:
 
     DrivetrainController m_controller;
     Eigen::Vector<double, 2> m_u = Eigen::Vector<double, 2>::Zero();
-
-    frc3512::Vision vision;
 
     frc::Timer m_visionTimer;
     bool m_aimWithVision = false;

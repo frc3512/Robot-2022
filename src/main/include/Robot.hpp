@@ -19,7 +19,6 @@
 #include "subsystems/FrontFlywheel.hpp"
 #include "subsystems/Intake.hpp"
 #include "subsystems/SubsystemBase.hpp"
-#include "subsystems/Vision.hpp"
 
 #if RUNNING_FRC_TESTS
 #include <gtest/gtest.h>
@@ -54,9 +53,7 @@ public:
      */
     enum class ShootingState {
         kIdle,
-        kVisionSpinUp,
         kSpinUp,
-        kVisionAim,
         kStartConveyor,
         kEndShoot
     };
@@ -77,9 +74,6 @@ public:
 
     /// Climber subsystem.
     Climber climber;
-
-    /// Vision subsystem
-    Vision vision;
 
     /// Timer used to add delays into autonomous
     frc::Timer autonTimer;
@@ -161,31 +155,6 @@ public:
     void AutoNoOp();
 
     /**
-     * Robot shoots one ball from the agianst the hub and drives off the tarmac.
-     */
-    void AutoShootOne();
-
-    /**
-     * Drive backwards autonomous.
-     */
-    void AutoBackwards();
-
-    /**
-     * Shoot two autonomous.
-     */
-    void AutoShootTwo();
-
-    /**
-     * Shoot three autonomous.
-     */
-    void AutoShootThree();
-
-    /**
-     * Shoot four autonomous.
-     */
-    void AutoShootFour();
-
-    /**
      * Returns a pose with the same x and y coordinates, but an updated heading.
      * A utility function for autonomous positions used when the robot turns in
      * place
@@ -232,8 +201,7 @@ public:
      * speed with vision.
      */
     void Shoot(units::radians_per_second_t frontSpeed,
-               units::radians_per_second_t backSpeed, bool visionAim = false,
-               bool shootWithRange = false);
+               units::radians_per_second_t backSpeed);
 
     /**
      * Runs the shooter state machine.
